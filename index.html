@@ -5,17 +5,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>GestPedidos — Sistema de Pedidos</title>
 
-<!-- Fonts -->
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Sora:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-<!-- Firebase SDK -->
 <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-  import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy }
-    from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
-
-  import { initializeApp } from "firebase/app";
-  import { getAnalytics } from "firebase/analytics";
+  import {
+    getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc,
+    onSnapshot, serverTimestamp, query, orderBy
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyAYxyWlrWc4d5mmW_3jZjRM5iOOO6wkU7E",
@@ -27,20 +24,22 @@
     measurementId: "G-WGJ256MV0J"
   };
 
-  const app = initializeApp(firebaseConfig);
-  const analytics = getAnalytics(app);
-  const db  = getFirestore(app);
+  try {
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
 
-  window._db = db;
-  window._fs = { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy };
-  document.dispatchEvent(new Event("firebase-ready"));
+    window._db = db;
+    window._fs = { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy };
+    document.dispatchEvent(new Event("firebase-ready"));
+  } catch (err) {
+    console.error("Firebase init error:", err);
+    document.dispatchEvent(new CustomEvent("firebase-error", { detail: err }));
+  }
 </script>
 
-<!-- ZXing barcode library -->
 <script src="https://unpkg.com/@zxing/library@0.19.1/umd/index.min.js"></script>
 
 <style>
-  /* ── Variables ──────────────────────────────────────── */
   :root {
     --bg:       #0b0c0e;
     --surface:  #131416;
@@ -79,7 +78,6 @@
     z-index: 9999;
   }
 
-  /* ── Header ────────────────────────────────────────── */
   header {
     border-bottom: 1px solid var(--border);
     padding: 0 2rem;
@@ -120,7 +118,6 @@
 
   main { max-width: 1100px; margin: 0 auto; padding: 2rem; }
 
-  /* ── Stats ─────────────────────────────────────────── */
   .stats-bar {
     display: grid;
     grid-template-columns: repeat(auto-fit,minmax(160px,1fr));
@@ -196,7 +193,6 @@
   .btn-add:active { transform: scale(.97); }
   .btn-add svg { flex-shrink:0; }
 
-  /* ── Table ──────────────────────────────────────────── */
   .table-wrap {
     background: var(--card);
     border: 1px solid var(--border);
@@ -275,7 +271,6 @@
   .empty-icon { font-size:3rem; margin-bottom:1rem; opacity:.3; }
   .empty p { font-size:.9rem; }
 
-  /* ── MODALS ─────────────────────────────────────────── */
   .overlay {
     position: fixed; inset:0;
     background: rgba(0,0,0,.75);
@@ -283,7 +278,7 @@
     -webkit-backdrop-filter: blur(6px);
     z-index:200;
     display:flex;
-    align-items: flex-end;         /* mobile: slide from bottom */
+    align-items: flex-end;
     justify-content:center;
     opacity:0;
     pointer-events:none;
@@ -295,7 +290,7 @@
   .modal {
     background: var(--card);
     border: 1px solid var(--border);
-    border-radius: 22px 22px 0 0;  /* mobile sheet style */
+    border-radius: 22px 22px 0 0;
     width: 100%;
     max-width: 520px;
     max-height: 94vh;
@@ -307,7 +302,6 @@
   }
   .overlay.open .modal { transform: none; opacity:1; }
 
-  /* Desktop: center as card */
   @media(min-width:600px){
     .overlay { align-items:center; }
     .modal {
@@ -316,7 +310,6 @@
     }
   }
 
-  /* Drag handle for mobile sheet */
   .modal-handle {
     width:40px; height:4px;
     border-radius:4px;
@@ -360,13 +353,7 @@
 
   .modal-body { padding: 1.4rem 1.6rem 2rem; }
 
-  /* ── Scanner modal ──────────────────────────────────── */
   .scanner-modal { max-width: 580px; }
-
-  /* ══════════════════════════════════════════════════════
-     PERMISSION STATES — the core new feature
-     States: check | request | scanning | denied | unsupported | error
-     ══════════════════════════════════════════════════════ */
 
   .perm-screen {
     display: none;
@@ -395,7 +382,6 @@
   }
   .perm-body strong { color: var(--txt); }
 
-  /* Steps list */
   .perm-steps {
     list-style: none;
     width: 100%;
@@ -431,11 +417,11 @@
     margin-top:1px;
   }
 
-  /* OS badge */
   .os-tabs {
     display: flex;
     gap: .5rem;
     margin-bottom: .2rem;
+    width: 100%;
   }
   .os-tab {
     flex:1;
@@ -457,7 +443,6 @@
     color: var(--accent);
   }
 
-  /* Alert banner */
   .perm-alert {
     width:100%;
     max-width:340px;
@@ -473,7 +458,6 @@
   .perm-alert-icon { font-size:1.1rem; flex-shrink:0; margin-top:1px; }
   .perm-alert-text { flex:1; }
 
-  /* ── Spinner screen (checking perms) ────────────────── */
   .check-spinner {
     width:36px; height:36px;
     border:3px solid var(--border);
@@ -482,7 +466,6 @@
     animation:spin .8s linear infinite;
   }
 
-  /* ── Camera view ────────────────────────────────────── */
   #cam-section { display:none; }
   #cam-section.active { display:block; }
 
@@ -505,7 +488,11 @@
     pointer-events:none;
   }
   .scan-frame {
-    width:220px; height:100px;
+    width:min(78vw, 300px); height:min(30vw, 120px);
+    max-width: 300px;
+    max-height: 120px;
+    min-width: 220px;
+    min-height: 92px;
     border:2px solid var(--accent);
     border-radius:8px;
     position:relative;
@@ -585,7 +572,6 @@
   }
   .inp-code:focus { border-color:var(--accent); }
 
-  /* ── Form ───────────────────────────────────────────── */
   .form-group { margin-bottom:1.2rem; }
   .form-label {
     display:block;
@@ -667,7 +653,6 @@
   }
   .btn-secondary:hover { color:var(--txt); border-color:var(--txt2); }
 
-  /* ── Detail ─────────────────────────────────────────── */
   .detail-section {
     background:var(--surface);
     border-radius:10px;
@@ -679,12 +664,12 @@
     padding:.4rem 0;
     border-bottom:1px solid var(--border);
     font-size:.88rem;
+    gap: 1rem;
   }
   .detail-row:last-child { border-bottom:none; }
   .detail-key { color:var(--txt2); }
   .detail-val { font-weight:500; text-align:right; }
 
-  /* ── Toast ──────────────────────────────────────────── */
   .toast-container {
     position:fixed;
     bottom: max(2rem, calc(var(--safe-bottom) + 1rem));
@@ -710,7 +695,6 @@
     to  { transform:none; opacity:1; }
   }
 
-  /* ── Loading ─────────────────────────────────────────── */
   .loading-row td {
     text-align:center; padding:3rem;
     color:var(--txt2); font-size:.85rem;
@@ -725,7 +709,6 @@
   }
   @keyframes spin { to{ transform:rotate(360deg); } }
 
-  /* ── Responsive ──────────────────────────────────────── */
   @media(max-width:640px){
     main { padding:1rem; }
     .form-row { grid-template-columns:1fr; }
@@ -740,7 +723,6 @@
 </head>
 <body>
 
-<!-- ─── Header ─────────────────────────────────────────── -->
 <header>
   <div class="logo">GEST<span>PEDIDOS</span></div>
   <div class="header-meta">
@@ -749,7 +731,6 @@
   </div>
 </header>
 
-<!-- ─── Main ───────────────────────────────────────────── -->
 <main>
   <div class="stats-bar">
     <div class="stat-card">
@@ -800,9 +781,6 @@
 
 <div class="toast-container" id="toast-container"></div>
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL 1: SCANNER  (with full permission flow)
-     ══════════════════════════════════════════════════════ -->
 <div class="overlay" id="overlay-scanner">
   <div class="modal scanner-modal">
     <div class="modal-handle"></div>
@@ -812,14 +790,12 @@
     </div>
     <div class="modal-body">
 
-      <!-- ── STATE: checking ───────────────────────────── -->
       <div class="perm-screen" id="perm-checking">
         <div class="check-spinner"></div>
         <div class="perm-title">Verificando cámara…</div>
         <div class="perm-body">Comprobando permisos del dispositivo.</div>
       </div>
 
-      <!-- ── STATE: request ────────────────────────────── -->
       <div class="perm-screen" id="perm-request">
         <div class="perm-icon">📸</div>
         <div class="perm-title">Permiso de cámara</div>
@@ -839,7 +815,6 @@
         </button>
       </div>
 
-      <!-- ── STATE: denied ─────────────────────────────── -->
       <div class="perm-screen" id="perm-denied">
         <div class="perm-icon">🚫</div>
         <div class="perm-title">Cámara bloqueada</div>
@@ -847,14 +822,12 @@
           El acceso a la cámara está denegado. Sigue estos pasos según tu dispositivo para habilitarlo:
         </div>
 
-        <!-- OS selector (auto-detected, switchable) -->
         <div class="os-tabs">
           <button class="os-tab" id="tab-ios"     onclick="showDeniedSteps('ios')">🍎 iPhone / iPad</button>
           <button class="os-tab" id="tab-android" onclick="showDeniedSteps('android')">🤖 Android</button>
           <button class="os-tab" id="tab-desktop" onclick="showDeniedSteps('desktop')">💻 Escritorio</button>
         </div>
 
-        <!-- iOS steps -->
         <ul class="perm-steps" id="steps-ios" style="display:none">
           <li><span class="step-num">1</span><span>Abre la app <strong>Ajustes</strong> de tu iPhone o iPad.</span></li>
           <li><span class="step-num">2</span><span>Desplázate hasta <strong>Safari</strong> (o el navegador que uses) y púlsalo.</span></li>
@@ -862,7 +835,6 @@
           <li><span class="step-num">4</span><span>Selecciona <strong>Permitir</strong> y vuelve aquí.</span></li>
         </ul>
 
-        <!-- Android steps -->
         <ul class="perm-steps" id="steps-android" style="display:none">
           <li><span class="step-num">1</span><span>Toca el icono 🔒 en la barra de dirección de Chrome.</span></li>
           <li><span class="step-num">2</span><span>Pulsa <strong>Permisos</strong> → <strong>Cámara</strong>.</span></li>
@@ -870,7 +842,6 @@
           <li><span class="step-num">4</span><span>Si no aparece la opción, ve a <strong>Ajustes → Aplicaciones → Chrome → Permisos</strong>.</span></li>
         </ul>
 
-        <!-- Desktop steps -->
         <ul class="perm-steps" id="steps-desktop" style="display:none">
           <li><span class="step-num">1</span><span>Haz clic en el icono 🔒 o 📷 que aparece en la barra de dirección.</span></li>
           <li><span class="step-num">2</span><span>Busca <strong>Cámara</strong> en la lista de permisos.</span></li>
@@ -886,7 +857,6 @@
         </button>
       </div>
 
-      <!-- ── STATE: unsupported ─────────────────────────── -->
       <div class="perm-screen" id="perm-unsupported">
         <div class="perm-icon">🌐</div>
         <div class="perm-title">Cámara no disponible</div>
@@ -899,7 +869,6 @@
         </div>
       </div>
 
-      <!-- ── STATE: error ───────────────────────────────── -->
       <div class="perm-screen" id="perm-error">
         <div class="perm-icon">⚠️</div>
         <div class="perm-title" id="perm-error-title">Error de cámara</div>
@@ -916,7 +885,6 @@
         </button>
       </div>
 
-      <!-- ── STATE: scanning (camera active) ───────────── -->
       <div id="cam-section">
         <div class="cam-wrap">
           <video id="cam-video" autoplay muted playsinline webkit-playsinline></video>
@@ -939,7 +907,6 @@
         </div>
       </div>
 
-      <!-- ── Manual entry (always visible after initial check) -->
       <div id="manual-section" style="display:none">
         <div class="divider">o introduce manualmente</div>
         <div class="manual-wrap">
@@ -953,13 +920,10 @@
         </div>
       </div>
 
-    </div><!-- /modal-body -->
+    </div>
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL 2: FORM
-     ══════════════════════════════════════════════════════ -->
 <div class="overlay" id="overlay-form">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1019,9 +983,6 @@
   </div>
 </div>
 
-<!-- ══════════════════════════════════════════════════════
-     MODAL 3: DETAIL
-     ══════════════════════════════════════════════════════ -->
 <div class="overlay" id="overlay-detail">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1033,28 +994,43 @@
   </div>
 </div>
 
-
-<!-- ══════════════════════════════════════════════════════
-     LOGIC
-     ══════════════════════════════════════════════════════ -->
 <script>
-// ── State ────────────────────────────────────────────────
 let scannedCode  = null;
 let editingId    = null;
 let cameraStream = null;
 let orders       = [];
 
-// ── Detect platform ──────────────────────────────────────
+let permissionStatus = null;
+let scanTimerId = null;
+let scanLoopToken = 0;
+let zxingReader = null;
+let scanSuccessLocked = false;
+let scanStartTime = 0;
+
 const UA        = navigator.userAgent || '';
 const isIOS     = /iPad|iPhone|iPod/.test(UA) && !window.MSStream;
 const isAndroid = /Android/.test(UA);
-const isMobile  = isIOS || isAndroid;
 
-// ── Firebase ─────────────────────────────────────────────
 document.addEventListener('firebase-ready', () => {
   document.getElementById('firebase-status').textContent = 'Firebase OK';
   listenOrders();
 });
+
+document.addEventListener('firebase-error', (e) => {
+  console.error(e.detail);
+  document.getElementById('firebase-status').textContent = '⚠️ Error Firebase';
+  toast('Firebase no se ha podido inicializar: ' + (e.detail?.message || 'Error desconocido'), 'error');
+});
+
+function escapeHTML(value) {
+  return String(value ?? '').replace(/[&<>"']/g, char => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#39;',
+  }[char]));
+}
 
 function listenOrders() {
   const { collection, onSnapshot, query, orderBy } = window._fs;
@@ -1069,7 +1045,6 @@ function listenOrders() {
   });
 }
 
-// ── Table ────────────────────────────────────────────────
 function renderTable() {
   const tb = document.getElementById('orders-tbody');
   if (!orders.length) {
@@ -1083,12 +1058,12 @@ function renderTable() {
     const date = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleDateString('es-ES') : '—';
     return `
     <tr onclick="openDetail('${o.id}')">
-      <td><span class="code-badge">${o.code || '—'}</span></td>
-      <td>${o.desc || '—'}</td>
-      <td>${o.client || '—'}</td>
-      <td>${priorityLabel(o.priority)}</td>
+      <td><span class="code-badge">${escapeHTML(o.code || '—')}</span></td>
+      <td>${escapeHTML(o.desc || '—')}</td>
+      <td>${escapeHTML(o.client || '—')}</td>
+      <td>${escapeHTML(priorityLabel(o.priority))}</td>
       <td>${statusPill(o.status)}</td>
-      <td style="font-size:.78rem;color:var(--txt2)">${date}</td>
+      <td style="font-size:.78rem;color:var(--txt2)">${escapeHTML(date)}</td>
       <td onclick="event.stopPropagation()">
         <div class="row-actions">
           <button class="row-btn edit" title="Editar" onclick="openEditForm('${o.id}')">
@@ -1114,7 +1089,7 @@ function statusPill(s) {
   return `<span class="status-pill ${cls}">${lbl}</span>`;
 }
 function priorityLabel(p) {
-  const map = { normal:'Normal', high:'🔶 Alta', urgent:'🔴 Urgente' };
+  const map = { normal:'Normal', high:'Alta', urgent:'Urgente' };
   return map[p] || 'Normal';
 }
 function updateStats() {
@@ -1124,17 +1099,13 @@ function updateStats() {
   document.getElementById('stat-done').textContent     = orders.filter(o=>o.status==='done').length;
 }
 
-// ════════════════════════════════════════════════════════
-// SCANNER + PERMISSION MANAGER
-// ════════════════════════════════════════════════════════
-
-/** Show one perm-screen, hide the rest, show/hide cam-section & manual */
 function showPermScreen(name) {
   const screens = ['perm-checking','perm-request','perm-denied','perm-unsupported','perm-error'];
   screens.forEach(id => {
     const el = document.getElementById(id);
     el.classList.toggle('active', id === name);
   });
+
   const camSection    = document.getElementById('cam-section');
   const manualSection = document.getElementById('manual-section');
 
@@ -1144,128 +1115,194 @@ function showPermScreen(name) {
     manualSection.style.display = 'block';
   } else {
     camSection.classList.remove('active');
-    // Always show manual entry once we've finished checking (any state except initial check)
     manualSection.style.display = (name === 'perm-checking') ? 'none' : 'block';
   }
 }
 
-/** Auto-detect OS for denied instructions */
 function showDeniedSteps(os) {
   ['ios','android','desktop'].forEach(k => {
     document.getElementById('steps-'+k).style.display   = (k===os) ? 'flex' : 'none';
     document.getElementById('tab-'+k).classList.toggle('active', k===os);
   });
 }
-
 function detectAndShowDeniedOS() {
   const os = isIOS ? 'ios' : isAndroid ? 'android' : 'desktop';
   showDeniedSteps(os);
 }
 
-/** Open the scanner modal — entry point */
 async function openScanner() {
   scannedCode = null;
   editingId   = null;
+  scanSuccessLocked = false;
   document.getElementById('scan-result').classList.remove('visible');
+  document.getElementById('scan-result-code').textContent = '—';
   document.getElementById('manual-code').value = '';
   document.getElementById('manual-section').style.display = 'none';
+  setScanStatus('scanning', 'Buscando código de 5 dígitos…');
 
   document.getElementById('overlay-scanner').classList.add('open');
 
-  // 1. Check if getUserMedia is available at all
+  if (!window.isSecureContext) {
+    showCameraError(
+      'Conexión no segura',
+      'La cámara solo funciona en páginas HTTPS o en localhost.',
+      'Abre la aplicación bajo HTTPS.'
+    );
+    return;
+  }
+
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     showPermScreen('perm-unsupported');
     return;
   }
 
-  // 2. Use Permissions API (where available) to check current state
   showPermScreen('perm-checking');
 
   try {
-    if (navigator.permissions && navigator.permissions.query) {
-      const status = await navigator.permissions.query({ name: 'camera' });
+    if (permissionStatus?.removeEventListener && permissionStatus._onChangeRef) {
+      permissionStatus.removeEventListener('change', permissionStatus._onChangeRef);
+    }
+  } catch (_) {}
 
-      if (status.state === 'granted') {
-        // Already granted — go straight to camera
+  try {
+    if (navigator.permissions && navigator.permissions.query) {
+      permissionStatus = await navigator.permissions.query({ name: 'camera' });
+
+      if (permissionStatus.state === 'granted') {
         await startCamera();
-      } else if (status.state === 'denied') {
-        // Definitively denied — show instructions
+      } else if (permissionStatus.state === 'denied') {
         showPermScreen('perm-denied');
         detectAndShowDeniedOS();
       } else {
-        // 'prompt' — show our request screen first (better UX than immediate browser prompt)
         showPermScreen('perm-request');
       }
 
-      // Listen for changes (e.g. user enables in settings while modal is open)
-      status.addEventListener('change', () => {
-        if (status.state === 'granted') startCamera();
-        if (status.state === 'denied') { showPermScreen('perm-denied'); detectAndShowDeniedOS(); }
-      });
-
+      const onChange = async () => {
+        if (!document.getElementById('overlay-scanner').classList.contains('open')) return;
+        if (permissionStatus.state === 'granted') await startCamera();
+        if (permissionStatus.state === 'denied') {
+          stopCamera();
+          showPermScreen('perm-denied');
+          detectAndShowDeniedOS();
+        }
+      };
+      permissionStatus._onChangeRef = onChange;
+      if (permissionStatus.addEventListener) {
+        permissionStatus.addEventListener('change', onChange);
+      }
     } else {
-      // Permissions API not available (iOS Safari < 16 etc.) — go straight to request
       showPermScreen('perm-request');
     }
-  } catch(e) {
-    // Permissions API blocked — try requesting directly
+  } catch(_) {
     showPermScreen('perm-request');
   }
 }
 
-/** Called when user taps "Activar cámara" button */
 async function requestCameraPermission() {
   showPermScreen('perm-checking');
   await startCamera();
 }
 
-/** Close scanner and release camera */
 function closeScanner() {
   stopCamera();
   document.getElementById('overlay-scanner').classList.remove('open');
 }
 
-/** Core camera start with detailed error handling */
+function cancelScanLoop() {
+  scanLoopToken += 1;
+  if (scanTimerId) {
+    clearTimeout(scanTimerId);
+    scanTimerId = null;
+  }
+  if (zxingReader && typeof zxingReader.reset === 'function') {
+    try { zxingReader.reset(); } catch (_) {}
+  }
+  zxingReader = null;
+}
+
+async function tryApplyTrackEnhancements(track) {
+  if (!track || !track.getCapabilities || !track.applyConstraints) return;
+
+  try {
+    const caps = track.getCapabilities();
+    const advanced = [];
+
+    if (caps.focusMode && Array.isArray(caps.focusMode) && caps.focusMode.includes('continuous')) {
+      advanced.push({ focusMode: 'continuous' });
+    }
+    if (caps.exposureMode && Array.isArray(caps.exposureMode) && caps.exposureMode.includes('continuous')) {
+      advanced.push({ exposureMode: 'continuous' });
+    }
+
+    if (advanced.length) {
+      await track.applyConstraints({ advanced });
+    }
+  } catch (err) {
+    console.warn('No se pudieron aplicar mejoras de enfoque:', err);
+  }
+}
+
+async function buildVideoConstraints() {
+  return {
+    audio: false,
+    video: {
+      facingMode: { ideal: 'environment' },
+      width: { ideal: 1920 },
+      height: { ideal: 1080 }
+    }
+  };
+}
+
 async function startCamera() {
   try {
-    stopCamera(); // clean up any previous stream
+    stopCamera();
+
+    if (!window.isSecureContext) {
+      showCameraError(
+        'Conexión no segura',
+        'La cámara solo funciona en páginas HTTPS o en localhost.',
+        'Abre la aplicación bajo HTTPS.'
+      );
+      return;
+    }
 
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
       showPermScreen('perm-unsupported');
       return;
     }
 
-    // Constraints optimized for mobile barcode scanning
-    const constraints = {
-      video: {
-        facingMode: { ideal: 'environment' },   // rear camera on mobile
-        width:  { ideal: 1280, min: 640 },
-        height: { ideal: 720,  min: 480 },
-        focusMode: { ideal: 'continuous' },       // autofocus (ignored if unsupported)
-      }
-    };
-
+    const constraints = await buildVideoConstraints();
     const stream = await navigator.mediaDevices.getUserMedia(constraints);
     cameraStream = stream;
 
+    const [track] = stream.getVideoTracks();
+    await tryApplyTrackEnhancements(track);
+
     const video = document.getElementById('cam-video');
     video.srcObject = stream;
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('muted', 'true');
 
-    // iOS Safari requires manual play() call
-    await video.play().catch(e => console.warn('play() warn:', e));
+    await new Promise((resolve) => {
+      const done = () => resolve();
+      video.onloadedmetadata = done;
+      if (video.readyState >= 1) resolve();
+    });
+
+    try { await video.play(); } catch (err) { console.warn('play() warning:', err); }
 
     showPermScreen('scanning');
+    scanStartTime = Date.now();
     setScanStatus('scanning', 'Buscando código de 5 dígitos…');
-    decodeLoop(video);
+    startDecodeLoop(video);
 
   } catch(err) {
     handleCameraError(err);
   }
 }
 
-/** Map DOMException names to friendly messages */
 function handleCameraError(err) {
-  const name = err.name || '';
+  const name = err?.name || '';
 
   if (name === 'NotAllowedError' || name === 'PermissionDeniedError') {
     showPermScreen('perm-denied');
@@ -1288,7 +1325,6 @@ function handleCameraError(err) {
   }
 
   if (name === 'OverconstrainedError' || name === 'ConstraintNotSatisfiedError') {
-    // Retry with relaxed constraints
     retryWithBasicConstraints();
     return;
   }
@@ -1296,7 +1332,7 @@ function handleCameraError(err) {
   if (name === 'SecurityError') {
     showCameraError(
       'Conexión no segura',
-      'La cámara solo funciona en páginas HTTPS. Asegúrate de que la URL comienza por https://',
+      'La cámara solo funciona en páginas HTTPS o en localhost.',
       err.message
     );
     return;
@@ -1311,25 +1347,38 @@ function handleCameraError(err) {
     return;
   }
 
-  // Unknown error
   showCameraError(
     'Error inesperado',
     'No se pudo iniciar la cámara. Prueba a recargar la página.',
-    `${name}: ${err.message}`
+    `${name}: ${err?.message || 'Error desconocido'}`
   );
 }
 
-/** Retry with minimal constraints (some older Android devices fail with ideal constraints) */
 async function retryWithBasicConstraints() {
   try {
-    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+    const stream = await navigator.mediaDevices.getUserMedia({
+      audio: false,
+      video: true
+    });
     cameraStream = stream;
+
     const video = document.getElementById('cam-video');
     video.srcObject = stream;
-    await video.play().catch(e => console.warn(e));
+    video.setAttribute('playsinline', 'true');
+    video.setAttribute('muted', 'true');
+
+    await new Promise((resolve) => {
+      const done = () => resolve();
+      video.onloadedmetadata = done;
+      if (video.readyState >= 1) resolve();
+    });
+
+    try { await video.play(); } catch (_) {}
+
     showPermScreen('scanning');
+    scanStartTime = Date.now();
     setScanStatus('scanning', 'Buscando código de 5 dígitos…');
-    decodeLoop(video);
+    startDecodeLoop(video);
   } catch(err2) {
     handleCameraError(err2);
   }
@@ -1349,87 +1398,127 @@ function showCameraError(title, body, detail) {
   showPermScreen('perm-error');
 }
 
-/** Barcode decode loop */
-function decodeLoop(video) {
-  if (!cameraStream) return;
+function startDecodeLoop(video) {
+  cancelScanLoop();
 
-  const hints = new Map();
-  if (window.ZXing) {
-    hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
-      ZXing.BarcodeFormat.CODE_39,
-      ZXing.BarcodeFormat.CODE_128,
-    ]);
-    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+  if (!window.ZXing || !ZXing.BrowserMultiFormatReader) {
+    showCameraError(
+      'Lector no disponible',
+      'La librería de lectura de códigos no se ha cargado correctamente.',
+      'ZXing no está disponible.'
+    );
+    return;
   }
 
-  const reader = window.ZXing ? new ZXing.BrowserMultiFormatReader(hints) : null;
+  const hints = new Map();
+  hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
+    ZXing.BarcodeFormat.CODE_39,
+    ZXing.BarcodeFormat.CODE_128,
+    ZXing.BarcodeFormat.ITF,
+    ZXing.BarcodeFormat.CODABAR,
+    ZXing.BarcodeFormat.EAN_8,
+    ZXing.BarcodeFormat.EAN_13,
+    ZXing.BarcodeFormat.UPC_A,
+    ZXing.BarcodeFormat.UPC_E
+  ]);
+  hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
+
+  zxingReader = new ZXing.BrowserMultiFormatReader(hints);
+
   const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+  const myToken = ++scanLoopToken;
+  let frameCounter = 0;
 
   function normalizeResult(result) {
-    const raw = (result.getText() || '').trim();
-    const format = result.getBarcodeFormat();
+    const raw = String(result?.getText?.() || '').trim();
+    const digitsOnly = raw.replace(/\D/g, '');
 
-    console.log('SCAN raw=', raw, 'format=', format);
-
-    // Caso ideal: exactamente 5 dígitos
     if (/^\d{5}$/.test(raw)) return raw;
-
-    // Caso tolerante: si viene con separadores o espacios raros
-    const digits = raw.replace(/\D/g, '');
-    if (digits.length === 5) return digits;
+    if (digitsOnly.length === 5) return digitsOnly;
 
     return null;
   }
 
+  function regionToRect(vw, vh, region) {
+    if (!region) return { sx: 0, sy: 0, sw: vw, sh: vh };
+    const sw = Math.floor(vw * region.w);
+    const sh = Math.floor(vh * region.h);
+    const sx = Math.floor((vw - sw) / 2);
+    const sy = Math.floor((vh - sh) / 2);
+    return { sx, sy, sw, sh };
+  }
+
+  function tryDecodeRegion(vw, vh, region) {
+    const { sx, sy, sw, sh } = regionToRect(vw, vh, region);
+    canvas.width = sw;
+    canvas.height = sh;
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+
+    try {
+      const result = zxingReader.decodeFromCanvas(canvas);
+      if (result) return normalizeResult(result);
+    } catch (err) {
+      if (!(err instanceof ZXing.NotFoundException)) {
+        console.debug('Decode warning:', err);
+      }
+    }
+    return null;
+  }
+
   function tick() {
-    if (!cameraStream || video.readyState < 2) {
-      setTimeout(tick, 200);
+    if (myToken !== scanLoopToken || !cameraStream || scanSuccessLocked) return;
+
+    if (video.readyState < 2 || !video.videoWidth || !video.videoHeight) {
+      scanTimerId = setTimeout(tick, 120);
       return;
     }
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
 
-    // Recorte central real: más parecido al marco visual
-    const cropW = Math.floor(vw * 0.62);
-    const cropH = Math.floor(vh * 0.22);
-    const sx = Math.floor((vw - cropW) / 2);
-    const sy = Math.floor((vh - cropH) / 2);
+    const regions = [
+      { w: 0.92, h: 0.45 },
+      { w: 0.98, h: 0.70 },
+      null
+    ];
 
-    canvas.width = cropW;
-    canvas.height = cropH;
-
-    ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
-
-    if (reader) {
-      try {
-        const result = reader.decodeFromCanvas(canvas);
-        if (result) {
-          const code = normalizeResult(result);
-          if (code) {
-            handleScannedCode(code);
-            return;
-          }
-        }
-      } catch (e) {
-        // NotFoundException es normal mientras busca
-      }
+    let code = null;
+    for (const region of regions) {
+      code = tryDecodeRegion(vw, vh, region);
+      if (code) break;
     }
 
-    setTimeout(tick, 180);
+    if (code) {
+      handleScannedCode(code);
+      return;
+    }
+
+    frameCounter += 1;
+    const elapsed = Date.now() - scanStartTime;
+    if (elapsed > 4500 && frameCounter % 8 === 0) {
+      setScanStatus('scanning', 'Alinea el código completo dentro del marco y acércalo un poco más…');
+    }
+
+    scanTimerId = setTimeout(tick, 110);
   }
 
   tick();
 }
 
 function stopCamera() {
+  cancelScanLoop();
+
   if (cameraStream) {
     cameraStream.getTracks().forEach(t => t.stop());
     cameraStream = null;
   }
+
   const video = document.getElementById('cam-video');
-  video.srcObject = null;
+  if (video) {
+    video.pause();
+    video.srcObject = null;
+  }
 }
 
 function setScanStatus(type, msg) {
@@ -1440,19 +1529,22 @@ function setScanStatus(type, msg) {
 }
 
 function handleScannedCode(code) {
+  if (scanSuccessLocked) return;
+  scanSuccessLocked = true;
   scannedCode = code;
   stopCamera();
   setScanStatus('success', '✓ Código detectado correctamente');
   const resultEl = document.getElementById('scan-result');
   document.getElementById('scan-result-code').textContent = code;
   resultEl.classList.add('visible');
-  setTimeout(() => { closeScanner(); openForm(code); }, 1200);
+  setTimeout(() => {
+    closeScanner();
+    openForm(code);
+  }, 700);
 }
 
 function skipToManual() {
   stopCamera();
-  showPermScreen('perm-request'); // hide camera screens
-  // Just show manual entry
   ['perm-checking','perm-request','perm-denied','perm-unsupported','perm-error'].forEach(id => {
     document.getElementById(id).classList.remove('active');
   });
@@ -1462,18 +1554,20 @@ function skipToManual() {
 
 function confirmManualCode() {
   const val = document.getElementById('manual-code').value.trim();
-  if (val.length !== 5) { toast('El código debe tener exactamente 5 dígitos','error'); return; }
+  if (!/^\d{5}$/.test(val)) {
+    toast('El código debe tener exactamente 5 dígitos', 'error');
+    return;
+  }
   handleScannedCode(val);
 }
 
-// ── Form ─────────────────────────────────────────────────
 function openForm(code) {
-  document.getElementById('form-title').textContent       = '➕ Nuevo Pedido';
-  document.getElementById('form-code-display').textContent = code;
-  document.getElementById('form-submit-btn').textContent  = 'Guardar Pedido';
+  document.getElementById('form-title').textContent        = '➕ Nuevo Pedido';
+  document.getElementById('form-submit-btn').textContent   = 'Guardar Pedido';
   clearForm();
+  document.getElementById('form-code-display').textContent = code || '—';
   editingId   = null;
-  scannedCode = code;
+  scannedCode = code || null;
   document.getElementById('overlay-form').classList.add('open');
 }
 
@@ -1481,10 +1575,10 @@ function openEditForm(id) {
   const order = orders.find(o=>o.id===id);
   if (!order) return;
   editingId   = id;
-  scannedCode = order.code;
-  document.getElementById('form-title').textContent       = '✏️ Editar Pedido';
-  document.getElementById('form-code-display').textContent = order.code;
-  document.getElementById('form-submit-btn').textContent  = 'Actualizar Pedido';
+  scannedCode = order.code || null;
+  document.getElementById('form-title').textContent         = '✏️ Editar Pedido';
+  document.getElementById('form-code-display').textContent  = order.code || '—';
+  document.getElementById('form-submit-btn').textContent    = 'Actualizar Pedido';
   document.getElementById('f-desc').value     = order.desc     || '';
   document.getElementById('f-client').value   = order.client   || '';
   document.getElementById('f-phone').value    = order.phone    || '';
@@ -1505,7 +1599,21 @@ function clearForm() {
 
 async function submitOrder() {
   const desc = document.getElementById('f-desc').value.trim();
-  if (!desc) { toast('La descripción es obligatoria','error'); return; }
+  if (!desc) {
+    toast('La descripción es obligatoria','error');
+    return;
+  }
+  if (!scannedCode || !/^\d{5}$/.test(scannedCode)) {
+    toast('Necesitas un código válido de 5 dígitos','error');
+    return;
+  }
+
+  const amountRaw = document.getElementById('f-amount').value.trim();
+  const amount = amountRaw ? Number(amountRaw) : 0;
+  if (!Number.isFinite(amount) || amount < 0) {
+    toast('El importe no es válido', 'error');
+    return;
+  }
 
   const data = {
     code:     scannedCode,
@@ -1514,7 +1622,7 @@ async function submitOrder() {
     phone:    document.getElementById('f-phone').value.trim(),
     status:   document.getElementById('f-status').value,
     priority: document.getElementById('f-priority').value,
-    amount:   parseFloat(document.getElementById('f-amount').value) || 0,
+    amount,
     notes:    document.getElementById('f-notes').value.trim(),
   };
 
@@ -1541,7 +1649,6 @@ async function submitOrder() {
   }
 }
 
-// ── Delete ───────────────────────────────────────────────
 async function deleteOrder(id) {
   if (!confirm('¿Eliminar este pedido?')) return;
   try {
@@ -1553,32 +1660,30 @@ async function deleteOrder(id) {
   }
 }
 
-// ── Detail ───────────────────────────────────────────────
 function openDetail(id) {
   const o = orders.find(o=>o.id===id);
   if (!o) return;
   const date = o.createdAt?.toDate ? o.createdAt.toDate().toLocaleString('es-ES') : '—';
   document.getElementById('detail-body').innerHTML = `
     <div class="detail-section">
-      <div class="detail-row"><span class="detail-key">Código</span><span class="detail-val"><span class="code-badge">${o.code}</span></span></div>
+      <div class="detail-row"><span class="detail-key">Código</span><span class="detail-val"><span class="code-badge">${escapeHTML(o.code || '—')}</span></span></div>
       <div class="detail-row"><span class="detail-key">Estado</span><span class="detail-val">${statusPill(o.status)}</span></div>
-      <div class="detail-row"><span class="detail-key">Prioridad</span><span class="detail-val">${priorityLabel(o.priority)}</span></div>
-      <div class="detail-row"><span class="detail-key">Descripción</span><span class="detail-val">${o.desc||'—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Prioridad</span><span class="detail-val">${escapeHTML(priorityLabel(o.priority))}</span></div>
+      <div class="detail-row"><span class="detail-key">Descripción</span><span class="detail-val">${escapeHTML(o.desc || '—')}</span></div>
     </div>
     <div class="detail-section">
-      <div class="detail-row"><span class="detail-key">Cliente</span><span class="detail-val">${o.client||'—'}</span></div>
-      <div class="detail-row"><span class="detail-key">Teléfono</span><span class="detail-val">${o.phone||'—'}</span></div>
-      <div class="detail-row"><span class="detail-key">Importe</span><span class="detail-val">${o.amount ? o.amount.toFixed(2)+' €' : '—'}</span></div>
-      <div class="detail-row"><span class="detail-key">Fecha</span><span class="detail-val">${date}</span></div>
+      <div class="detail-row"><span class="detail-key">Cliente</span><span class="detail-val">${escapeHTML(o.client || '—')}</span></div>
+      <div class="detail-row"><span class="detail-key">Teléfono</span><span class="detail-val">${escapeHTML(o.phone || '—')}</span></div>
+      <div class="detail-row"><span class="detail-key">Importe</span><span class="detail-val">${o.amount ? escapeHTML(o.amount.toFixed(2)+' €') : '—'}</span></div>
+      <div class="detail-row"><span class="detail-key">Fecha</span><span class="detail-val">${escapeHTML(date)}</span></div>
     </div>
-    ${o.notes ? `<div class="detail-section"><div class="detail-key" style="margin-bottom:.5rem">Notas</div><div style="font-size:.88rem;line-height:1.6">${o.notes}</div></div>` : ''}
+    ${o.notes ? `<div class="detail-section"><div class="detail-key" style="margin-bottom:.5rem">Notas</div><div style="font-size:.88rem;line-height:1.6">${escapeHTML(o.notes)}</div></div>` : ''}
     <button class="btn-primary" onclick="closeDetail();openEditForm('${o.id}')">✏️ Editar Pedido</button>
   `;
   document.getElementById('overlay-detail').classList.add('open');
 }
 function closeDetail() { document.getElementById('overlay-detail').classList.remove('open'); }
 
-// ── Close on backdrop click ───────────────────────────────
 ['overlay-scanner','overlay-form','overlay-detail'].forEach(id => {
   document.getElementById(id).addEventListener('click', e => {
     if (e.target.id === id) {
@@ -1589,17 +1694,17 @@ function closeDetail() { document.getElementById('overlay-detail').classList.rem
   });
 });
 
-// Release camera when page hides (tab switch, app switch on mobile)
 document.addEventListener('visibilitychange', () => {
   if (document.hidden) stopCamera();
 });
+window.addEventListener('pagehide', stopCamera);
+window.addEventListener('beforeunload', stopCamera);
 
-// ── Toast ─────────────────────────────────────────────────
 function toast(msg, type='success') {
   const c  = document.getElementById('toast-container');
   const el = document.createElement('div');
   el.className = `toast ${type}`;
-  el.innerHTML = (type==='success' ? '✓ ' : '✕ ') + msg;
+  el.textContent = (type==='success' ? '✓ ' : '✕ ') + msg;
   c.appendChild(el);
   setTimeout(() => {
     el.style.opacity   = '0';
@@ -1609,7 +1714,6 @@ function toast(msg, type='success') {
   }, 3200);
 }
 
-// ── Enter key on manual code ──────────────────────────────
 document.getElementById('manual-code').addEventListener('keydown', e => {
   if (e.key === 'Enter') confirmManualCode();
 });
