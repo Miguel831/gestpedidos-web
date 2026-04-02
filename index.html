@@ -1617,6 +1617,26 @@ function startDecodeLoop(video) {
     return { sx, sy, sw, sh, regionName: region.name };
   }
 
+  function decodeCanvasFrame(canvasEl) {
+    if (!window.ZXing) {
+      throw new Error('ZXing no está cargado');
+    }
+
+    if (
+      typeof zxingReader.decodeBitmap === 'function' &&
+      typeof ZXing.HTMLCanvasElementLuminanceSource === 'function' &&
+      typeof ZXing.HybridBinarizer === 'function' &&
+      typeof ZXing.BinaryBitmap === 'function'
+    ) {
+      const luminanceSource = new ZXing.HTMLCanvasElementLuminanceSource(canvasEl);
+      const hybridBinarizer = new ZXing.HybridBinarizer(luminanceSource);
+      const binaryBitmap = new ZXing.BinaryBitmap(hybridBinarizer);
+      return zxingReader.decodeBitmap(binaryBitmap);
+    }
+
+    throw new Error('La versión cargada de ZXing no expone decodeBitmap() sobre canvas.');
+  }
+
   function tryDecodeRegion(vw, vh, region) {
     const { sx, sy, sw, sh, regionName } = regionToRect(vw, vh, region);
     canvas.width = sw;
@@ -1632,7 +1652,7 @@ function startDecodeLoop(video) {
     });
 
     try {
-      const result = zxingReader.decodeFromCanvas(canvas);
+      const result = decodeCanvasFrame(canvas);
       if (!result) return null;
 
       const info = describeResult(result);
@@ -1646,7 +1666,7 @@ function startDecodeLoop(video) {
       });
       return info.normalizedCode;
     } catch (err) {
-      if (!(err instanceof ZXing.NotFoundException)) {
+      if (!(window.ZXing && err instanceof ZXing.NotFoundException)) {
         updateDecoderDebug({ lastWarning: `${err?.name || 'Error'}: ${err?.message || 'sin detalle'}` });
         console.debug('Decode warning:', err);
       }
@@ -1681,7 +1701,7 @@ function startDecodeLoop(video) {
     if (elapsed > 4500) {
       setScanStatus('scanning', 'Alinea el código completo, evita reflejos y prueba a acercarlo o alejarlo un poco…');
       updateDecoderDebug({
-        note: 'Si en esta vista no aparece un patrón de barras nítido, el problema es de encuadre, enfoque o de que no es un código de barras legible para ZXing.'
+        note: 'Si aquí ves texto normal o números impresos en pantalla, no es un código de barras. ZXing no hace OCR: solo lee patrones reales de barras/2D.'
       });
     }
 
