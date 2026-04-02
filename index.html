@@ -14,16 +14,21 @@
   import { getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, onSnapshot, serverTimestamp, query, orderBy }
     from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
+  import { initializeApp } from "firebase/app";
+  import { getAnalytics } from "firebase/analytics";
+
   const firebaseConfig = {
-    apiKey:            "TU_API_KEY",
-    authDomain:        "TU_PROYECTO.firebaseapp.com",
-    projectId:         "TU_PROYECTO_ID",
-    storageBucket:     "TU_PROYECTO.appspot.com",
-    messagingSenderId: "TU_SENDER_ID",
-    appId:             "TU_APP_ID"
+    apiKey: "AIzaSyAYxyWlrWc4d5mmW_3jZjRM5iOOO6wkU7E",
+    authDomain: "gestpedidos-web.firebaseapp.com",
+    projectId: "gestpedidos-web",
+    storageBucket: "gestpedidos-web.firebasestorage.app",
+    messagingSenderId: "298563599142",
+    appId: "1:298563599142:web:2f1c1675ec2bcc7b9d9fe7",
+    measurementId: "G-WGJ256MV0J"
   };
 
   const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
   const db  = getFirestore(app);
 
   window._db = db;
@@ -1353,31 +1358,68 @@ function decodeLoop(video) {
     hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
       ZXing.BarcodeFormat.CODE_39,
       ZXing.BarcodeFormat.CODE_128,
-      ZXing.BarcodeFormat.EAN_8,
-      ZXing.BarcodeFormat.ITF,
     ]);
+    hints.set(ZXing.DecodeHintType.TRY_HARDER, true);
   }
 
   const reader = window.ZXing ? new ZXing.BrowserMultiFormatReader(hints) : null;
   const canvas = document.createElement('canvas');
-  const ctx    = canvas.getContext('2d');
+  const ctx = canvas.getContext('2d');
+
+  function normalizeResult(result) {
+    const raw = (result.getText() || '').trim();
+    const format = result.getBarcodeFormat();
+
+    console.log('SCAN raw=', raw, 'format=', format);
+
+    // Caso ideal: exactamente 5 dígitos
+    if (/^\d{5}$/.test(raw)) return raw;
+
+    // Caso tolerante: si viene con separadores o espacios raros
+    const digits = raw.replace(/\D/g, '');
+    if (digits.length === 5) return digits;
+
+    return null;
+  }
 
   function tick() {
-    if (!cameraStream || video.readyState < 2) { setTimeout(tick, 200); return; }
-    canvas.width  = video.videoWidth;
-    canvas.height = video.videoHeight;
-    ctx.drawImage(video, 0, 0);
+    if (!cameraStream || video.readyState < 2) {
+      setTimeout(tick, 200);
+      return;
+    }
+
+    const vw = video.videoWidth;
+    const vh = video.videoHeight;
+
+    // Recorte central real: más parecido al marco visual
+    const cropW = Math.floor(vw * 0.62);
+    const cropH = Math.floor(vh * 0.22);
+    const sx = Math.floor((vw - cropW) / 2);
+    const sy = Math.floor((vh - cropH) / 2);
+
+    canvas.width = cropW;
+    canvas.height = cropH;
+
+    ctx.drawImage(video, sx, sy, cropW, cropH, 0, 0, cropW, cropH);
+
     if (reader) {
       try {
         const result = reader.decodeFromCanvas(canvas);
         if (result) {
-          const text = result.getText().replace(/\D/g,'');
-          if (text.length === 5) { handleScannedCode(text); return; }
+          const code = normalizeResult(result);
+          if (code) {
+            handleScannedCode(code);
+            return;
+          }
         }
-      } catch(e) { /* continue */ }
+      } catch (e) {
+        // NotFoundException es normal mientras busca
+      }
     }
-    setTimeout(tick, 300);
+
+    setTimeout(tick, 180);
   }
+
   tick();
 }
 
