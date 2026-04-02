@@ -548,6 +548,78 @@
   }
   .scan-result-label { font-size:.75rem; color:var(--txt2); margin-top:.25rem; }
 
+  .decoder-debug {
+    margin-bottom: 1rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: .9rem;
+  }
+  .decoder-debug-head {
+    display:flex; align-items:center; justify-content:space-between; gap:.8rem;
+    margin-bottom:.7rem;
+  }
+  .decoder-debug-title {
+    font-size:.78rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--txt2);
+    font-weight:700;
+  }
+  .decoder-debug-badge {
+    font-family:var(--mono);
+    font-size:.68rem;
+    color:var(--accent);
+    background:rgba(245,166,35,.08);
+    border:1px solid rgba(245,166,35,.22);
+    border-radius:999px;
+    padding:.18rem .55rem;
+    white-space:nowrap;
+  }
+  .decoder-preview-wrap {
+    border-radius:10px;
+    overflow:hidden;
+    background:#000;
+    border:1px solid var(--border);
+    margin-bottom:.8rem;
+  }
+  #decoder-preview {
+    width:100%;
+    min-height:110px;
+    max-height:220px;
+    display:block;
+    object-fit:contain;
+    background:#000;
+  }
+  .decoder-debug-grid {
+    display:grid;
+    grid-template-columns: repeat(2,minmax(0,1fr));
+    gap:.55rem .8rem;
+  }
+  .decoder-debug-item {
+    min-width:0;
+  }
+  .decoder-debug-label {
+    font-size:.68rem;
+    text-transform:uppercase;
+    letter-spacing:.08em;
+    color:var(--txt2);
+    margin-bottom:.18rem;
+  }
+  .decoder-debug-value {
+    font-family:var(--mono);
+    font-size:.76rem;
+    color:var(--txt);
+    line-height:1.45;
+    word-break:break-word;
+  }
+  .decoder-debug-note {
+    margin-top:.7rem;
+    font-size:.76rem;
+    line-height:1.55;
+    color:var(--txt2);
+  }
+
   .divider {
     display:flex; align-items:center; gap:.8rem;
     margin:.8rem 0;
@@ -905,6 +977,43 @@
           <div class="scan-result-code" id="scan-result-code">—</div>
           <div class="scan-result-label">✓ Código detectado</div>
         </div>
+
+        <div class="decoder-debug" id="decoder-debug">
+          <div class="decoder-debug-head">
+            <div class="decoder-debug-title">Vista del decodificador</div>
+            <div class="decoder-debug-badge" id="decoder-region-name">esperando</div>
+          </div>
+          <div class="decoder-preview-wrap">
+            <canvas id="decoder-preview" width="320" height="140"></canvas>
+          </div>
+          <div class="decoder-debug-grid">
+            <div class="decoder-debug-item">
+              <div class="decoder-debug-label">Último texto bruto</div>
+              <div class="decoder-debug-value" id="decoder-raw">—</div>
+            </div>
+            <div class="decoder-debug-item">
+              <div class="decoder-debug-label">Formato</div>
+              <div class="decoder-debug-value" id="decoder-format">—</div>
+            </div>
+            <div class="decoder-debug-item">
+              <div class="decoder-debug-label">Sólo dígitos</div>
+              <div class="decoder-debug-value" id="decoder-digits">—</div>
+            </div>
+            <div class="decoder-debug-item">
+              <div class="decoder-debug-label">Tamaño / región</div>
+              <div class="decoder-debug-value" id="decoder-size">—</div>
+            </div>
+            <div class="decoder-debug-item">
+              <div class="decoder-debug-label">Intentos</div>
+              <div class="decoder-debug-value" id="decoder-attempts">0</div>
+            </div>
+            <div class="decoder-debug-item">
+              <div class="decoder-debug-label">Último aviso</div>
+              <div class="decoder-debug-value" id="decoder-warning">—</div>
+            </div>
+          </div>
+          <div class="decoder-debug-note" id="decoder-note">Aquí verás exactamente el recorte que se intenta leer en cada ciclo.</div>
+        </div>
       </div>
 
       <div id="manual-section" style="display:none">
@@ -1006,6 +1115,7 @@ let scanLoopToken = 0;
 let zxingReader = null;
 let scanSuccessLocked = false;
 let scanStartTime = 0;
+let decoderDebugState = { attempts: 0, lastWarning: '—' };
 
 const UA        = navigator.userAgent || '';
 const isIOS     = /iPad|iPhone|iPod/.test(UA) && !window.MSStream;
@@ -1099,6 +1209,54 @@ function updateStats() {
   document.getElementById('stat-done').textContent     = orders.filter(o=>o.status==='done').length;
 }
 
+function resetDecoderDebug() {
+  decoderDebugState = { attempts: 0, lastWarning: '—' };
+  const preview = document.getElementById('decoder-preview');
+  const pctx = preview.getContext('2d');
+  pctx.clearRect(0, 0, preview.width, preview.height);
+  pctx.fillStyle = '#000';
+  pctx.fillRect(0, 0, preview.width, preview.height);
+  pctx.fillStyle = '#8b8f96';
+  pctx.font = '14px Space Mono';
+  pctx.textAlign = 'center';
+  pctx.fillText('Sin imagen todavía', preview.width / 2, preview.height / 2);
+
+  document.getElementById('decoder-region-name').textContent = 'esperando';
+  document.getElementById('decoder-raw').textContent = '—';
+  document.getElementById('decoder-format').textContent = '—';
+  document.getElementById('decoder-digits').textContent = '—';
+  document.getElementById('decoder-size').textContent = '—';
+  document.getElementById('decoder-attempts').textContent = '0';
+  document.getElementById('decoder-warning').textContent = '—';
+  document.getElementById('decoder-note').textContent = 'Aquí verás exactamente el recorte que se intenta leer en cada ciclo.';
+}
+
+function updateDecoderDebug(patch = {}) {
+  decoderDebugState = { ...decoderDebugState, ...patch };
+  document.getElementById('decoder-region-name').textContent = decoderDebugState.regionName || 'esperando';
+  document.getElementById('decoder-raw').textContent = decoderDebugState.rawText || '—';
+  document.getElementById('decoder-format').textContent = decoderDebugState.format || '—';
+  document.getElementById('decoder-digits').textContent = decoderDebugState.digits || '—';
+  document.getElementById('decoder-size').textContent = decoderDebugState.sizeText || '—';
+  document.getElementById('decoder-attempts').textContent = String(decoderDebugState.attempts || 0);
+  document.getElementById('decoder-warning').textContent = decoderDebugState.lastWarning || '—';
+  document.getElementById('decoder-note').textContent = decoderDebugState.note || 'Aquí verás exactamente el recorte que se intenta leer en cada ciclo.';
+}
+
+function drawDecoderPreview(sourceCanvas) {
+  const preview = document.getElementById('decoder-preview');
+  const pctx = preview.getContext('2d');
+  const srcW = sourceCanvas.width || 1;
+  const srcH = sourceCanvas.height || 1;
+  const ratio = srcW / srcH;
+  const targetW = preview.width;
+  const targetH = Math.max(100, Math.round(targetW / ratio));
+  if (preview.height !== targetH) preview.height = targetH;
+
+  pctx.clearRect(0, 0, preview.width, preview.height);
+  pctx.drawImage(sourceCanvas, 0, 0, preview.width, preview.height);
+}
+
 function showPermScreen(name) {
   const screens = ['perm-checking','perm-request','perm-denied','perm-unsupported','perm-error'];
   screens.forEach(id => {
@@ -1139,6 +1297,7 @@ async function openScanner() {
   document.getElementById('manual-code').value = '';
   document.getElementById('manual-section').style.display = 'none';
   setScanStatus('scanning', 'Buscando código de 5 dígitos…');
+  resetDecoderDebug();
 
   document.getElementById('overlay-scanner').classList.add('open');
 
@@ -1205,6 +1364,7 @@ async function requestCameraPermission() {
 
 function closeScanner() {
   stopCamera();
+  resetDecoderDebug();
   document.getElementById('overlay-scanner').classList.remove('open');
 }
 
@@ -1413,9 +1573,10 @@ function startDecodeLoop(video) {
   const hints = new Map();
   hints.set(ZXing.DecodeHintType.POSSIBLE_FORMATS, [
     ZXing.BarcodeFormat.CODE_39,
+    ZXing.BarcodeFormat.CODE_93,
     ZXing.BarcodeFormat.CODE_128,
-    ZXing.BarcodeFormat.ITF,
     ZXing.BarcodeFormat.CODABAR,
+    ZXing.BarcodeFormat.ITF,
     ZXing.BarcodeFormat.EAN_8,
     ZXing.BarcodeFormat.EAN_13,
     ZXing.BarcodeFormat.UPC_A,
@@ -1428,38 +1589,65 @@ function startDecodeLoop(video) {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d', { willReadFrequently: true });
   const myToken = ++scanLoopToken;
-  let frameCounter = 0;
 
-  function normalizeResult(result) {
+  function describeResult(result) {
     const raw = String(result?.getText?.() || '').trim();
     const digitsOnly = raw.replace(/\D/g, '');
+    const format = result?.getBarcodeFormat?.()?.toString?.() || 'desconocido';
+    const normalizedCode = /^\d{5}$/.test(raw) ? raw : (digitsOnly.length === 5 ? digitsOnly : null);
+    return { raw, digitsOnly, format, normalizedCode };
+  }
 
-    if (/^\d{5}$/.test(raw)) return raw;
-    if (digitsOnly.length === 5) return digitsOnly;
-
-    return null;
+  function getRegions(elapsedMs) {
+    const base = [
+      { name: 'marco central', w: 0.78, h: 0.26 },
+      { name: 'zona amplia', w: 0.92, h: 0.42 }
+    ];
+    if (elapsedMs > 3000) base.push({ name: 'casi toda la imagen', w: 0.98, h: 0.72 });
+    if (elapsedMs > 6000) base.push(null);
+    return base;
   }
 
   function regionToRect(vw, vh, region) {
-    if (!region) return { sx: 0, sy: 0, sw: vw, sh: vh };
+    if (!region) return { sx: 0, sy: 0, sw: vw, sh: vh, regionName: 'imagen completa' };
     const sw = Math.floor(vw * region.w);
     const sh = Math.floor(vh * region.h);
     const sx = Math.floor((vw - sw) / 2);
     const sy = Math.floor((vh - sh) / 2);
-    return { sx, sy, sw, sh };
+    return { sx, sy, sw, sh, regionName: region.name };
   }
 
   function tryDecodeRegion(vw, vh, region) {
-    const { sx, sy, sw, sh } = regionToRect(vw, vh, region);
+    const { sx, sy, sw, sh, regionName } = regionToRect(vw, vh, region);
     canvas.width = sw;
     canvas.height = sh;
     ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+    drawDecoderPreview(canvas);
+
+    updateDecoderDebug({
+      attempts: (decoderDebugState.attempts || 0) + 1,
+      regionName,
+      sizeText: `${sw}×${sh} recorte · vídeo ${vw}×${vh} · x=${sx}, y=${sy}`,
+      note: `El decodificador está intentando leer este recorte: ${regionName}.`
+    });
 
     try {
       const result = zxingReader.decodeFromCanvas(canvas);
-      if (result) return normalizeResult(result);
+      if (!result) return null;
+
+      const info = describeResult(result);
+      updateDecoderDebug({
+        rawText: info.raw || 'vacío',
+        format: info.format,
+        digits: info.digitsOnly || '—',
+        note: info.normalizedCode
+          ? `ZXing ha leído un código válido de 5 cifras en la región ${regionName}.`
+          : `ZXing ha leído algo en ${regionName}, pero no encaja con exactamente 5 cifras.`
+      });
+      return info.normalizedCode;
     } catch (err) {
       if (!(err instanceof ZXing.NotFoundException)) {
+        updateDecoderDebug({ lastWarning: `${err?.name || 'Error'}: ${err?.message || 'sin detalle'}` });
         console.debug('Decode warning:', err);
       }
     }
@@ -1476,12 +1664,8 @@ function startDecodeLoop(video) {
 
     const vw = video.videoWidth;
     const vh = video.videoHeight;
-
-    const regions = [
-      { w: 0.92, h: 0.45 },
-      { w: 0.98, h: 0.70 },
-      null
-    ];
+    const elapsed = Date.now() - scanStartTime;
+    const regions = getRegions(elapsed);
 
     let code = null;
     for (const region of regions) {
@@ -1494,10 +1678,11 @@ function startDecodeLoop(video) {
       return;
     }
 
-    frameCounter += 1;
-    const elapsed = Date.now() - scanStartTime;
-    if (elapsed > 4500 && frameCounter % 8 === 0) {
-      setScanStatus('scanning', 'Alinea el código completo dentro del marco y acércalo un poco más…');
+    if (elapsed > 4500) {
+      setScanStatus('scanning', 'Alinea el código completo, evita reflejos y prueba a acercarlo o alejarlo un poco…');
+      updateDecoderDebug({
+        note: 'Si en esta vista no aparece un patrón de barras nítido, el problema es de encuadre, enfoque o de que no es un código de barras legible para ZXing.'
+      });
     }
 
     scanTimerId = setTimeout(tick, 110);
@@ -1532,6 +1717,7 @@ function handleScannedCode(code) {
   if (scanSuccessLocked) return;
   scanSuccessLocked = true;
   scannedCode = code;
+  updateDecoderDebug({ note: `Código aceptado: ${code}` });
   stopCamera();
   setScanStatus('success', '✓ Código detectado correctamente');
   const resultEl = document.getElementById('scan-result');
