@@ -3,171 +3,211 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Arcas Joyeros · Gestión de Pedidos</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-
+  <title>Arcas Joyeros · Gestión de pedidos</title>
   <style>
     :root {
-      --bg:          #080808;
-      --surface:     #111111;
-      --surface-2:   #181818;
-      --border:      rgba(185,148,72,0.18);
-      --border-gold: rgba(185,148,72,0.55);
-      --gold:        #C9A84C;
-      --gold-light:  #E2C97A;
-      --gold-dim:    rgba(201,168,76,0.15);
-      --text:        #F0EAD6;
-      --muted:       rgba(240,234,214,0.45);
-      --danger:      #c0392b;
-      --success:     #27ae60;
-      --warn:        #e67e22;
+      --bg: #0f0d0a;
+      --bg-soft: #17130f;
+      --panel: rgba(30, 24, 19, 0.92);
+      --panel-2: rgba(22, 18, 14, 0.98);
+      --line: rgba(201, 166, 107, 0.18);
+      --line-strong: rgba(201, 166, 107, 0.35);
+      --gold: #c9a66b;
+      --gold-soft: #e0c79a;
+      --ivory: #f5efe5;
+      --muted: #b8aa96;
+      --ok: #4fb98e;
+      --warn: #d09a41;
+      --danger: #c35a5a;
+      --shadow: 0 20px 55px rgba(0, 0, 0, 0.35);
+      --radius-xl: 28px;
+      --radius-lg: 20px;
+      --radius-md: 16px;
       color-scheme: dark;
+      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; }
+
+    html, body {
+      margin: 0;
+      min-height: 100%;
+      background:
+        radial-gradient(circle at top left, rgba(201, 166, 107, 0.12), transparent 28%),
+        radial-gradient(circle at top right, rgba(201, 166, 107, 0.08), transparent 22%),
+        linear-gradient(180deg, #0c0a08 0%, #110e0a 45%, #16110d 100%);
+      color: var(--ivory);
+    }
 
     body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'DM Sans', sans-serif;
-      font-weight: 400;
       min-height: 100vh;
-      overflow-x: hidden;
+      padding: 18px;
     }
 
-    /* ─── NOISE OVERLAY ─── */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
-      pointer-events: none;
-      z-index: 0;
-    }
-
-    .app {
-      position: relative;
-      z-index: 1;
-      max-width: 800px;
+    .app-shell {
+      max-width: 1180px;
       margin: 0 auto;
-      padding: 0 16px 48px;
+      display: grid;
+      gap: 18px;
     }
 
-    /* ─── HEADER ─── */
-    .header {
-      padding: 28px 0 20px;
-      text-align: center;
-      border-bottom: 1px solid var(--border);
-      margin-bottom: 28px;
+    .top-grid {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr;
+      gap: 18px;
+      align-items: stretch;
     }
 
-    .header-logo {
-      height: 52px;
-      object-fit: contain;
-      filter: brightness(1.1) contrast(1.05);
-    }
-
-    .header-divider {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      margin: 14px 0 10px;
-    }
-
-    .header-divider::before,
-    .header-divider::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-    }
-
-    .diamond {
-      width: 7px;
-      height: 7px;
-      background: var(--gold);
-      transform: rotate(45deg);
-      flex-shrink: 0;
-    }
-
-    .header-sub {
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.72rem;
-      font-weight: 500;
-      letter-spacing: 0.28em;
-      text-transform: uppercase;
-      color: var(--gold);
-    }
-
-    .header-app-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem;
-      font-weight: 400;
-      font-style: italic;
-      color: var(--muted);
-      margin-top: 6px;
-    }
-
-    /* ─── CARDS ─── */
     .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      padding: 20px;
-      margin-bottom: 16px;
-      position: relative;
+      background: linear-gradient(180deg, rgba(32, 26, 20, 0.92), rgba(21, 17, 13, 0.96));
+      border: 1px solid var(--line);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
       overflow: hidden;
+      position: relative;
     }
 
     .card::before {
-      content: '';
+      content: "";
       position: absolute;
       inset: 0;
-      background: linear-gradient(135deg, rgba(201,168,76,0.035) 0%, transparent 50%);
       pointer-events: none;
+      background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 22%);
     }
 
-    .section-label {
-      font-size: 0.68rem;
-      letter-spacing: 0.24em;
-      text-transform: uppercase;
-      color: var(--gold);
-      font-weight: 600;
-      margin-bottom: 14px;
+    .brand-card {
+      padding: 28px;
+      display: grid;
+      gap: 22px;
+      min-height: 100%;
+    }
+
+    .brand-top {
       display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 18px;
+    }
+
+    .brand-mark {
+      display: grid;
+      gap: 8px;
+    }
+
+    .eyebrow {
+      font-size: 0.78rem;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: var(--gold-soft);
+    }
+
+    .brand-title {
+      margin: 0;
+      font-family: Georgia, "Times New Roman", serif;
+      font-size: clamp(2rem, 4vw, 3rem);
+      line-height: 1;
+      letter-spacing: 0.02em;
+      color: var(--ivory);
+    }
+
+    .brand-subtitle {
+      margin: 0;
+      color: var(--muted);
+      font-size: 1rem;
+      line-height: 1.55;
+      max-width: 52ch;
+    }
+
+    .brand-link {
+      display: inline-flex;
       align-items: center;
       gap: 10px;
+      width: fit-content;
+      text-decoration: none;
+      color: var(--gold-soft);
+      border: 1px solid var(--line-strong);
+      padding: 11px 16px;
+      border-radius: 999px;
+      background: rgba(201, 166, 107, 0.08);
+      font-weight: 600;
     }
 
-    .section-label::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border-gold);
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
     }
 
-    /* ─── CAMERA ─── */
+    .summary-box {
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 16px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .summary-label {
+      color: var(--muted);
+      font-size: 0.82rem;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      margin-bottom: 8px;
+    }
+
+    .summary-value {
+      font-size: 1.65rem;
+      font-weight: 700;
+      color: var(--ivory);
+    }
+
+    .scanner-card {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+    }
+
+    .section-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .section-title {
+      margin: 0;
+      font-size: 1.12rem;
+      font-weight: 700;
+      color: var(--ivory);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(201, 166, 107, 0.08);
+      color: var(--gold-soft);
+      border: 1px solid var(--line);
+      font-size: 0.88rem;
+      white-space: nowrap;
+    }
+
     .video-wrap {
       position: relative;
-      border-radius: 14px;
       overflow: hidden;
+      border-radius: 24px;
+      border: 1px solid var(--line);
       background: #000;
-      aspect-ratio: 4 / 3;
-      border: 1px solid var(--border);
+      aspect-ratio: 4 / 5;
+      min-height: 360px;
     }
 
     video {
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       object-fit: cover;
       display: block;
-    }
-
-    .scan-overlay {
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
+      background: #000;
     }
 
     .scan-box {
@@ -175,1190 +215,1350 @@
       left: 12%;
       top: 38%;
       width: 76%;
-      height: 24%;
-      border: 2px solid var(--gold);
-      border-radius: 12px;
+      height: 22%;
+      border: 2px solid rgba(224, 199, 154, 0.95);
+      border-radius: 18px;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);
+      pointer-events: none;
     }
 
     .scan-box::before,
     .scan-box::after {
-      content: '';
+      content: "";
       position: absolute;
-      width: 20px; height: 20px;
-      border-color: #fff;
+      width: 22px;
+      height: 22px;
+      border-color: var(--gold-soft);
       border-style: solid;
     }
-    .scan-box::before { top: -2px; left: -2px; border-width: 3px 0 0 3px; border-top-left-radius: 10px; }
-    .scan-box::after  { right: -2px; bottom: -2px; border-width: 0 3px 3px 0; border-bottom-right-radius: 10px; }
 
-    .scan-line {
-      position: absolute;
-      left: 12%;
-      width: 76%;
-      height: 2px;
-      background: linear-gradient(90deg, transparent, var(--gold), transparent);
-      animation: scanline 2.4s ease-in-out infinite;
-      opacity: 0;
+    .scan-box::before {
+      top: -2px;
+      left: -2px;
+      border-width: 3px 0 0 3px;
+      border-top-left-radius: 16px;
     }
 
-    @keyframes scanline {
-      0%   { top: 38%; opacity: 0; }
-      5%   { opacity: 1; }
-      95%  { opacity: 1; }
-      100% { top: 62%; opacity: 0; }
+    .scan-box::after {
+      right: -2px;
+      bottom: -2px;
+      border-width: 0 3px 3px 0;
+      border-bottom-right-radius: 16px;
     }
 
-    .scan-corner-hint {
-      position: absolute;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      font-size: 0.72rem;
-      letter-spacing: 0.12em;
-      color: rgba(255,255,255,0.55);
-      white-space: nowrap;
-    }
-
-    .cam-active .scan-line { opacity: 1; animation-play-state: running; }
-
-    /* ─── BUTTONS ─── */
-    .btn-row {
+    .controls {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-top: 14px;
+      gap: 12px;
+    }
+
+    button,
+    select,
+    input,
+    textarea {
+      font: inherit;
     }
 
     button {
-      appearance: none;
       border: 0;
-      border-radius: 12px;
-      padding: 13px 16px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.88rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
+      border-radius: 16px;
+      padding: 14px 16px;
       cursor: pointer;
-      color: white;
-      transition: opacity 0.15s, transform 0.12s, box-shadow 0.15s;
+      font-weight: 700;
+      transition: transform 0.14s ease, opacity 0.14s ease, border-color 0.14s ease;
     }
 
-    button:active { transform: scale(0.97); }
-    button:disabled { opacity: 0.4; cursor: not-allowed; }
+    button:active { transform: scale(0.985); }
+    button[disabled] { opacity: 0.55; cursor: not-allowed; }
 
-    .btn-gold {
-      background: linear-gradient(135deg, #C9A84C 0%, #8B6914 100%);
-      box-shadow: 0 4px 16px rgba(201,168,76,0.25);
-      color: #0a0600;
-    }
-    .btn-gold:hover:not(:disabled) { box-shadow: 0 6px 22px rgba(201,168,76,0.4); }
-
-    .btn-outline {
-      background: transparent;
-      border: 1px solid var(--border-gold);
-      color: var(--gold-light);
-    }
-    .btn-outline:hover:not(:disabled) { background: var(--gold-dim); }
-
-    .btn-ghost {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: var(--muted);
+    .btn-primary {
+      background: linear-gradient(135deg, #d3b27d, #b58b4c);
+      color: #17120d;
     }
 
-    .btn-danger {
-      background: rgba(192,57,43,0.15);
-      border: 1px solid rgba(192,57,43,0.3);
-      color: #e74c3c;
-    }
-
-    /* ─── STATUS BAR ─── */
-    .status-bar {
-      margin-top: 12px;
-      padding: 11px 14px;
-      border-radius: 10px;
+    .btn-secondary {
       background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      font-size: 0.85rem;
-      color: var(--muted);
-      line-height: 1.5;
-      min-height: 42px;
+      color: var(--ivory);
+      border: 1px solid var(--line);
     }
 
-    /* ─── RESULT BADGE ─── */
-    .result-row {
+    .scan-footer {
       display: flex;
+      justify-content: space-between;
       align-items: center;
-      gap: 16px;
-      padding: 14px 0 0;
+      gap: 12px;
+      flex-wrap: wrap;
     }
 
-    .result-badge {
-      display: flex;
+    .current-code {
+      display: inline-flex;
       flex-direction: column;
+      gap: 4px;
+      padding: 14px 16px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--line);
+      min-width: 150px;
+    }
+
+    .current-code small {
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.11em;
+      font-size: 0.72rem;
+    }
+
+    .current-code strong {
+      font-size: 1.8rem;
+      line-height: 1;
+      letter-spacing: 0.12em;
+      color: var(--gold-soft);
+    }
+
+    .editor-card {
+      padding: 22px;
+      display: grid;
+      gap: 18px;
+    }
+
+    .editor-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .editor-title-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .editor-title {
+      margin: 0;
+      font-size: 1.18rem;
+      font-weight: 700;
+    }
+
+    .editor-note {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .status-badge {
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      width: 88px;
-      height: 88px;
-      border-radius: 50%;
-      border: 2px solid var(--border-gold);
-      background: var(--gold-dim);
-      flex-shrink: 0;
-    }
-
-    .result-badge .code {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.55rem;
+      padding: 10px 14px;
+      border-radius: 999px;
+      border: 1px solid transparent;
+      font-size: 0.85rem;
       font-weight: 700;
-      color: var(--gold-light);
-      line-height: 1;
-    }
-
-    .result-badge .code-label {
-      font-size: 0.6rem;
-      letter-spacing: 0.18em;
       text-transform: uppercase;
-      color: var(--gold);
-      margin-top: 3px;
+      letter-spacing: 0.08em;
     }
 
-    .result-badge.empty .code { color: var(--muted); font-size: 1.8rem; }
-
-    .result-badge.warn-badge {
-      border-color: rgba(230,126,34,0.5);
-      background: rgba(230,126,34,0.08);
-    }
-    .result-badge.warn-badge .code { color: var(--warn); }
-
-    .result-info { flex: 1; }
-    .result-info .ri-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.05rem;
-      margin-bottom: 4px;
-    }
-    .result-info .ri-sub {
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.45;
-    }
-
-    /* ─── PEDIDO FORM ─── */
-    .pedido-section {
-      display: none;
-    }
-    .pedido-section.visible { display: block; }
+    .estado-pendiente { background: rgba(208,154,65,0.12); color: #e6bf7a; border-color: rgba(208,154,65,0.32); }
+    .estado-en-transito { background: rgba(92,134,201,0.13); color: #9dc0ff; border-color: rgba(92,134,201,0.3); }
+    .estado-recibido { background: rgba(79,185,142,0.14); color: #8ee0bc; border-color: rgba(79,185,142,0.3); }
+    .estado-incidencia { background: rgba(195,90,90,0.14); color: #f0a0a0; border-color: rgba(195,90,90,0.3); }
 
     .form-grid {
       display: grid;
-      gap: 12px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 14px;
     }
 
-    .form-row {
+    .field {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 8px;
     }
 
-    label {
-      display: grid;
-      gap: 6px;
-      font-size: 0.78rem;
-      letter-spacing: 0.08em;
+    .field-full {
+      grid-column: 1 / -1;
+    }
+
+    .field label {
+      font-size: 0.86rem;
+      color: var(--muted);
+      letter-spacing: 0.05em;
       text-transform: uppercase;
-      color: var(--gold);
-      font-weight: 600;
     }
 
-    input, textarea, select {
+    .control,
+    .field select,
+    .field input,
+    .field textarea {
       width: 100%;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      background: rgba(0,0,0,0.4);
-      color: var(--text);
-      padding: 11px 14px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
+      border-radius: 16px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.03);
+      color: var(--ivory);
+      padding: 14px 15px;
       outline: none;
-      transition: border-color 0.2s;
     }
 
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--border-gold);
-      background: rgba(201,168,76,0.04);
+    .field input:focus,
+    .field textarea:focus,
+    .field select:focus {
+      border-color: var(--line-strong);
+      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.08);
     }
 
-    select option { background: #181818; }
-
-    textarea {
-      min-height: 90px;
+    .field textarea {
+      min-height: 118px;
       resize: vertical;
     }
 
-    .estado-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      padding: 4px 12px;
-      border-radius: 20px;
-      font-size: 0.78rem;
-      font-weight: 600;
-      letter-spacing: 0.05em;
-    }
-
-    .estado-pendiente  { background: rgba(230,126,34,0.15); color: #e67e22; border: 1px solid rgba(230,126,34,0.3); }
-    .estado-transito   { background: rgba(52,152,219,0.15); color: #3498db; border: 1px solid rgba(52,152,219,0.3); }
-    .estado-recibido   { background: rgba(39,174,96,0.15);  color: #27ae60; border: 1px solid rgba(39,174,96,0.3); }
-    .estado-cancelado  { background: rgba(192,57,43,0.15);  color: #e74c3c; border: 1px solid rgba(192,57,43,0.3); }
-
-    /* ─── SUMMARY VIEW ─── */
-    .summary-view {
-      background: rgba(0,0,0,0.25);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 16px;
+    .provider-selector {
       display: grid;
       gap: 10px;
     }
 
-    .sv-row {
+    .provider-actions {
       display: flex;
-      gap: 8px;
-      font-size: 0.88rem;
+      gap: 10px;
+      flex-wrap: wrap;
     }
 
-    .sv-key {
-      color: var(--muted);
-      font-size: 0.78rem;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      min-width: 110px;
-      padding-top: 2px;
-      flex-shrink: 0;
+    .new-provider-box {
+      display: none;
+      gap: 12px;
+      padding: 14px;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
     }
 
-    .sv-val { color: var(--text); line-height: 1.45; }
+    .new-provider-box.visible {
+      display: grid;
+    }
 
-    /* ─── PEDIDOS LIST ─── */
-    .pedido-item {
-      background: var(--surface-2);
-      border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 14px 16px;
+    .form-actions {
       display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      justify-content: space-between;
       align-items: center;
+    }
+
+    .helper-text {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .bottom-panel {
+      min-height: 42vh;
+      display: grid;
+      grid-template-rows: auto 1fr;
+      overflow: hidden;
+    }
+
+    .bottom-head {
+      padding: 18px 22px 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .tabs {
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 6px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .tab-btn {
+      padding: 10px 16px;
+      border-radius: 999px;
+      background: transparent;
+      color: var(--muted);
+      border: 0;
+      font-weight: 700;
+    }
+
+    .tab-btn.active {
+      background: rgba(201, 166, 107, 0.13);
+      color: var(--gold-soft);
+    }
+
+    .panel-body {
+      padding: 18px 22px 22px;
+      overflow: auto;
+    }
+
+    .list-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    .row-card {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      background: rgba(255,255,255,0.02);
+      display: grid;
       gap: 14px;
       cursor: pointer;
-      transition: border-color 0.2s, background 0.2s;
-      margin-bottom: 10px;
+      transition: border-color 0.14s ease, transform 0.14s ease, background 0.14s ease;
     }
 
-    .pedido-item:hover { border-color: var(--border-gold); background: rgba(201,168,76,0.04); }
+    .row-card:hover {
+      transform: translateY(-1px);
+      border-color: var(--line-strong);
+      background: rgba(255,255,255,0.03);
+    }
 
-    .pi-code {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.3rem;
+    .row-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: start;
+      flex-wrap: wrap;
+    }
+
+    .code-block {
+      display: grid;
+      gap: 6px;
+    }
+
+    .code-label {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.13em;
+      text-transform: uppercase;
+    }
+
+    .code-value {
+      font-size: 1.35rem;
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      color: var(--gold-soft);
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px 14px;
+    }
+
+    .meta-item {
+      display: grid;
+      gap: 4px;
+    }
+
+    .meta-item span {
+      color: var(--muted);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .meta-item strong {
+      color: var(--ivory);
+      font-size: 0.94rem;
+      font-weight: 600;
+    }
+
+    .description {
+      color: #d9cfc2;
+      line-height: 1.55;
+      font-size: 0.95rem;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .provider-card {
+      display: grid;
+      gap: 12px;
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      padding: 18px;
+      background: rgba(255,255,255,0.02);
+    }
+
+    .provider-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .provider-name {
+      margin: 0;
+      font-size: 1.08rem;
       font-weight: 700;
-      color: var(--gold);
-      min-width: 60px;
-      text-align: center;
-      flex-shrink: 0;
+      color: var(--ivory);
     }
 
-    .pi-info { flex: 1; }
-    .pi-proveedor { font-weight: 600; font-size: 0.9rem; margin-bottom: 3px; }
-    .pi-desc { font-size: 0.8rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 240px; }
-    .pi-date { font-size: 0.75rem; color: var(--muted); }
+    .provider-desc {
+      color: #d8cebf;
+      line-height: 1.55;
+      font-size: 0.95rem;
+    }
 
-    .pi-right { text-align: right; flex-shrink: 0; }
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(201, 166, 107, 0.08);
+      color: var(--gold-soft);
+      border: 1px solid var(--line);
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
 
     .empty-state {
+      min-height: 240px;
+      display: grid;
+      place-items: center;
       text-align: center;
-      padding: 32px 0;
       color: var(--muted);
+      border: 1px dashed var(--line);
+      border-radius: 24px;
+      padding: 26px;
+      background: rgba(255,255,255,0.015);
     }
 
-    .empty-state .es-icon {
-      font-size: 2.5rem;
-      margin-bottom: 10px;
-      opacity: 0.4;
-    }
-
-    .empty-state p {
-      font-size: 0.88rem;
-      font-style: italic;
-    }
-
-    /* ─── MODAL ─── */
-    .modal-backdrop {
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.8);
-      z-index: 100;
+    .hidden-tools {
       display: none;
-      align-items: flex-end;
-      justify-content: center;
     }
 
-    .modal-backdrop.open { display: flex; }
-
-    .modal {
-      background: var(--surface);
-      border: 1px solid var(--border-gold);
-      border-radius: 22px 22px 0 0;
-      padding: 24px 20px 32px;
-      width: 100%;
-      max-width: 800px;
-      max-height: 85vh;
-      overflow-y: auto;
-      animation: slideUp 0.28s ease;
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(60px); opacity: 0; }
-      to   { transform: translateY(0);    opacity: 1; }
-    }
-
-    .modal-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 20px;
-    }
-
-    .modal-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.2rem;
-    }
-
-    .modal-close {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid var(--border);
-      border-radius: 50%;
-      width: 36px; height: 36px;
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      font-size: 1rem;
-      color: var(--muted);
-      flex-shrink: 0;
-    }
-
-    .proveedor-option {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      background: var(--surface-2);
-      cursor: pointer;
-      margin-bottom: 8px;
-      transition: border-color 0.15s, background 0.15s;
-    }
-
-    .proveedor-option:hover { border-color: var(--border-gold); background: var(--gold-dim); }
-
-    .po-initial {
-      width: 38px; height: 38px;
-      border-radius: 50%;
-      background: var(--gold-dim);
-      border: 1px solid var(--border-gold);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Playfair Display', serif;
-      font-size: 1rem;
-      color: var(--gold);
-      flex-shrink: 0;
-    }
-
-    .po-name { font-weight: 600; font-size: 0.9rem; }
-    .po-desc { font-size: 0.78rem; color: var(--muted); }
-
-    .separator {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 16px 0;
-      color: var(--muted);
-      font-size: 0.78rem;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    .separator::before, .separator::after {
-      content: '';
-      flex: 1;
+    .visually-hidden {
+      position: absolute;
+      width: 1px;
       height: 1px;
-      background: var(--border);
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
     }
 
-    /* ─── TABS ─── */
-    .tabs {
-      display: flex;
-      gap: 2px;
-      background: rgba(0,0,0,0.3);
-      border-radius: 12px;
-      padding: 3px;
-      margin-bottom: 16px;
+    @media (max-width: 980px) {
+      .top-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
-    .tab {
-      flex: 1;
-      padding: 9px;
-      text-align: center;
-      border-radius: 10px;
-      font-size: 0.8rem;
-      font-weight: 600;
-      letter-spacing: 0.06em;
-      cursor: pointer;
-      color: var(--muted);
-      border: none;
-      background: transparent;
-      font-family: 'DM Sans', sans-serif;
-      text-transform: uppercase;
-      transition: background 0.15s, color 0.15s;
+    @media (max-width: 740px) {
+      body { padding: 12px; }
+      .brand-card,
+      .editor-card,
+      .scanner-card,
+      .panel-body,
+      .bottom-head { padding-left: 16px; padding-right: 16px; }
+      .summary-grid,
+      .controls,
+      .form-grid,
+      .meta-grid {
+        grid-template-columns: 1fr;
+      }
+      .video-wrap {
+        min-height: 320px;
+      }
+      .form-actions,
+      .provider-actions,
+      .section-head,
+      .brand-top,
+      .editor-head,
+      .scan-footer,
+      .row-top,
+      .provider-title {
+        flex-direction: column;
+        align-items: stretch;
+      }
+      .tabs {
+        width: 100%;
+      }
+      .tab-btn {
+        width: 100%;
+      }
     }
-
-    .tab.active {
-      background: var(--gold-dim);
-      color: var(--gold-light);
-      border: 1px solid var(--border-gold);
-    }
-
-    /* ─── HIDDEN TOOLS ─── */
-    .hidden { display: none; }
-
-    /* ─── SCROLL BAR ─── */
-    ::-webkit-scrollbar { width: 6px; }
-    ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: var(--border-gold); border-radius: 3px; }
-
-    @media (max-width: 540px) {
-      .form-row { grid-template-columns: 1fr; }
-      .btn-row { grid-template-columns: 1fr; }
-    }
-
-    /* ─── SPINNER ─── */
-    .spinner {
-      display: inline-block;
-      width: 14px; height: 14px;
-      border: 2px solid rgba(201,168,76,0.25);
-      border-top-color: var(--gold);
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      vertical-align: middle;
-    }
-    @keyframes spin { to { transform: rotate(360deg); } }
   </style>
 </head>
 <body>
-<div class="app">
-
-  <!-- ─── HEADER ─── -->
-  <header class="header">
-    <img class="header-logo" src="https://www.arcasjoyeros.com/img/logo.png" alt="Arcas Joyeros" onerror="this.style.display='none';document.getElementById('fallbackTitle').style.display='block'">
-    <div id="fallbackTitle" style="display:none;font-family:'Playfair Display',serif;font-size:1.8rem;color:var(--gold);">Arcas Joyeros</div>
-    <div class="header-divider"><div class="diamond"></div></div>
-    <div class="header-sub">Valencia · Joyería &amp; Relojería</div>
-    <div class="header-app-title">Sistema de gestión de pedidos</div>
-  </header>
-
-  <!-- ─── TABS ─── -->
-  <div class="tabs">
-    <button class="tab active" id="tabEscanear" onclick="switchTab('escanear')">Escanear</button>
-    <button class="tab" id="tabPedidos" onclick="switchTab('pedidos')">Pedidos</button>
-    <button class="tab" id="tabProveedores" onclick="switchTab('proveedores')">Proveedores</button>
-  </div>
-
-  <!-- ─────────── TAB: ESCANEAR ─────────── -->
-  <div id="viewEscanear">
-
-    <!-- Cámara -->
-    <div class="card">
-      <div class="section-label">Escáner</div>
-      <div id="videoWrap" class="video-wrap">
-        <video id="video" autoplay playsinline muted></video>
-        <div class="scan-overlay">
-          <div class="scan-box"></div>
-          <div class="scan-line"></div>
-          <div class="scan-corner-hint">Centra el código de 5 dígitos</div>
-        </div>
-      </div>
-      <div class="btn-row">
-        <button id="startBtn" class="btn-gold" onclick="startCamera()">◉ &nbsp;Abrir cámara</button>
-        <button id="captureBtn" class="btn-outline" disabled onclick="readNumber()">⬡ &nbsp;Capturar y leer</button>
-      </div>
-      <div id="status" class="status-bar">Iniciando aplicación…</div>
-    </div>
-
-    <!-- Resultado -->
-    <div class="card">
-      <div class="section-label">Código detectado</div>
-      <div class="result-row">
-        <div id="resultBadge" class="result-badge empty">
-          <span id="resultCode" class="code">—</span>
-          <span class="code-label">Código</span>
-        </div>
-        <div class="result-info">
-          <div id="riTitle" class="ri-title">Sin lectura</div>
-          <div id="riSub" class="ri-sub">Abre la cámara, coloca el número en el recuadro dorado y pulsa capturar.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pedido asociado -->
-    <div id="pedidoSection" class="card pedido-section">
-      <div class="section-label" id="pedidoSectionLabel">Pedido</div>
-
-      <!-- Vista resumen (pedido existente) -->
-      <div id="summaryView" class="summary-view hidden"></div>
-
-      <!-- Formulario (nuevo / editar) -->
-      <div id="formView" class="form-grid hidden">
-        <!-- Proveedor -->
-        <label>
-          Proveedor
-          <div style="display:flex;gap:8px">
-            <input id="proveedorInput" type="text" placeholder="Nombre del proveedor" readonly style="cursor:pointer;flex:1" onclick="openProveedorModal()">
-            <button class="btn-outline" style="padding:11px 14px;flex-shrink:0" onclick="openProveedorModal()">🔍</button>
+  <main class="app-shell">
+    <section class="top-grid">
+      <article class="card brand-card">
+        <div class="brand-top">
+          <div class="brand-mark">
+            <div class="eyebrow">Operativa interna</div>
+            <h1 class="brand-title">Arcas Joyeros</h1>
+            <p class="brand-subtitle">Gestión de pedidos y recepción de mercancía con lectura de código, trazabilidad de proveedor y consulta rápida del estado de cada pedido.</p>
           </div>
-        </label>
-        <input type="hidden" id="proveedorId">
-
-        <div class="form-row">
-          <label>
-            Fecha de envío
-            <input id="fechaEnvio" type="date">
-          </label>
-          <label>
-            Fecha de recibo
-            <input id="fechaRecibo" type="date" placeholder="Pendiente">
-          </label>
+          <a class="brand-link" href="https://www.arcasjoyeros.com/" target="_blank" rel="noreferrer">Visitar web</a>
         </div>
 
-        <label>
-          Descripción
-          <textarea id="descripcion" placeholder="Detalles del pedido, referencias, cantidades…"></textarea>
-        </label>
+        <div class="summary-grid">
+          <div class="summary-box">
+            <div class="summary-label">Pedidos</div>
+            <div class="summary-value" id="summaryPedidos">0</div>
+          </div>
+          <div class="summary-box">
+            <div class="summary-label">Pendientes</div>
+            <div class="summary-value" id="summaryPendientes">0</div>
+          </div>
+          <div class="summary-box">
+            <div class="summary-label">Proveedores</div>
+            <div class="summary-value" id="summaryProveedores">0</div>
+          </div>
+        </div>
+      </article>
 
-        <label>
-          Estado
-          <select id="estado">
-            <option value="pendiente">⏳ Pendiente</option>
-            <option value="transito">🚚 En tránsito</option>
-            <option value="recibido">✅ Recibido</option>
-            <option value="cancelado">❌ Cancelado</option>
-          </select>
-        </label>
+      <article class="card scanner-card">
+        <div class="section-head">
+          <h2 class="section-title">Lectura de código</h2>
+          <div class="status-pill" id="syncStatus">Preparando sistema</div>
+        </div>
+
+        <div class="video-wrap">
+          <video id="video" autoplay playsinline muted></video>
+          <div class="scan-box"></div>
+        </div>
+
+        <div class="controls">
+          <button id="startBtn" class="btn-primary">Activar cámara</button>
+          <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
+        </div>
+
+        <div class="scan-footer">
+          <div class="current-code">
+            <small>Código activo</small>
+            <strong id="currentCode">—</strong>
+          </div>
+          <div class="helper-text" id="scanMessage">Escanea un código de 5 dígitos para abrir o crear un pedido.</div>
+        </div>
+      </article>
+    </section>
+
+    <section class="card editor-card">
+      <div class="editor-head">
+        <div class="editor-title-block">
+          <h2 class="editor-title">Ficha del pedido</h2>
+          <p class="editor-note" id="editorNote">Escanea un código para cargar la ficha del pedido.</p>
+        </div>
+        <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
       </div>
 
-      <!-- Botones acción -->
-      <div class="btn-row" id="pedidoBtns" style="margin-top:16px;display:none"></div>
-    </div>
+      <form id="pedidoForm" autocomplete="off">
+        <div class="form-grid">
+          <div class="field">
+            <label for="codigoInput">Código</label>
+            <input id="codigoInput" class="control" type="text" readonly placeholder="Pendiente de escaneo" />
+          </div>
 
-  </div><!-- /viewEscanear -->
+          <div class="field">
+            <label for="estadoInput">Estado</label>
+            <select id="estadoInput">
+              <option value="Pendiente">Pendiente</option>
+              <option value="En tránsito">En tránsito</option>
+              <option value="Recibido">Recibido</option>
+              <option value="Incidencia">Incidencia</option>
+            </select>
+          </div>
 
-  <!-- ─────────── TAB: PEDIDOS ─────────── -->
-  <div id="viewPedidos" class="hidden">
-    <div class="card">
-      <div class="section-label">Todos los pedidos</div>
-      <div id="pedidosList">
-        <div class="empty-state"><div class="es-icon">📦</div><p>Cargando pedidos…</p></div>
+          <div class="field field-full">
+            <label>Proveedor</label>
+            <div class="provider-selector">
+              <select id="proveedorSelect">
+                <option value="">Selecciona un proveedor</option>
+              </select>
+              <div class="provider-actions">
+                <button type="button" id="toggleNewProviderBtn" class="btn-secondary">Añadir nuevo proveedor</button>
+              </div>
+              <div id="newProviderBox" class="new-provider-box">
+                <div class="field">
+                  <label for="nuevoProveedorNombre">Nombre del proveedor</label>
+                  <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
+                </div>
+                <div class="field field-full">
+                  <label for="nuevoProveedorDescripcion">Descripción del proveedor</label>
+                  <textarea id="nuevoProveedorDescripcion" placeholder="Información interna o notas sobre este proveedor"></textarea>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="fechaEnvioInput">Fecha de envío</label>
+            <input id="fechaEnvioInput" type="date" />
+          </div>
+
+          <div class="field">
+            <label for="fechaReciboInput">Fecha de recibo</label>
+            <input id="fechaReciboInput" type="date" />
+          </div>
+
+          <div class="field field-full">
+            <label for="descripcionInput">Descripción</label>
+            <textarea id="descripcionInput" placeholder="Detalle del pedido, contenido, referencias o incidencias"></textarea>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <div class="helper-text" id="saveMessage">Los cambios se guardarán en Firebase, en las colecciones de pedidos y proveedores.</div>
+          <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
+        </div>
+      </form>
+    </section>
+
+    <section class="card bottom-panel">
+      <div class="bottom-head">
+        <h2 class="section-title" style="margin:0;">Base de datos</h2>
+        <div class="tabs">
+          <button class="tab-btn active" id="tabPedidos" type="button">Pedidos</button>
+          <button class="tab-btn" id="tabProveedores" type="button">Proveedores</button>
+        </div>
       </div>
-    </div>
-  </div>
-
-  <!-- ─────────── TAB: PROVEEDORES ─────────── -->
-  <div id="viewProveedores" class="hidden">
-    <div class="card">
-      <div class="section-label">Proveedores registrados</div>
-      <div id="proveedoresList">
-        <div class="empty-state"><div class="es-icon">🏢</div><p>Cargando proveedores…</p></div>
+      <div class="panel-body">
+        <div id="pedidosPanel" class="list-grid"></div>
+        <div id="proveedoresPanel" class="list-grid" style="display:none;"></div>
       </div>
-      <div style="margin-top:16px">
-        <button class="btn-gold" style="width:100%" onclick="openNuevoProveedorModal()">+ Añadir proveedor</button>
-      </div>
+    </section>
+
+    <div class="hidden-tools" aria-hidden="true">
+      <canvas id="cropCanvas"></canvas>
+      <canvas id="processedCanvas"></canvas>
     </div>
-  </div>
+  </main>
 
-</div><!-- /app -->
+  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
-<!-- ─── CANVASES OCULTOS ─── -->
-<canvas id="cropCanvas" class="hidden"></canvas>
-<canvas id="processedCanvas" class="hidden"></canvas>
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+    import {
+      getFirestore,
+      collection,
+      doc,
+      getDoc,
+      addDoc,
+      setDoc,
+      updateDoc,
+      onSnapshot,
+      serverTimestamp,
+      arrayUnion,
+      arrayRemove
+    } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
-<!-- ─── MODAL PROVEEDOR ─── -->
-<div id="modalProveedor" class="modal-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Seleccionar proveedor</div>
-      <button class="modal-close" onclick="closeModal('modalProveedor')">✕</button>
-    </div>
-    <div id="listaProveedoresModal"></div>
-    <div class="separator">o</div>
-    <div class="section-label" style="margin-bottom:12px">Nuevo proveedor</div>
-    <div class="form-grid">
-      <label>Nombre <input id="nuevoProvNombre" type="text" placeholder="Nombre del proveedor"></label>
-      <label>Descripción <textarea id="nuevoProvDesc" placeholder="Descripción del proveedor, especialidad…" style="min-height:70px"></textarea></label>
-    </div>
-    <div class="btn-row" style="margin-top:14px">
-      <button class="btn-gold" onclick="crearYSeleccionarProveedor()">Crear y seleccionar</button>
-      <button class="btn-ghost" onclick="closeModal('modalProveedor')">Cancelar</button>
-    </div>
-  </div>
-</div>
+    const firebaseConfig = {
+      apiKey: 'PON_AQUI_TU_API_KEY',
+      authDomain: 'PON_AQUI_TU_AUTH_DOMAIN',
+      projectId: 'PON_AQUI_TU_PROJECT_ID',
+      storageBucket: 'PON_AQUI_TU_STORAGE_BUCKET',
+      messagingSenderId: 'PON_AQUI_TU_MESSAGING_SENDER_ID',
+      appId: 'PON_AQUI_TU_APP_ID'
+    };
 
-<!-- ─── MODAL NUEVO PROVEEDOR (standalone) ─── -->
-<div id="modalNuevoProv" class="modal-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">Nuevo proveedor</div>
-      <button class="modal-close" onclick="closeModal('modalNuevoProv')">✕</button>
-    </div>
-    <div class="form-grid">
-      <label>Nombre <input id="npNombre" type="text" placeholder="Nombre del proveedor"></label>
-      <label>Descripción <textarea id="npDesc" placeholder="Especialidad, contacto, notas…" style="min-height:80px"></textarea></label>
-    </div>
-    <div class="btn-row" style="margin-top:14px">
-      <button class="btn-gold" onclick="guardarNuevoProveedor()">Guardar proveedor</button>
-      <button class="btn-ghost" onclick="closeModal('modalNuevoProv')">Cancelar</button>
-    </div>
-  </div>
-</div>
+    const video = document.getElementById('video');
+    const startBtn = document.getElementById('startBtn');
+    const captureBtn = document.getElementById('captureBtn');
+    const syncStatus = document.getElementById('syncStatus');
+    const scanMessage = document.getElementById('scanMessage');
+    const currentCodeEl = document.getElementById('currentCode');
+    const editorNote = document.getElementById('editorNote');
+    const estadoBadge = document.getElementById('estadoBadge');
+    const saveMessage = document.getElementById('saveMessage');
 
-<!-- ─── MODAL DETALLE PROVEEDOR ─── -->
-<div id="modalDetalleProv" class="modal-backdrop">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title" id="detProvTitle">Proveedor</div>
-      <button class="modal-close" onclick="closeModal('modalDetalleProv')">✕</button>
-    </div>
-    <div id="detProvContent"></div>
-  </div>
-</div>
+    const pedidoForm = document.getElementById('pedidoForm');
+    const codigoInput = document.getElementById('codigoInput');
+    const proveedorSelect = document.getElementById('proveedorSelect');
+    const toggleNewProviderBtn = document.getElementById('toggleNewProviderBtn');
+    const newProviderBox = document.getElementById('newProviderBox');
+    const nuevoProveedorNombre = document.getElementById('nuevoProveedorNombre');
+    const nuevoProveedorDescripcion = document.getElementById('nuevoProveedorDescripcion');
+    const fechaEnvioInput = document.getElementById('fechaEnvioInput');
+    const fechaReciboInput = document.getElementById('fechaReciboInput');
+    const descripcionInput = document.getElementById('descripcionInput');
+    const estadoInput = document.getElementById('estadoInput');
+    const savePedidoBtn = document.getElementById('savePedidoBtn');
 
-<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-<script type="module">
-import { initializeApp }    from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
-import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
-import {
-  getFirestore, doc, getDoc, setDoc, addDoc, updateDoc,
-  collection, getDocs, query, orderBy, serverTimestamp, arrayUnion, arrayRemove
-} from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+    const summaryPedidos = document.getElementById('summaryPedidos');
+    const summaryPendientes = document.getElementById('summaryPendientes');
+    const summaryProveedores = document.getElementById('summaryProveedores');
 
-// ── CONFIG ──────────────────────────────────────────────────────────────────
-const firebaseConfig = {
-  apiKey: "AIzaSyAYxyWlrWc4d5mmW_3jZjRM5iOOO6wkU7E",
-  authDomain: "gestpedidos-web.firebaseapp.com",
-  projectId: "gestpedidos-web",
-  storageBucket: "gestpedidos-web.firebasestorage.app",
-  messagingSenderId: "298563599142",
-  appId: "1:298563599142:web:2f1c1675ec2bcc7b9d9fe7"
-};
+    const pedidosPanel = document.getElementById('pedidosPanel');
+    const proveedoresPanel = document.getElementById('proveedoresPanel');
+    const tabPedidos = document.getElementById('tabPedidos');
+    const tabProveedores = document.getElementById('tabProveedores');
 
-// ── STATE ────────────────────────────────────────────────────────────────────
-const S = {
-  stream: null, worker: null, busy: false,
-  currentCode: null, currentPedido: null,
-  db: null, user: null, firebaseReady: false,
-  proveedores: [],
-  editMode: false
-};
+    const cropCanvas = document.getElementById('cropCanvas');
+    const processedCanvas = document.getElementById('processedCanvas');
+    const cropCtx = cropCanvas.getContext('2d', { willReadFrequently: true });
+    const processedCtx = processedCanvas.getContext('2d', { willReadFrequently: true });
 
-let fbInitPromise = null;
+    const state = {
+      app: null,
+      auth: null,
+      db: null,
+      user: null,
+      stream: null,
+      worker: null,
+      busy: false,
+      firebaseReady: false,
+      pedidos: [],
+      proveedores: [],
+      pedidosMap: new Map(),
+      proveedoresMap: new Map(),
+      currentPedido: null,
+      currentCode: '',
+      providerMode: 'existing',
+      unsubs: []
+    };
 
-// ── DOM ──────────────────────────────────────────────────────────────────────
-const video         = document.getElementById('video');
-const videoWrap     = document.getElementById('videoWrap');
-const statusEl      = document.getElementById('status');
-const resultBadge   = document.getElementById('resultBadge');
-const resultCode    = document.getElementById('resultCode');
-const riTitle       = document.getElementById('riTitle');
-const riSub         = document.getElementById('riSub');
-const captureBtn    = document.getElementById('captureBtn');
-const cropCanvas    = document.getElementById('cropCanvas');
-const processedCanvas = document.getElementById('processedCanvas');
-const cropCtx       = cropCanvas.getContext('2d', { willReadFrequently: true });
-const processedCtx  = processedCanvas.getContext('2d', { willReadFrequently: true });
-const pedidoSection = document.getElementById('pedidoSection');
-const summaryView   = document.getElementById('summaryView');
-const formView      = document.getElementById('formView');
-const pedidoBtns    = document.getElementById('pedidoBtns');
-
-// Expose globals for inline onclick
-window.startCamera   = startCamera;
-window.readNumber    = readNumber;
-window.switchTab     = switchTab;
-window.openProveedorModal      = openProveedorModal;
-window.closeModal              = closeModal;
-window.crearYSeleccionarProveedor = crearYSeleccionarProveedor;
-window.openNuevoProveedorModal = openNuevoProveedorModal;
-window.guardarNuevoProveedor   = guardarNuevoProveedor;
-
-// ── FIREBASE ─────────────────────────────────────────────────────────────────
-async function initFirebase() {
-  if (fbInitPromise) return fbInitPromise;
-  fbInitPromise = (async () => {
-    const app  = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    S.db = getFirestore(app);
-    const cred = await signInAnonymously(auth);
-    S.user = cred.user;
-    S.firebaseReady = true;
-    setStatus('Conectado. Abre la cámara y escanea un código de 5 dígitos.');
-  })().catch(e => { fbInitPromise = null; throw e; });
-  return fbInitPromise;
-}
-
-// ── STATUS ────────────────────────────────────────────────────────────────────
-function setStatus(msg) { statusEl.innerHTML = msg; }
-
-function esc(v) {
-  return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-function fmtDate(v) {
-  if (!v) return '—';
-  try {
-    const d = typeof v.toDate === 'function' ? v.toDate() : new Date(v);
-    return d.toLocaleDateString('es-ES');
-  } catch { return '—'; }
-}
-
-// ── TABS ──────────────────────────────────────────────────────────────────────
-function switchTab(tab) {
-  ['Escanear','Pedidos','Proveedores'].forEach(t => {
-    document.getElementById('view'+t).classList.toggle('hidden', t.toLowerCase() !== tab);
-    document.getElementById('tab'+t).classList.toggle('active', t.toLowerCase() === tab);
-  });
-  if (tab === 'pedidos')     loadPedidosList();
-  if (tab === 'proveedores') loadProveedoresTab();
-}
-
-// ── CAMERA ────────────────────────────────────────────────────────────────────
-async function startCamera() {
-  if (!navigator.mediaDevices?.getUserMedia) {
-    setStatus('Este navegador no soporta acceso a la cámara.'); return;
-  }
-  try {
-    if (S.stream) S.stream.getTracks().forEach(t => t.stop());
-    let stream;
-    try {
-      stream = await navigator.mediaDevices.getUserMedia({ audio:false, video:{ facingMode:{ideal:'environment'}, width:{ideal:1280} } });
-    } catch {
-      stream = await navigator.mediaDevices.getUserMedia({ video:true, audio:false });
-    }
-    S.stream = stream;
-    video.srcObject = stream;
-    await video.play();
-    videoWrap.classList.add('cam-active');
-    captureBtn.disabled = false;
-    setStatus('Cámara activa. Centra el código en el recuadro dorado y pulsa <strong>Capturar y leer</strong>.');
-  } catch(e) {
-    setStatus('No se pudo acceder a la cámara: ' + e.message);
-  }
-}
-
-// ── OCR ───────────────────────────────────────────────────────────────────────
-async function ensureWorker() {
-  if (S.worker) return S.worker;
-  const { createWorker, PSM } = Tesseract;
-  setStatus('Cargando motor de reconocimiento…');
-  S.worker = await createWorker('eng', 1, { logger: m => m?.status && setStatus('OCR: ' + m.status + (m.progress ? ' ' + Math.round(m.progress*100) + '%' : '')) });
-  const p = { tessedit_char_whitelist: '0123456789', preserve_interword_spaces: '0' };
-  if (PSM?.SINGLE_LINE !== undefined) p.tessedit_pageseg_mode = PSM.SINGLE_LINE;
-  await S.worker.setParameters(p);
-  return S.worker;
-}
-
-function captureRegion() {
-  const vw = video.videoWidth, vh = video.videoHeight;
-  if (!vw) throw new Error('El vídeo no está listo.');
-  const cw = Math.floor(vw*0.76), ch = Math.floor(vh*0.24);
-  const sx = Math.floor((vw-cw)/2), sy = Math.floor((vh-ch)/2);
-  cropCanvas.width = cw; cropCanvas.height = ch;
-  cropCtx.drawImage(video, sx, sy, cw, ch, 0, 0, cw, ch);
-  return { cw, ch };
-}
-
-function preprocessImage({ cw, ch }) {
-  const sc = 2;
-  processedCanvas.width = cw*sc; processedCanvas.height = ch*sc;
-  processedCtx.imageSmoothingEnabled = false;
-  processedCtx.drawImage(cropCanvas, 0, 0, processedCanvas.width, processedCanvas.height);
-  const id = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height);
-  const d = id.data;
-  let sum = 0;
-  for (let i=0;i<d.length;i+=4) sum += 0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2];
-  const avg = sum / (d.length/4);
-  const th  = Math.max(105, Math.min(185, avg*0.98));
-  for (let i=0;i<d.length;i+=4) {
-    let g = 0.2126*d[i]+0.7152*d[i+1]+0.0722*d[i+2];
-    g = (g-avg)*1.6+128; g = g>th?255:0;
-    d[i]=d[i+1]=d[i+2]=g; d[i+3]=255;
-  }
-  processedCtx.putImageData(id, 0, 0);
-}
-
-function extract5(text) {
-  const c = (text||'').replace(/\s+/g,' ').trim();
-  const m = c.match(/\b\d{5}\b/);
-  if (m) return m[0];
-  const mm = c.replace(/\D/g,'').match(/\d{5}/);
-  return mm ? mm[0] : null;
-}
-
-async function readNumber() {
-  if (S.busy) return;
-  S.busy = true; captureBtn.disabled = true;
-  resultCode.textContent = '…';
-  resultBadge.className = 'result-badge';
-  pedidoSection.classList.remove('visible');
-
-  try {
-    await initFirebase();
-    const size = captureRegion();
-    preprocessImage(size);
-    const w = await ensureWorker();
-    setStatus('Analizando imagen…');
-    let r = await w.recognize(processedCanvas, { tessedit_char_whitelist: '0123456789' });
-    let raw = r?.data?.text || '';
-    let val = extract5(raw);
-
-    if (!val) {
-      r = await w.recognize(cropCanvas, { tessedit_char_whitelist: '0123456789' });
-      raw = r?.data?.text || '';
-      val = extract5(raw);
+    function setSyncStatus(text) {
+      syncStatus.textContent = text;
     }
 
-    if (val) {
-      resultCode.textContent = val;
-      resultBadge.className = 'result-badge';
-      riTitle.textContent = 'Código ' + val;
+    function setScanMessage(text) {
+      scanMessage.textContent = text;
+    }
 
-      const pedido = await fetchPedido(val);
-      S.currentCode = val;
-      S.currentPedido = pedido;
+    function setSaveMessage(text) {
+      saveMessage.textContent = text;
+    }
+
+    function hasFirebasePlaceholders() {
+      return Object.values(firebaseConfig).some((value) => !value || String(value).includes('PON_AQUI_TU_'));
+    }
+
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/\"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function toMillis(value) {
+      if (!value) return 0;
+      if (typeof value.toMillis === 'function') return value.toMillis();
+      const date = new Date(value);
+      return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+    }
+
+    function formatDate(value) {
+      if (!value) return '—';
+      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+        const [y, m, d] = value.split('-');
+        return `${d}/${m}/${y}`;
+      }
+      const date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
+      if (Number.isNaN(date.getTime())) return '—';
+      return date.toLocaleDateString('es-ES');
+    }
+
+    function normalizeText(value) {
+      return String(value || '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .trim()
+        .toLowerCase();
+    }
+
+    function setEstadoBadge(estado) {
+      const value = estado || 'Pendiente';
+      estadoBadge.textContent = value;
+      estadoBadge.className = 'status-badge';
+      if (value === 'Pendiente') estadoBadge.classList.add('estado-pendiente');
+      if (value === 'En tránsito') estadoBadge.classList.add('estado-en-transito');
+      if (value === 'Recibido') estadoBadge.classList.add('estado-recibido');
+      if (value === 'Incidencia') estadoBadge.classList.add('estado-incidencia');
+    }
+
+    function renderSummary() {
+      summaryPedidos.textContent = String(state.pedidos.length);
+      summaryPendientes.textContent = String(state.pedidos.filter((item) => item.estado !== 'Recibido').length);
+      summaryProveedores.textContent = String(state.proveedores.length);
+    }
+
+    function renderProveedorSelect() {
+      const currentValue = proveedorSelect.value;
+      const options = ['<option value="">Selecciona un proveedor</option>'];
+      const items = [...state.proveedores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+      for (const proveedor of items) {
+        options.push(`<option value="${proveedor.id}">${escapeHtml(proveedor.nombre)}</option>`);
+      }
+      proveedorSelect.innerHTML = options.join('');
+      if (items.some((item) => item.id === currentValue)) {
+        proveedorSelect.value = currentValue;
+      }
+    }
+
+    function renderPedidosList() {
+      if (!state.pedidos.length) {
+        pedidosPanel.innerHTML = '<div class="empty-state">Todavía no hay pedidos guardados. Escanea un código para crear el primero.</div>';
+        return;
+      }
+
+      const ordered = [...state.pedidos].sort((a, b) => toMillis(b.updatedAt) - toMillis(a.updatedAt));
+      pedidosPanel.innerHTML = ordered.map((pedido) => {
+        const estadoClass = pedido.estado === 'Recibido'
+          ? 'estado-recibido'
+          : pedido.estado === 'En tránsito'
+            ? 'estado-en-transito'
+            : pedido.estado === 'Incidencia'
+              ? 'estado-incidencia'
+              : 'estado-pendiente';
+
+        return `
+          <article class="row-card" data-open-pedido="${pedido.codigo}">
+            <div class="row-top">
+              <div class="code-block">
+                <span class="code-label">Pedido</span>
+                <div class="code-value">${escapeHtml(pedido.codigo)}</div>
+              </div>
+              <div class="status-badge ${estadoClass}">${escapeHtml(pedido.estado || 'Pendiente')}</div>
+            </div>
+            <div class="meta-grid">
+              <div class="meta-item">
+                <span>Proveedor</span>
+                <strong>${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Fecha envío</span>
+                <strong>${escapeHtml(formatDate(pedido.fechaEnvio))}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Fecha recibo</span>
+                <strong>${escapeHtml(formatDate(pedido.fechaRecibo))}</strong>
+              </div>
+              <div class="meta-item">
+                <span>Última actualización</span>
+                <strong>${escapeHtml(formatDate(pedido.updatedAt))}</strong>
+              </div>
+            </div>
+            <div class="description">${escapeHtml(pedido.descripcion || 'Sin descripción')}</div>
+          </article>
+        `;
+      }).join('');
+
+      pedidosPanel.querySelectorAll('[data-open-pedido]').forEach((element) => {
+        element.addEventListener('click', () => openPedidoByCode(element.dataset.openPedido));
+      });
+    }
+
+    function renderProveedoresList() {
+      if (!state.proveedores.length) {
+        proveedoresPanel.innerHTML = '<div class="empty-state">Todavía no hay proveedores. Puedes crear uno nuevo desde la ficha de pedido.</div>';
+        return;
+      }
+
+      const ordered = [...state.proveedores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+      proveedoresPanel.innerHTML = ordered.map((proveedor) => {
+        const pedidosAsignados = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+        const chips = pedidosAsignados.length
+          ? pedidosAsignados.map((codigo) => `<span class="chip" data-open-pedido="${codigo}">${escapeHtml(codigo)}</span>`).join('')
+          : '<span class="chip">Sin pedidos</span>';
+
+        return `
+          <article class="provider-card">
+            <div class="provider-title">
+              <h3 class="provider-name">${escapeHtml(proveedor.nombre)}</h3>
+              <span class="chip">${pedidosAsignados.length} pedido${pedidosAsignados.length === 1 ? '' : 's'}</span>
+            </div>
+            <div class="provider-desc">${escapeHtml(proveedor.descripcion || 'Sin descripción interna')}</div>
+            <div class="chips">${chips}</div>
+          </article>
+        `;
+      }).join('');
+
+      proveedoresPanel.querySelectorAll('[data-open-pedido]').forEach((element) => {
+        element.addEventListener('click', () => openPedidoByCode(element.dataset.openPedido));
+      });
+    }
+
+    function setTab(tab) {
+      const isPedidos = tab === 'pedidos';
+      tabPedidos.classList.toggle('active', isPedidos);
+      tabProveedores.classList.toggle('active', !isPedidos);
+      pedidosPanel.style.display = isPedidos ? 'grid' : 'none';
+      proveedoresPanel.style.display = isPedidos ? 'none' : 'grid';
+    }
+
+    function setProviderMode(mode) {
+      state.providerMode = mode;
+      const isNew = mode === 'new';
+      newProviderBox.classList.toggle('visible', isNew);
+      toggleNewProviderBtn.textContent = isNew ? 'Usar proveedor existente' : 'Añadir nuevo proveedor';
+      proveedorSelect.disabled = isNew;
+      if (!isNew) {
+        nuevoProveedorNombre.value = '';
+        nuevoProveedorDescripcion.value = '';
+      }
+    }
+
+    function fillFormFromPedido(pedido) {
+      state.currentPedido = pedido || null;
+      state.currentCode = pedido?.codigo || '';
+
+      codigoInput.value = pedido?.codigo || '';
+      currentCodeEl.textContent = pedido?.codigo || '—';
+      estadoInput.value = pedido?.estado || 'Pendiente';
+      fechaEnvioInput.value = pedido?.fechaEnvio || '';
+      fechaReciboInput.value = pedido?.fechaRecibo || '';
+      descripcionInput.value = pedido?.descripcion || '';
+      proveedorSelect.value = pedido?.proveedorId || '';
+
+      setEstadoBadge(pedido?.estado || 'Pendiente');
+      setProviderMode('existing');
 
       if (pedido) {
-        riSub.textContent = 'Pedido encontrado. Proveedor: ' + (pedido.proveedorNombre || '—');
-        setStatus('Código <strong>' + val + '</strong> encontrado en la base de datos.');
-        renderSummary(pedido);
+        editorNote.textContent = pedido.existsInDb
+          ? 'Pedido cargado desde Firebase. Puedes actualizar proveedor, estado o fechas.'
+          : 'Pedido nuevo. Completa los datos y guárdalo.';
       } else {
-        riSub.textContent = 'Código nuevo. Completa la información del pedido.';
-        setStatus('Código nuevo: <strong>' + val + '</strong>. Introduce los datos del pedido.');
-        renderForm(null);
+        editorNote.textContent = 'Escanea un código para cargar la ficha del pedido.';
       }
-    } else {
-      resultCode.textContent = '?';
-      resultBadge.className = 'result-badge warn-badge';
-      riTitle.textContent = 'No detectado';
-      riSub.textContent = 'Acerca el número al recuadro, mejora la iluminación e inténtalo de nuevo.';
-      setStatus('No se encontró un número de 5 dígitos. Ajusta la posición y vuelve a capturar.');
     }
-  } catch(e) {
-    console.error(e);
-    setStatus('Error: ' + e.message);
-  } finally {
-    S.busy = false; captureBtn.disabled = false;
-  }
-}
 
-// ── PEDIDOS DB ────────────────────────────────────────────────────────────────
-async function fetchPedido(code) {
-  const snap = await getDoc(doc(S.db, 'pedidos', code));
-  return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-}
-
-async function loadPedidosList() {
-  const container = document.getElementById('pedidosList');
-  container.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
-  try {
-    await initFirebase();
-    const snap = await getDocs(query(collection(S.db, 'pedidos'), orderBy('updatedAt', 'desc')));
-    if (snap.empty) {
-      container.innerHTML = '<div class="empty-state"><div class="es-icon">📦</div><p>No hay pedidos registrados.</p></div>';
-      return;
+    function buildNewPedido(code) {
+      return {
+        codigo: code,
+        proveedorId: '',
+        proveedorNombre: '',
+        fechaEnvio: '',
+        fechaRecibo: '',
+        descripcion: '',
+        estado: 'Pendiente',
+        existsInDb: false
+      };
     }
-    container.innerHTML = '';
-    snap.forEach(d => {
-      const p = d.data();
-      container.innerHTML += buildPedidoItem(d.id, p);
+
+    async function initFirebase() {
+      if (hasFirebasePlaceholders()) {
+        throw new Error('Rellena primero la configuración de Firebase en este archivo.');
+      }
+
+      state.app = initializeApp(firebaseConfig);
+      state.auth = getAuth(state.app);
+      state.db = getFirestore(state.app);
+
+      const credential = await signInAnonymously(state.auth);
+      state.user = credential.user;
+      state.firebaseReady = true;
+      setSyncStatus('Conectado con Firebase');
+      setSaveMessage('Sistema listo para guardar pedidos y proveedores en tiempo real.');
+
+      subscribeToCollections();
+    }
+
+    function subscribeToCollections() {
+      state.unsubs.forEach((unsub) => unsub());
+      state.unsubs = [];
+
+      const pedidosUnsub = onSnapshot(collection(state.db, 'pedidos'), (snapshot) => {
+        state.pedidos = snapshot.docs.map((item) => ({ id: item.id, ...item.data(), existsInDb: true }));
+        state.pedidosMap = new Map(state.pedidos.map((item) => [item.codigo, item]));
+        renderPedidosList();
+        renderSummary();
+      });
+
+      const proveedoresUnsub = onSnapshot(collection(state.db, 'proveedores'), (snapshot) => {
+        state.proveedores = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
+        state.proveedoresMap = new Map(state.proveedores.map((item) => [item.id, item]));
+        renderProveedorSelect();
+        renderProveedoresList();
+        renderSummary();
+      });
+
+      state.unsubs.push(pedidosUnsub, proveedoresUnsub);
+    }
+
+    async function startCamera() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        setSyncStatus('Cámara no compatible');
+        setScanMessage('Tu navegador no soporta acceso a cámara.');
+        return;
+      }
+
+      try {
+        if (state.stream) {
+          state.stream.getTracks().forEach((track) => track.stop());
+        }
+
+        let stream;
+        try {
+          stream = await navigator.mediaDevices.getUserMedia({
+            audio: false,
+            video: {
+              facingMode: { ideal: 'environment' },
+              width: { ideal: 1280 },
+              height: { ideal: 720 }
+            }
+          });
+        } catch {
+          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
+        }
+
+        state.stream = stream;
+        video.srcObject = stream;
+        await video.play();
+        captureBtn.disabled = false;
+        setSyncStatus('Cámara activa');
+        setScanMessage('Sitúa el código dentro del recuadro y pulsa “Escanear pedido”.');
+      } catch (error) {
+        console.error(error);
+        setSyncStatus('Error de cámara');
+        setScanMessage('No se ha podido abrir la cámara. Comprueba permisos y usa HTTPS o localhost.');
+      }
+    }
+
+    async function ensureWorker() {
+      if (state.worker) return state.worker;
+
+      const { createWorker, PSM } = Tesseract;
+      setSyncStatus('Cargando OCR');
+
+      state.worker = await createWorker('eng', 1, {
+        logger: (message) => {
+          if (!message || !message.status) return;
+          if (message.status === 'recognizing') {
+            setSyncStatus('Leyendo código');
+          }
+        }
+      });
+
+      const params = {
+        tessedit_char_whitelist: '0123456789',
+        preserve_interword_spaces: '0'
+      };
+
+      if (PSM && typeof PSM.SINGLE_LINE !== 'undefined') {
+        params.tessedit_pageseg_mode = PSM.SINGLE_LINE;
+      }
+
+      await state.worker.setParameters(params);
+      setSyncStatus('OCR listo');
+      return state.worker;
+    }
+
+    function captureRegion() {
+      const vw = video.videoWidth;
+      const vh = video.videoHeight;
+
+      if (!vw || !vh) {
+        throw new Error('La cámara todavía no está lista.');
+      }
+
+      const cropWidth = Math.floor(vw * 0.76);
+      const cropHeight = Math.floor(vh * 0.22);
+      const sx = Math.floor((vw - cropWidth) / 2);
+      const sy = Math.floor((vh - cropHeight) / 2);
+
+      cropCanvas.width = cropWidth;
+      cropCanvas.height = cropHeight;
+      cropCtx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+      return { cropWidth, cropHeight };
+    }
+
+    function preprocessImage({ cropWidth, cropHeight }) {
+      const scale = 2;
+      processedCanvas.width = cropWidth * scale;
+      processedCanvas.height = cropHeight * scale;
+      processedCtx.imageSmoothingEnabled = false;
+      processedCtx.drawImage(cropCanvas, 0, 0, processedCanvas.width, processedCanvas.height);
+
+      const imageData = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height);
+      const data = imageData.data;
+      let sum = 0;
+      const totalPixels = data.length / 4;
+
+      for (let i = 0; i < data.length; i += 4) {
+        const gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        sum += gray;
+      }
+
+      const avg = sum / totalPixels;
+      const threshold = Math.max(105, Math.min(185, avg * 0.98));
+
+      for (let i = 0; i < data.length; i += 4) {
+        let gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        gray = (gray - avg) * 1.6 + 128;
+        gray = gray > threshold ? 255 : 0;
+        data[i] = gray;
+        data[i + 1] = gray;
+        data[i + 2] = gray;
+        data[i + 3] = 255;
+      }
+
+      processedCtx.putImageData(imageData, 0, 0);
+    }
+
+    function extractFiveDigits(text) {
+      const cleaned = (text || '').replace(/\s+/g, ' ').trim();
+      const direct = cleaned.match(/\b\d{5}\b/);
+      if (direct) return direct[0];
+
+      const mergedDigits = cleaned.replace(/\D/g, '');
+      const merged = mergedDigits.match(/\d{5}/);
+      return merged ? merged[0] : null;
+    }
+
+    async function readNumber() {
+      if (state.busy) return;
+      state.busy = true;
+      captureBtn.disabled = true;
+      setSyncStatus('Escaneando');
+      setScanMessage('Analizando el código del pedido...');
+
+      try {
+        const size = captureRegion();
+        preprocessImage(size);
+        const worker = await ensureWorker();
+
+        let result = await worker.recognize(processedCanvas, {
+          tessedit_char_whitelist: '0123456789'
+        });
+
+        let rawText = result?.data?.text || '';
+        let value = extractFiveDigits(rawText);
+
+        if (!value) {
+          result = await worker.recognize(cropCanvas, {
+            tessedit_char_whitelist: '0123456789'
+          });
+          rawText = result?.data?.text || '';
+          value = extractFiveDigits(rawText);
+        }
+
+        if (!value) {
+          setSyncStatus('Código no válido');
+          setScanMessage('No se ha detectado un código válido de 5 dígitos.');
+          return;
+        }
+
+        await openPedidoByCode(value);
+        setSyncStatus('Pedido cargado');
+        setScanMessage(`Pedido ${value} listo para consulta o edición.`);
+      } catch (error) {
+        console.error(error);
+        setSyncStatus('Error de lectura');
+        setScanMessage(error.message || 'Ha ocurrido un error durante el escaneo.');
+      } finally {
+        state.busy = false;
+        captureBtn.disabled = false;
+      }
+    }
+
+    async function openPedidoByCode(code) {
+      const safeCode = String(code || '').trim();
+      if (!/^\d{5}$/.test(safeCode)) {
+        throw new Error('El código debe tener exactamente 5 dígitos.');
+      }
+
+      currentCodeEl.textContent = safeCode;
+      codigoInput.value = safeCode;
+
+      const localMatch = state.pedidosMap.get(safeCode);
+      if (localMatch) {
+        fillFormFromPedido(localMatch);
+        return;
+      }
+
+      const snapshot = await getDoc(doc(state.db, 'pedidos', safeCode));
+      if (snapshot.exists()) {
+        fillFormFromPedido({ id: snapshot.id, ...snapshot.data(), existsInDb: true });
+      } else {
+        fillFormFromPedido(buildNewPedido(safeCode));
+      }
+    }
+
+    function findProveedorByName(name) {
+      const normalized = normalizeText(name);
+      return state.proveedores.find((item) => normalizeText(item.nombre) === normalized) || null;
+    }
+
+    async function resolveProveedorForSave(currentCode) {
+      if (state.providerMode === 'new') {
+        const nombre = nuevoProveedorNombre.value.trim();
+        const descripcion = nuevoProveedorDescripcion.value.trim();
+
+        if (!nombre) {
+          throw new Error('Indica el nombre del proveedor.');
+        }
+
+        const existing = findProveedorByName(nombre);
+        if (existing) {
+          if (descripcion && descripcion !== (existing.descripcion || '')) {
+            await updateDoc(doc(state.db, 'proveedores', existing.id), {
+              descripcion,
+              updatedAt: serverTimestamp()
+            });
+          }
+          return {
+            id: existing.id,
+            nombre: existing.nombre,
+            descripcion: descripcion || existing.descripcion || '',
+            created: false
+          };
+        }
+
+        const providerRef = await addDoc(collection(state.db, 'proveedores'), {
+          nombre,
+          descripcion,
+          pedidosAsignados: [currentCode],
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+          createdBy: state.user.uid,
+          updatedBy: state.user.uid
+        });
+
+        return {
+          id: providerRef.id,
+          nombre,
+          descripcion,
+          created: true
+        };
+      }
+
+      const providerId = proveedorSelect.value;
+      if (!providerId) {
+        throw new Error('Selecciona un proveedor o crea uno nuevo.');
+      }
+
+      const provider = state.proveedoresMap.get(providerId);
+      if (!provider) {
+        throw new Error('No se ha encontrado el proveedor seleccionado.');
+      }
+
+      return {
+        id: provider.id,
+        nombre: provider.nombre,
+        descripcion: provider.descripcion || '',
+        created: false
+      };
+    }
+
+    async function savePedido(event) {
+      event.preventDefault();
+
+      if (!state.firebaseReady) {
+        setSaveMessage('Firebase todavía no está listo.');
+        return;
+      }
+
+      const codigo = codigoInput.value.trim();
+      if (!/^\d{5}$/.test(codigo)) {
+        setSaveMessage('Escanea primero un código válido de 5 dígitos.');
+        return;
+      }
+
+      savePedidoBtn.disabled = true;
+      setSaveMessage('Guardando pedido...');
+
+      try {
+        const proveedor = await resolveProveedorForSave(codigo);
+        const previous = state.currentPedido || null;
+        const pedidoRef = doc(state.db, 'pedidos', codigo);
+        const isExisting = !!previous?.existsInDb;
+
+        const payload = {
+          codigo,
+          proveedorId: proveedor.id,
+          proveedorNombre: proveedor.nombre,
+          fechaEnvio: fechaEnvioInput.value || '',
+          fechaRecibo: fechaReciboInput.value || '',
+          descripcion: descripcionInput.value.trim(),
+          estado: estadoInput.value,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.user.uid
+        };
+
+        if (isExisting) {
+          await setDoc(pedidoRef, payload, { merge: true });
+        } else {
+          await setDoc(pedidoRef, {
+            ...payload,
+            createdAt: serverTimestamp()
+          });
+        }
+
+        if (!proveedor.created) {
+          await setDoc(doc(state.db, 'proveedores', proveedor.id), {
+            nombre: proveedor.nombre,
+            descripcion: proveedor.descripcion || '',
+            updatedAt: serverTimestamp(),
+            updatedBy: state.user.uid,
+            pedidosAsignados: arrayUnion(codigo)
+          }, { merge: true });
+        }
+
+        const oldProveedorId = previous?.proveedorId || '';
+        if (oldProveedorId && oldProveedorId !== proveedor.id) {
+          await updateDoc(doc(state.db, 'proveedores', oldProveedorId), {
+            pedidosAsignados: arrayRemove(codigo),
+            updatedAt: serverTimestamp(),
+            updatedBy: state.user.uid
+          });
+        }
+
+        const savedSnapshot = await getDoc(pedidoRef);
+        if (savedSnapshot.exists()) {
+          fillFormFromPedido({ id: savedSnapshot.id, ...savedSnapshot.data(), existsInDb: true });
+        }
+
+        setProviderMode('existing');
+        proveedorSelect.value = proveedor.id;
+        setSaveMessage(`Pedido ${codigo} guardado correctamente.`);
+        setSyncStatus('Datos sincronizados');
+      } catch (error) {
+        console.error(error);
+        setSaveMessage(error.message || 'No se ha podido guardar el pedido.');
+        setSyncStatus('Error de guardado');
+      } finally {
+        savePedidoBtn.disabled = false;
+      }
+    }
+
+    estadoInput.addEventListener('change', () => setEstadoBadge(estadoInput.value));
+    startBtn.addEventListener('click', startCamera);
+    captureBtn.addEventListener('click', readNumber);
+    pedidoForm.addEventListener('submit', savePedido);
+    toggleNewProviderBtn.addEventListener('click', () => {
+      setProviderMode(state.providerMode === 'new' ? 'existing' : 'new');
     });
-  } catch(e) {
-    container.innerHTML = '<div class="empty-state"><p>Error al cargar: ' + esc(e.message) + '</p></div>';
-  }
-}
+    tabPedidos.addEventListener('click', () => setTab('pedidos'));
+    tabProveedores.addEventListener('click', () => setTab('proveedores'));
 
-function estadoBadge(estado) {
-  const map = {
-    pendiente: ['estado-pendiente', '⏳ Pendiente'],
-    transito:  ['estado-transito',  '🚚 En tránsito'],
-    recibido:  ['estado-recibido',  '✅ Recibido'],
-    cancelado: ['estado-cancelado', '❌ Cancelado'],
-  };
-  const [cls, label] = map[estado] || ['estado-pendiente', '⏳ Pendiente'];
-  return `<span class="estado-badge ${cls}">${label}</span>`;
-}
-
-function buildPedidoItem(code, p) {
-  return `<div class="pedido-item" onclick="verPedido('${esc(code)}')">
-    <div class="pi-code">${esc(code)}</div>
-    <div class="pi-info">
-      <div class="pi-proveedor">${esc(p.proveedorNombre || '—')}</div>
-      <div class="pi-desc">${esc(p.descripcion || '—')}</div>
-      <div class="pi-date">Envío: ${fmtDate(p.fechaEnvio)}</div>
-    </div>
-    <div class="pi-right">${estadoBadge(p.estado)}</div>
-  </div>`;
-}
-
-window.verPedido = async (code) => {
-  switchTab('escanear');
-  await initFirebase();
-  const pedido = await fetchPedido(code);
-  S.currentCode = code;
-  S.currentPedido = pedido;
-  resultCode.textContent = code;
-  resultBadge.className = 'result-badge';
-  riTitle.textContent = 'Código ' + code;
-  riSub.textContent = pedido ? 'Proveedor: ' + (pedido.proveedorNombre || '—') : 'Sin datos';
-  if (pedido) renderSummary(pedido);
-};
-
-// ── RENDER SUMMARY ────────────────────────────────────────────────────────────
-function renderSummary(p) {
-  S.editMode = false;
-  pedidoSection.classList.add('visible');
-  document.getElementById('pedidoSectionLabel').textContent = 'Pedido';
-  summaryView.classList.remove('hidden');
-  formView.classList.add('hidden');
-  summaryView.innerHTML = `
-    <div class="sv-row"><span class="sv-key">Proveedor</span><span class="sv-val">${esc(p.proveedorNombre || '—')}</span></div>
-    <div class="sv-row"><span class="sv-key">Fecha envío</span><span class="sv-val">${fmtDate(p.fechaEnvio)}</span></div>
-    <div class="sv-row"><span class="sv-key">Fecha recibo</span><span class="sv-val">${p.fechaRecibo ? fmtDate(p.fechaRecibo) : '<em style="color:var(--muted)">Pendiente</em>'}</span></div>
-    <div class="sv-row"><span class="sv-key">Descripción</span><span class="sv-val">${esc(p.descripcion || '—').replace(/\n/g,'<br>')}</span></div>
-    <div class="sv-row"><span class="sv-key">Estado</span><span class="sv-val">${estadoBadge(p.estado)}</span></div>
-    <div class="sv-row"><span class="sv-key">Actualizado</span><span class="sv-val">${fmtDate(p.updatedAt)}</span></div>
-  `;
-  pedidoBtns.style.display = 'grid';
-  pedidoBtns.innerHTML = `
-    <button class="btn-outline" onclick="enterEditMode()">✎ &nbsp;Editar pedido</button>
-    <button class="btn-ghost" onclick="marcarRecibido()">✅ &nbsp;Marcar recibido</button>
-  `;
-  window.enterEditMode = () => renderForm(S.currentPedido);
-  window.marcarRecibido = () => {
-    document.getElementById('estado').value = 'recibido';
-    document.getElementById('fechaRecibo').value = new Date().toISOString().split('T')[0];
-    renderForm(S.currentPedido);
-    setTimeout(() => guardarPedido(), 50);
-  };
-}
-
-// ── RENDER FORM ───────────────────────────────────────────────────────────────
-function renderForm(p) {
-  S.editMode = true;
-  pedidoSection.classList.add('visible');
-  document.getElementById('pedidoSectionLabel').textContent = p ? 'Editar pedido' : 'Nuevo pedido';
-  summaryView.classList.add('hidden');
-  formView.classList.remove('hidden');
-
-  document.getElementById('proveedorInput').value = p?.proveedorNombre || '';
-  document.getElementById('proveedorId').value     = p?.proveedorId || '';
-  document.getElementById('fechaEnvio').value   = p?.fechaEnvio  || '';
-  document.getElementById('fechaRecibo').value  = p?.fechaRecibo || '';
-  document.getElementById('descripcion').value  = p?.descripcion || '';
-  document.getElementById('estado').value       = p?.estado || 'pendiente';
-
-  pedidoBtns.style.display = 'grid';
-  pedidoBtns.innerHTML = `
-    <button class="btn-gold" onclick="guardarPedido()">💾 &nbsp;Guardar pedido</button>
-    <button class="btn-ghost" onclick="cancelarEdicion()">Cancelar</button>
-  `;
-  window.cancelarEdicion = () => {
-    if (S.currentPedido) renderSummary(S.currentPedido);
-    else {
-      pedidoSection.classList.remove('visible');
-      formView.classList.add('hidden');
-      summaryView.classList.add('hidden');
-      pedidoBtns.style.display = 'none';
-    }
-  };
-}
-
-// ── GUARDAR PEDIDO ────────────────────────────────────────────────────────────
-window.guardarPedido = async function() {
-  const code = S.currentCode;
-  if (!code) return;
-
-  const proveedorNombre = document.getElementById('proveedorInput').value.trim();
-  const proveedorId     = document.getElementById('proveedorId').value.trim();
-  const fechaEnvio  = document.getElementById('fechaEnvio').value;
-  const fechaRecibo = document.getElementById('fechaRecibo').value;
-  const descripcion = document.getElementById('descripcion').value.trim();
-  const estado      = document.getElementById('estado').value;
-
-  if (!proveedorNombre) { setStatus('Selecciona o indica un proveedor.'); return; }
-
-  try {
-    await initFirebase();
-    const ref = doc(S.db, 'pedidos', code);
-    const isNew = !S.currentPedido;
-    const data = {
-      code, proveedorNombre, proveedorId, fechaEnvio, fechaRecibo,
-      descripcion, estado, updatedAt: serverTimestamp(), updatedBy: S.user.uid
-    };
-    if (isNew) data.createdAt = serverTimestamp();
-
-    await setDoc(ref, data, { merge: true });
-
-    // Vincular pedido al proveedor
-    if (proveedorId) {
-      const pRef = doc(S.db, 'proveedores', proveedorId);
-      await updateDoc(pRef, { pedidos: arrayUnion(code) }).catch(() => {});
-    }
-
-    const fresh = await fetchPedido(code);
-    S.currentPedido = fresh;
-    renderSummary(fresh);
-    setStatus('Pedido <strong>' + code + '</strong> guardado correctamente.');
-  } catch(e) {
-    console.error(e);
-    setStatus('Error al guardar: ' + e.message);
-  }
-};
-
-// ── PROVEEDORES ───────────────────────────────────────────────────────────────
-async function loadProveedores() {
-  await initFirebase();
-  const snap = await getDocs(collection(S.db, 'proveedores'));
-  S.proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-  return S.proveedores;
-}
-
-async function loadProveedoresTab() {
-  const container = document.getElementById('proveedoresList');
-  container.innerHTML = '<div class="empty-state"><span class="spinner"></span></div>';
-  try {
-    const list = await loadProveedores();
-    if (!list.length) {
-      container.innerHTML = '<div class="empty-state"><div class="es-icon">🏢</div><p>No hay proveedores. Añade el primero.</p></div>';
-      return;
-    }
-    container.innerHTML = list.map(p => `
-      <div class="proveedor-option" onclick="verProveedor('${esc(p.id)}')">
-        <div class="po-initial">${esc(p.nombre||'?')[0].toUpperCase()}</div>
-        <div>
-          <div class="po-name">${esc(p.nombre||'—')}</div>
-          <div class="po-desc">${esc(p.descripcion||'—')} &bull; ${(p.pedidos||[]).length} pedido(s)</div>
-        </div>
-      </div>
-    `).join('');
-  } catch(e) {
-    container.innerHTML = '<div class="empty-state"><p>Error: ' + esc(e.message) + '</p></div>';
-  }
-}
-
-window.verProveedor = async (id) => {
-  await initFirebase();
-  const snap = await getDoc(doc(S.db, 'proveedores', id));
-  if (!snap.exists()) return;
-  const p = snap.data();
-  document.getElementById('detProvTitle').textContent = p.nombre || 'Proveedor';
-  const pedidos = p.pedidos || [];
-  let pedidosHtml = '';
-  if (pedidos.length) {
-    for (const code of pedidos) {
-      const ps = await getDoc(doc(S.db, 'pedidos', code));
-      if (ps.exists()) {
-        const pd = ps.data();
-        pedidosHtml += `<div class="pedido-item" onclick="verPedido('${esc(code)}');closeModal('modalDetalleProv');switchTab('escanear')">
-          <div class="pi-code">${esc(code)}</div>
-          <div class="pi-info"><div class="pi-proveedor">${esc(pd.descripcion||'—')}</div><div class="pi-date">Envío: ${fmtDate(pd.fechaEnvio)}</div></div>
-          <div class="pi-right">${estadoBadge(pd.estado)}</div>
-        </div>`;
+    window.addEventListener('beforeunload', () => {
+      if (state.stream) {
+        state.stream.getTracks().forEach((track) => track.stop());
       }
-    }
-  } else {
-    pedidosHtml = '<div class="empty-state" style="padding:16px 0"><p>Sin pedidos asignados.</p></div>';
-  }
-  document.getElementById('detProvContent').innerHTML = `
-    <div class="summary-view" style="margin-bottom:16px">
-      <div class="sv-row"><span class="sv-key">Nombre</span><span class="sv-val">${esc(p.nombre||'—')}</span></div>
-      <div class="sv-row"><span class="sv-key">Descripción</span><span class="sv-val">${esc(p.descripcion||'—')}</span></div>
-    </div>
-    <div class="section-label">Pedidos asignados</div>
-    ${pedidosHtml}
-  `;
-  openModal('modalDetalleProv');
-};
+      if (state.worker) {
+        state.worker.terminate();
+      }
+      state.unsubs.forEach((unsub) => unsub());
+    });
 
-function openModal(id)  { document.getElementById(id).classList.add('open'); }
-function closeModal(id) { document.getElementById(id).classList.remove('open'); }
-window.closeModal = closeModal;
+    fillFormFromPedido(null);
+    renderPedidosList();
+    renderProveedoresList();
+    renderSummary();
 
-async function openProveedorModal() {
-  await loadProveedores();
-  const container = document.getElementById('listaProveedoresModal');
-  if (!S.proveedores.length) {
-    container.innerHTML = '<div class="empty-state" style="padding:8px 0"><p>No hay proveedores aún. Crea uno abajo.</p></div>';
-  } else {
-    container.innerHTML = S.proveedores.map(p => `
-      <div class="proveedor-option" onclick="seleccionarProveedor('${esc(p.id)}','${esc(p.nombre||'')}')">
-        <div class="po-initial">${esc(p.nombre||'?')[0].toUpperCase()}</div>
-        <div><div class="po-name">${esc(p.nombre||'—')}</div><div class="po-desc">${esc(p.descripcion||'—')}</div></div>
-      </div>
-    `).join('');
-  }
-  openModal('modalProveedor');
-}
-
-window.seleccionarProveedor = (id, nombre) => {
-  document.getElementById('proveedorInput').value = nombre;
-  document.getElementById('proveedorId').value    = id;
-  closeModal('modalProveedor');
-};
-
-async function crearYSeleccionarProveedor() {
-  const nombre = document.getElementById('nuevoProvNombre').value.trim();
-  const desc   = document.getElementById('nuevoProvDesc').value.trim();
-  if (!nombre) { alert('Escribe el nombre del proveedor.'); return; }
-  await initFirebase();
-  const ref = await addDoc(collection(S.db, 'proveedores'), {
-    nombre, descripcion: desc, pedidos: [], createdAt: serverTimestamp()
-  });
-  document.getElementById('proveedorInput').value = nombre;
-  document.getElementById('proveedorId').value    = ref.id;
-  document.getElementById('nuevoProvNombre').value = '';
-  document.getElementById('nuevoProvDesc').value   = '';
-  closeModal('modalProveedor');
-  setStatus('Proveedor <strong>' + esc(nombre) + '</strong> creado y seleccionado.');
-}
-
-function openNuevoProveedorModal() {
-  document.getElementById('npNombre').value = '';
-  document.getElementById('npDesc').value   = '';
-  openModal('modalNuevoProv');
-}
-window.openNuevoProveedorModal = openNuevoProveedorModal;
-
-async function guardarNuevoProveedor() {
-  const nombre = document.getElementById('npNombre').value.trim();
-  const desc   = document.getElementById('npDesc').value.trim();
-  if (!nombre) { alert('Escribe el nombre del proveedor.'); return; }
-  await initFirebase();
-  await addDoc(collection(S.db, 'proveedores'), {
-    nombre, descripcion: desc, pedidos: [], createdAt: serverTimestamp()
-  });
-  closeModal('modalNuevoProv');
-  loadProveedoresTab();
-}
-
-// ── INIT ──────────────────────────────────────────────────────────────────────
-initFirebase().catch(e => setStatus('Error de conexión: ' + e.message));
-
-window.addEventListener('beforeunload', () => {
-  S.stream?.getTracks().forEach(t => t.stop());
-  S.worker?.terminate();
-});
-</script>
+    initFirebase().catch((error) => {
+      console.error(error);
+      setSyncStatus('Firebase pendiente');
+      setScanMessage(error.message || 'Revisa la configuración de Firebase.');
+      setSaveMessage('Configura Firebase y las reglas antes de usar esta versión.');
+    });
+  </script>
 </body>
 </html>
