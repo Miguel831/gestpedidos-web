@@ -388,10 +388,10 @@
     }
     .scan-box {
       position: absolute;
-      left: 10%;
-      top: 35%;
-      width: 80%;
-      height: 28%;
+      left: 20%;      /* Centrado para el nuevo 60% de ancho */
+      top: 42.5%;     /* Centrado para el nuevo 15% de alto */
+      width: 60%;
+      height: 15%;
       border: 1.5px solid rgba(255,255,255,0.75);
       border-radius: 10px;
       pointer-events: none;
@@ -1907,8 +1907,12 @@
           if (m?.status === 'recognizing') setSyncStatus('Leyendo código', 'busy');
         }
       });
-      const params = { tessedit_char_whitelist: '0123456789', preserve_interword_spaces: '0' };
-      if (PSM?.SINGLE_LINE !== undefined) params.tessedit_pageseg_mode = PSM.SINGLE_LINE;
+      
+      // Usamos SPARSE_TEXT (11) para que busque palabras sueltas sin importar el orden
+      const params = { 
+        tessedit_char_whitelist: '0123456789', 
+        tessedit_pageseg_mode: PSM.SPARSE_TEXT 
+      };
       await state.worker.setParameters(params);
       setSyncStatus('OCR listo', 'ready');
       return state.worker;
@@ -1918,10 +1922,13 @@
       const vw = video.videoWidth;
       const vh = video.videoHeight;
       if (!vw || !vh) throw new Error('La cámara todavía no está lista.');
-      const cw = Math.floor(vw * 0.76);
-      const ch = Math.floor(vh * 0.22);
+      
+      // Hemos reducido el área de captura para evitar que entre "ruido"
+      const cw = Math.floor(vw * 0.60); 
+      const ch = Math.floor(vh * 0.15); 
       const sx = Math.floor((vw - cw) / 2);
       const sy = Math.floor((vh - ch) / 2);
+      
       cropCanvas.width = cw;
       cropCanvas.height = ch;
       cropCtx.drawImage(video, sx, sy, cw, ch, 0, 0, cw, ch);
@@ -1993,20 +2000,14 @@
       try {
         await initFirebase();
         const size = captureRegion();
-        preprocessImage(size);
+        
+        // Aquí hemos eliminado el preprocessImage(size)
         const worker = await ensureWorker();
-        let raw = '';
-        let value = null;
 
-        const q = await worker.recognize(cropCanvas, { tessedit_char_whitelist: '0123456789' });
-        raw = q?.data?.text || '';
-        value = extractFastCandidate(raw);
-
-        if (!value || value.length < 5) {
-          const p = await worker.recognize(processedCanvas, { tessedit_char_whitelist: '0123456789' });
-          raw = p?.data?.text || raw || '';
-          value = extractFiveDigits(raw) || extractFastCandidate(raw);
-        }
+        // Hacemos el intento único y directo sobre el recorte en color original
+        const q = await worker.recognize(cropCanvas);
+        const raw = q?.data?.text || '';
+        const value = extractFiveDigits(raw) || extractFastCandidate(raw);
 
         if (!value) {
           setSyncStatus('No detectado', 'error');
