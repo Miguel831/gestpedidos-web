@@ -13,3 +13,5 @@ Las tecnologías ue voy a usar en mi proyecto son:
 ## Modo de uso
 
 Desde la apliacción. Tienes la opción de añadir un nuevo pedido. Cuando haces esto, se abre la cámara para escanear un nuevo código de pedido, una vez guardado el pedido y su información. Si más adelante vuelves a escanear el mismo código, te mostrará la información del pedidio y te dejará modificarla.
+
+78394

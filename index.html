@@ -4,202 +4,310 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <title>Arcas Joyeros · Gestión de pedidos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Cormorant+SC:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #0f0d0a;
-      --bg-soft: #17130f;
-      --panel: rgba(30, 24, 19, 0.92);
-      --panel-2: rgba(22, 18, 14, 0.98);
-      --line: rgba(201, 166, 107, 0.18);
-      --line-strong: rgba(201, 166, 107, 0.35);
-      --gold: #c9a66b;
-      --gold-soft: #e0c79a;
-      --ivory: #f5efe5;
-      --muted: #b8aa96;
-      --ok: #4fb98e;
-      --warn: #d09a41;
-      --danger: #c35a5a;
-      --shadow: 0 20px 55px rgba(0, 0, 0, 0.35);
-      --radius-xl: 28px;
-      --radius-lg: 20px;
-      --radius-md: 16px;
-      color-scheme: dark;
-      font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --bg: #faf9f7;
+      --bg-soft: #f5f3ef;
+      --bg-warm: #f0ede7;
+      --panel: #ffffff;
+      --line: rgba(90, 100, 115, 0.13);
+      --line-mid: rgba(90, 100, 115, 0.22);
+      --line-strong: rgba(90, 100, 115, 0.38);
+      --brand: #3d4f5e;
+      --brand-mid: #556070;
+      --brand-soft: #8496a3;
+      --accent: #8b7355;
+      --accent-soft: #b09a7a;
+      --accent-pale: rgba(139, 115, 85, 0.08);
+      --text: #1e2a35;
+      --text-mid: #3d4f5e;
+      --text-muted: #7a8a96;
+      --text-faint: #aabbc6;
+      --ok: #4a8c72;
+      --warn: #b07c32;
+      --danger: #a04545;
+      --transit: #3d5f8c;
+      --shadow-sm: 0 1px 4px rgba(30,42,53,0.06), 0 4px 16px rgba(30,42,53,0.06);
+      --shadow-md: 0 2px 8px rgba(30,42,53,0.07), 0 8px 32px rgba(30,42,53,0.09);
+      --shadow-lg: 0 4px 16px rgba(30,42,53,0.08), 0 16px 48px rgba(30,42,53,0.12);
+      --r-sm: 8px;
+      --r-md: 14px;
+      --r-lg: 20px;
+      --r-xl: 28px;
+      font-family: 'Jost', system-ui, sans-serif;
+      color-scheme: light;
     }
 
-    * { box-sizing: border-box; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     html, body {
-      margin: 0;
+      background: var(--bg);
+      color: var(--text);
       min-height: 100%;
-      background:
-        radial-gradient(circle at top left, rgba(201, 166, 107, 0.12), transparent 28%),
-        radial-gradient(circle at top right, rgba(201, 166, 107, 0.08), transparent 22%),
-        linear-gradient(180deg, #0c0a08 0%, #110e0a 45%, #16110d 100%);
-      color: var(--ivory);
     }
 
     body {
       min-height: 100vh;
-      padding: 18px;
     }
 
-    .app-shell {
-      max-width: 1180px;
+    /* ── TOP BAR ── */
+    .topbar {
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .topbar-inner {
+      max-width: 1140px;
       margin: 0 auto;
-      display: grid;
-      gap: 18px;
-    }
-
-    .top-grid {
-      display: grid;
-      grid-template-columns: 1.1fr 0.9fr;
-      gap: 18px;
-      align-items: stretch;
-    }
-
-    .card {
-      background: linear-gradient(180deg, rgba(32, 26, 20, 0.92), rgba(21, 17, 13, 0.96));
-      border: 1px solid var(--line);
-      border-radius: var(--radius-xl);
-      box-shadow: var(--shadow);
-      overflow: hidden;
-      position: relative;
-    }
-
-    .card::before {
-      content: "";
-      position: absolute;
-      inset: 0;
-      pointer-events: none;
-      background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 22%);
-    }
-
-    .brand-card {
-      padding: 28px;
-      display: grid;
-      gap: 22px;
-      min-height: 100%;
-    }
-
-    .brand-top {
+      padding: 0 24px;
+      height: 64px;
       display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 18px;
-    }
-
-    .brand-mark {
-      display: grid;
-      gap: 8px;
-    }
-
-    .eyebrow {
-      font-size: 0.78rem;
-      letter-spacing: 0.22em;
-      text-transform: uppercase;
-      color: var(--gold-soft);
-    }
-
-    .brand-title {
-      margin: 0;
-      font-family: Georgia, "Times New Roman", serif;
-      font-size: clamp(2rem, 4vw, 3rem);
-      line-height: 1;
-      letter-spacing: 0.02em;
-      color: var(--ivory);
-    }
-
-    .brand-subtitle {
-      margin: 0;
-      color: var(--muted);
-      font-size: 1rem;
-      line-height: 1.55;
-      max-width: 52ch;
-    }
-
-    .brand-link {
-      display: inline-flex;
       align-items: center;
-      gap: 10px;
-      width: fit-content;
+      justify-content: space-between;
+      gap: 24px;
+    }
+
+    .topbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
       text-decoration: none;
-      color: var(--gold-soft);
-      border: 1px solid var(--line-strong);
-      padding: 11px 16px;
-      border-radius: 999px;
-      background: rgba(201, 166, 107, 0.08);
-      font-weight: 600;
     }
 
-    .summary-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
+    .topbar-logo {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 2rem;
+      line-height: 1;
+      color: var(--brand);
+      letter-spacing: -0.01em;
     }
 
-    .summary-box {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      padding: 16px;
-      background: rgba(255, 255, 255, 0.02);
+    .topbar-divider {
+      width: 1px;
+      height: 28px;
+      background: var(--line-mid);
     }
 
-    .summary-label {
-      color: var(--muted);
-      font-size: 0.82rem;
+    .topbar-subtitle {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-weight: 400;
+      font-size: 0.7rem;
+      letter-spacing: 0.22em;
+      color: var(--brand-soft);
       text-transform: uppercase;
-      letter-spacing: 0.12em;
-      margin-bottom: 8px;
     }
 
-    .summary-value {
-      font-size: 1.65rem;
-      font-weight: 700;
-      color: var(--ivory);
+    .topbar-right {
+      display: flex;
+      align-items: center;
+      gap: 20px;
     }
 
-    .scanner-card {
-      padding: 20px;
+    .sync-indicator {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-weight: 500;
+      color: var(--text-muted);
+      letter-spacing: 0.03em;
+    }
+
+    .sync-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--text-faint);
+      transition: background 0.4s ease;
+      flex-shrink: 0;
+    }
+
+    .sync-dot.ready { background: var(--ok); }
+    .sync-dot.error { background: var(--danger); }
+    .sync-dot.busy {
+      background: var(--warn);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .topbar-link {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.7rem;
+      letter-spacing: 0.18em;
+      color: var(--brand);
+      text-decoration: none;
+      border-bottom: 1px solid var(--line-mid);
+      padding-bottom: 1px;
+      transition: border-color 0.2s;
+    }
+    .topbar-link:hover { border-color: var(--brand); }
+
+    /* ── LAYOUT ── */
+    .app-shell {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 40px 24px 64px;
       display: grid;
+      gap: 40px;
+    }
+
+    /* ── STEP SECTIONS ── */
+    .step-section {
+      display: grid;
+      gap: 24px;
+    }
+
+    .step-header {
+      display: flex;
+      align-items: center;
       gap: 16px;
     }
 
-    .section-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+    .step-number {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      border: 1px solid var(--line-mid);
+      display: grid;
+      place-items: center;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1rem;
+      font-weight: 500;
+      color: var(--brand-soft);
+      flex-shrink: 0;
+      background: var(--panel);
     }
 
-    .section-title {
-      margin: 0;
-      font-size: 1.12rem;
-      font-weight: 700;
-      color: var(--ivory);
+    .step-number.active {
+      background: var(--brand);
+      border-color: var(--brand);
+      color: #fff;
     }
 
-    .status-pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 14px;
-      border-radius: 999px;
-      background: rgba(201, 166, 107, 0.08);
-      color: var(--gold-soft);
+    .step-number.done {
+      background: var(--ok);
+      border-color: var(--ok);
+      color: #fff;
+    }
+
+    .step-label {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.72rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .step-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.5rem;
+      font-weight: 400;
+      color: var(--text);
+      line-height: 1;
+    }
+
+    /* ── PANEL ── */
+    .panel {
+      background: var(--panel);
       border: 1px solid var(--line);
-      font-size: 0.88rem;
-      white-space: nowrap;
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+
+    .panel-inner {
+      padding: 32px;
+    }
+
+    /* ── SUMMARY STRIP ── */
+    .summary-strip {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .summary-item {
+      flex: 1;
+      padding: 22px 24px;
+      display: grid;
+      gap: 6px;
+      border-right: 1px solid var(--line);
+      transition: background 0.2s;
+    }
+
+    .summary-item:last-child { border-right: none; }
+    .summary-item:hover { background: var(--bg-soft); }
+
+    .summary-label {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .summary-value {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      line-height: 1;
+      color: var(--brand);
+    }
+
+    /* ── SCANNER ── */
+    .scanner-layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+      align-items: start;
     }
 
     .video-wrap {
       position: relative;
       overflow: hidden;
-      border-radius: 24px;
+      border-radius: var(--r-lg);
       border: 1px solid var(--line);
-      background: #000;
-      aspect-ratio: 4 / 5;
-      min-height: 360px;
+      background: #0a0a0c;
+      aspect-ratio: 4 / 3;
+    }
+
+    .video-wrap.inactive {
+      display: grid;
+      place-items: center;
+    }
+
+    .video-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      color: #555;
+      text-align: center;
+      padding: 32px;
+    }
+
+    .video-placeholder svg { opacity: 0.4; }
+
+    .video-placeholder p {
+      font-size: 0.88rem;
+      line-height: 1.5;
+      color: #666;
     }
 
     video {
@@ -212,13 +320,12 @@
 
     .scan-box {
       position: absolute;
-      left: 12%;
-      top: 38%;
-      width: 76%;
-      height: 22%;
-      border: 2px solid rgba(224, 199, 154, 0.95);
-      border-radius: 18px;
-      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.28);
+      left: 10%;
+      top: 35%;
+      width: 80%;
+      height: 28%;
+      border: 1.5px solid rgba(255,255,255,0.75);
+      border-radius: 10px;
       pointer-events: none;
     }
 
@@ -226,148 +333,220 @@
     .scan-box::after {
       content: "";
       position: absolute;
-      width: 22px;
-      height: 22px;
-      border-color: var(--gold-soft);
+      width: 18px;
+      height: 18px;
+      border-color: #fff;
       border-style: solid;
     }
 
     .scan-box::before {
-      top: -2px;
-      left: -2px;
-      border-width: 3px 0 0 3px;
-      border-top-left-radius: 16px;
+      top: -1.5px; left: -1.5px;
+      border-width: 2.5px 0 0 2.5px;
+      border-top-left-radius: 8px;
     }
 
     .scan-box::after {
-      right: -2px;
-      bottom: -2px;
-      border-width: 0 3px 3px 0;
-      border-bottom-right-radius: 16px;
+      right: -1.5px; bottom: -1.5px;
+      border-width: 0 2.5px 2.5px 0;
+      border-bottom-right-radius: 8px;
     }
 
-    .controls {
+    .scan-line {
+      position: absolute;
+      left: 2%;
+      width: 96%;
+      height: 1.5px;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.8), transparent);
+      animation: scanline 2s ease-in-out infinite;
+      opacity: 0;
+    }
+
+    .scanning .scan-line { opacity: 1; }
+
+    @keyframes scanline {
+      0% { top: 35%; }
+      50% { top: 63%; }
+      100% { top: 35%; }
+    }
+
+    .scanner-controls {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
+      gap: 20px;
     }
 
-    button,
-    select,
-    input,
-    textarea {
-      font: inherit;
-    }
-
-    button {
-      border: 0;
-      border-radius: 16px;
-      padding: 14px 16px;
-      cursor: pointer;
-      font-weight: 700;
-      transition: transform 0.14s ease, opacity 0.14s ease, border-color 0.14s ease;
-    }
-
-    button:active { transform: scale(0.985); }
-    button[disabled] { opacity: 0.55; cursor: not-allowed; }
-
-    .btn-primary {
-      background: linear-gradient(135deg, #d3b27d, #b58b4c);
-      color: #17120d;
-    }
-
-    .btn-secondary {
-      background: rgba(255,255,255,0.03);
-      color: var(--ivory);
+    .scanner-status-box {
       border: 1px solid var(--line);
-    }
-
-    .scan-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .current-code {
-      display: inline-flex;
-      flex-direction: column;
-      gap: 4px;
-      padding: 14px 16px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--line);
-      min-width: 150px;
-    }
-
-    .current-code small {
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 0.11em;
-      font-size: 0.72rem;
-    }
-
-    .current-code strong {
-      font-size: 1.8rem;
-      line-height: 1;
-      letter-spacing: 0.12em;
-      color: var(--gold-soft);
-    }
-
-    .editor-card {
-      padding: 22px;
-      display: grid;
-      gap: 18px;
-    }
-
-    .editor-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 14px;
-      flex-wrap: wrap;
-    }
-
-    .editor-title-block {
+      border-radius: var(--r-md);
+      padding: 18px 20px;
+      background: var(--bg-soft);
       display: grid;
       gap: 6px;
     }
 
-    .editor-title {
-      margin: 0;
-      font-size: 1.18rem;
-      font-weight: 700;
+    .scanner-status-label {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-transform: uppercase;
     }
 
-    .editor-note {
-      margin: 0;
-      color: var(--muted);
-      font-size: 0.95rem;
+    .scanner-code-display {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 3rem;
+      line-height: 1;
+      font-weight: 300;
+      color: var(--brand);
+      letter-spacing: 0.15em;
+    }
+
+    .scanner-message {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    .btn-row {
+      display: grid;
+      gap: 10px;
+    }
+
+    button, select, input, textarea { font: inherit; }
+
+    button {
+      border: none;
+      border-radius: var(--r-md);
+      padding: 14px 20px;
+      cursor: pointer;
+      font-weight: 500;
+      font-size: 0.9rem;
+      letter-spacing: 0.04em;
+      transition: transform 0.12s ease, opacity 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:active { transform: scale(0.985); }
+    button[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      box-shadow: 0 2px 12px rgba(61, 79, 94, 0.28);
+    }
+    .btn-primary:hover:not([disabled]) {
+      background: var(--text);
+      box-shadow: 0 4px 20px rgba(61, 79, 94, 0.38);
+    }
+
+    .btn-secondary {
+      background: transparent;
+      color: var(--brand);
+      border: 1px solid var(--line-mid);
+    }
+    .btn-secondary:hover:not([disabled]) {
+      background: var(--bg-soft);
+      border-color: var(--line-strong);
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--line);
+      font-size: 0.84rem;
+    }
+    .btn-ghost:hover:not([disabled]) {
+      background: var(--bg-soft);
+    }
+
+    .btn-danger {
+      background: transparent;
+      color: var(--danger);
+      border: 1px solid rgba(160,69,69,0.22);
+      font-size: 0.84rem;
+    }
+
+    /* ── STEP 2: EDITOR ── */
+    .editor-reveal {
+      display: none;
+      animation: slideDown 0.35s ease forwards;
+    }
+    .editor-reveal.visible { display: grid; gap: 24px; }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-12px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .editor-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      margin-bottom: 28px;
+    }
+
+    .editor-code-display {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    .editor-code-eyebrow {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+
+    .editor-code-big {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.4rem;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--brand);
+      letter-spacing: 0.12em;
     }
 
     .status-badge {
       display: inline-flex;
       align-items: center;
-      justify-content: center;
-      padding: 10px 14px;
+      gap: 7px;
+      padding: 8px 14px;
       border-radius: 999px;
-      border: 1px solid transparent;
-      font-size: 0.85rem;
-      font-weight: 700;
+      font-size: 0.76rem;
+      font-weight: 600;
+      font-family: 'Jost', sans-serif;
+      letter-spacing: 0.07em;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      border: 1px solid transparent;
     }
 
-    .estado-pendiente { background: rgba(208,154,65,0.12); color: #e6bf7a; border-color: rgba(208,154,65,0.32); }
-    .estado-en-transito { background: rgba(92,134,201,0.13); color: #9dc0ff; border-color: rgba(92,134,201,0.3); }
-    .estado-recibido { background: rgba(79,185,142,0.14); color: #8ee0bc; border-color: rgba(79,185,142,0.3); }
-    .estado-incidencia { background: rgba(195,90,90,0.14); color: #f0a0a0; border-color: rgba(195,90,90,0.3); }
+    .status-badge::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: currentColor;
+      opacity: 0.7;
+    }
 
+    .estado-pendiente { background: rgba(176,124,50,0.08); color: var(--warn); border-color: rgba(176,124,50,0.2); }
+    .estado-en-transito { background: rgba(61,95,140,0.08); color: var(--transit); border-color: rgba(61,95,140,0.2); }
+    .estado-recibido { background: rgba(74,140,114,0.08); color: var(--ok); border-color: rgba(74,140,114,0.2); }
+    .estado-incidencia { background: rgba(160,69,69,0.08); color: var(--danger); border-color: rgba(160,69,69,0.2); }
+
+    .divider {
+      height: 1px;
+      background: var(--line);
+      margin: 0;
+    }
+
+    /* FORM */
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
-      gap: 14px;
+      gap: 20px;
     }
 
     .field {
@@ -375,124 +554,133 @@
       gap: 8px;
     }
 
-    .field-full {
-      grid-column: 1 / -1;
-    }
+    .field-full { grid-column: 1 / -1; }
 
     .field label {
-      font-size: 0.86rem;
-      color: var(--muted);
-      letter-spacing: 0.05em;
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
       text-transform: uppercase;
     }
 
-    .control,
-    .field select,
     .field input,
+    .field select,
     .field textarea {
       width: 100%;
-      border-radius: 16px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.03);
-      color: var(--ivory);
-      padding: 14px 15px;
+      border-radius: var(--r-sm);
+      border: 1px solid var(--line-mid);
+      background: var(--bg-soft);
+      color: var(--text);
+      padding: 12px 14px;
       outline: none;
+      transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
+      font-size: 0.94rem;
     }
 
     .field input:focus,
-    .field textarea:focus,
-    .field select:focus {
-      border-color: var(--line-strong);
-      box-shadow: 0 0 0 3px rgba(201, 166, 107, 0.08);
+    .field select:focus,
+    .field textarea:focus {
+      border-color: var(--brand-soft);
+      background: var(--panel);
+      box-shadow: 0 0 0 3px rgba(61, 79, 94, 0.07);
+    }
+
+    .field input[readonly] {
+      background: var(--bg-warm);
+      color: var(--text-muted);
+      cursor: default;
     }
 
     .field textarea {
-      min-height: 118px;
+      min-height: 100px;
       resize: vertical;
     }
 
-    .provider-selector {
-      display: grid;
-      gap: 10px;
+    .field select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8a96' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
     }
 
-    .provider-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
-    .new-provider-box {
+    /* PROVIDER EXPAND */
+    .provider-box {
       display: none;
-      gap: 12px;
-      padding: 14px;
-      border-radius: 18px;
+      flex-direction: column;
+      gap: 16px;
+      padding: 20px;
+      border-radius: var(--r-md);
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.02);
+      background: var(--bg-soft);
+      margin-top: 4px;
+      animation: slideDown 0.25s ease forwards;
     }
 
-    .new-provider-box.visible {
-      display: grid;
-    }
+    .provider-box.visible { display: flex; }
 
     .form-actions {
       display: flex;
-      gap: 12px;
-      flex-wrap: wrap;
-      justify-content: space-between;
       align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+      padding-top: 4px;
     }
 
-    .helper-text {
-      color: var(--muted);
-      font-size: 0.9rem;
+    .save-message {
+      font-size: 0.84rem;
+      color: var(--text-muted);
     }
 
-    .bottom-panel {
-      min-height: 42vh;
-      display: grid;
-      grid-template-rows: auto 1fr;
-      overflow: hidden;
-    }
-
-    .bottom-head {
-      padding: 18px 22px 0;
+    .form-actions-right {
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .tabs {
-      display: inline-grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
-      padding: 6px;
-      border-radius: 999px;
-      border: 1px solid var(--line);
-      background: rgba(255,255,255,0.02);
+    /* ── STEP 3: RECORDS ── */
+    .records-reveal {
+      display: none;
+      animation: slideDown 0.35s ease forwards;
+    }
+
+    .records-reveal.visible { display: grid; gap: 24px; }
+
+    /* TABS */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 0;
     }
 
     .tab-btn {
-      padding: 10px 16px;
-      border-radius: 999px;
       background: transparent;
-      color: var(--muted);
-      border: 0;
-      font-weight: 700;
+      border: none;
+      border-bottom: 2px solid transparent;
+      border-radius: 0;
+      color: var(--text-muted);
+      font-size: 0.84rem;
+      font-weight: 500;
+      letter-spacing: 0.06em;
+      padding: 14px 20px 12px;
+      cursor: pointer;
+      transition: color 0.18s, border-color 0.18s;
+      margin-bottom: -1px;
     }
 
     .tab-btn.active {
-      background: rgba(201, 166, 107, 0.13);
-      color: var(--gold-soft);
+      color: var(--brand);
+      border-bottom-color: var(--brand);
     }
 
-    .panel-body {
-      padding: 18px 22px 22px;
-      overflow: auto;
+    .tab-btn:hover:not(.active) {
+      color: var(--text-mid);
     }
 
+    /* RECORDS LIST */
     .list-grid {
       display: grid;
       gap: 12px;
@@ -500,92 +688,89 @@
 
     .row-card {
       border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 18px;
-      background: rgba(255,255,255,0.02);
+      border-radius: var(--r-lg);
+      padding: 22px 24px;
+      background: var(--panel);
       display: grid;
-      gap: 14px;
+      gap: 16px;
       cursor: pointer;
-      transition: border-color 0.14s ease, transform 0.14s ease, background 0.14s ease;
+      transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
     }
 
     .row-card:hover {
+      border-color: var(--line-mid);
+      box-shadow: var(--shadow-sm);
       transform: translateY(-1px);
-      border-color: var(--line-strong);
-      background: rgba(255,255,255,0.03);
     }
 
     .row-top {
       display: flex;
       justify-content: space-between;
-      gap: 14px;
-      align-items: start;
+      align-items: flex-start;
+      gap: 12px;
       flex-wrap: wrap;
     }
 
-    .code-block {
-      display: grid;
-      gap: 6px;
+    .row-code {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.9rem;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--brand);
+      letter-spacing: 0.1em;
     }
 
-    .code-label {
-      color: var(--muted);
-      font-size: 0.75rem;
-      letter-spacing: 0.13em;
+    .row-code-eyebrow {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.63rem;
+      letter-spacing: 0.18em;
+      color: var(--text-faint);
+      margin-bottom: 4px;
+    }
+
+    .row-meta {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px 20px;
+    }
+
+    .meta-item { display: grid; gap: 4px; }
+
+    .meta-label {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--text-faint);
       text-transform: uppercase;
     }
 
-    .code-value {
-      font-size: 1.35rem;
-      font-weight: 800;
-      letter-spacing: 0.12em;
-      color: var(--gold-soft);
+    .meta-value {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--text-mid);
     }
 
-    .meta-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 10px 14px;
-    }
-
-    .meta-item {
-      display: grid;
-      gap: 4px;
-    }
-
-    .meta-item span {
-      color: var(--muted);
-      font-size: 0.75rem;
-      letter-spacing: 0.12em;
-      text-transform: uppercase;
-    }
-
-    .meta-item strong {
-      color: var(--ivory);
-      font-size: 0.94rem;
-      font-weight: 600;
-    }
-
-    .description {
-      color: #d9cfc2;
+    .row-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
       line-height: 1.55;
-      font-size: 0.95rem;
       display: -webkit-box;
       -webkit-line-clamp: 2;
       -webkit-box-orient: vertical;
       overflow: hidden;
     }
 
-    .provider-card {
-      display: grid;
-      gap: 12px;
+    /* PROVIDER CARD */
+    .provider-record-card {
       border: 1px solid var(--line);
-      border-radius: 22px;
-      padding: 18px;
-      background: rgba(255,255,255,0.02);
+      border-radius: var(--r-lg);
+      padding: 22px 24px;
+      background: var(--panel);
+      display: grid;
+      gap: 14px;
     }
 
-    .provider-title {
+    .provider-record-head {
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -593,17 +778,17 @@
       flex-wrap: wrap;
     }
 
-    .provider-name {
-      margin: 0;
-      font-size: 1.08rem;
-      font-weight: 700;
-      color: var(--ivory);
+    .provider-record-name {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.4rem;
+      font-weight: 400;
+      color: var(--text);
     }
 
-    .provider-desc {
-      color: #d8cebf;
+    .provider-record-desc {
+      font-size: 0.9rem;
+      color: var(--text-muted);
       line-height: 1.55;
-      font-size: 0.95rem;
     }
 
     .chips {
@@ -613,223 +798,292 @@
     }
 
     .chip {
-      padding: 8px 12px;
+      padding: 5px 12px;
       border-radius: 999px;
-      background: rgba(201, 166, 107, 0.08);
-      color: var(--gold-soft);
-      border: 1px solid var(--line);
-      font-size: 0.82rem;
-      font-weight: 700;
+      background: var(--bg-soft);
+      border: 1px solid var(--line-mid);
+      color: var(--brand);
+      font-size: 0.8rem;
+      font-weight: 600;
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: background 0.15s, border-color 0.15s;
     }
 
+    .chip:hover { background: var(--bg-warm); border-color: var(--brand-soft); }
+    .chip.no-link { cursor: default; color: var(--text-muted); }
+    .chip.no-link:hover { background: var(--bg-soft); border-color: var(--line-mid); }
+
     .empty-state {
-      min-height: 240px;
+      min-height: 220px;
       display: grid;
       place-items: center;
       text-align: center;
-      color: var(--muted);
-      border: 1px dashed var(--line);
-      border-radius: 24px;
-      padding: 26px;
-      background: rgba(255,255,255,0.015);
+      color: var(--text-muted);
+      border: 1px dashed var(--line-mid);
+      border-radius: var(--r-lg);
+      padding: 40px;
     }
 
-    .hidden-tools {
-      display: none;
+    .empty-state p {
+      font-size: 0.9rem;
+      line-height: 1.6;
+      max-width: 36ch;
     }
 
-    @media (max-width: 980px) {
-      .top-grid {
-        grid-template-columns: 1fr;
-      }
+    .empty-state .empty-icon {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 3rem;
+      font-style: italic;
+      color: var(--text-faint);
+      margin-bottom: 12px;
     }
 
-    @media (max-width: 740px) {
-      body { padding: 12px; }
-      .brand-card,
-      .editor-card,
-      .scanner-card,
-      .panel-body,
-      .bottom-head { padding-left: 16px; padding-right: 16px; }
-      .summary-grid,
-      .controls,
-      .form-grid,
-      .meta-grid {
-        grid-template-columns: 1fr;
-      }
-      .video-wrap {
-        min-height: 320px;
-      }
-      .form-actions,
-      .provider-actions,
-      .section-head,
-      .brand-top,
-      .editor-head,
-      .scan-footer,
-      .row-top,
-      .provider-title {
-        flex-direction: column;
-        align-items: stretch;
-      }
-      .tabs {
-        width: 100%;
-      }
-      .tab-btn {
-        width: 100%;
-      }
+    /* HIDDEN */
+    .hidden-tools { display: none; }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .scanner-layout { grid-template-columns: 1fr; }
+      .row-meta { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell { padding: 24px 16px 48px; }
+      .topbar-inner { padding: 0 16px; }
+      .panel-inner { padding: 22px 18px; }
+      .summary-strip { flex-direction: column; }
+      .summary-item { border-right: none; border-bottom: 1px solid var(--line); }
+      .summary-item:last-child { border-bottom: none; }
+      .form-grid { grid-template-columns: 1fr; }
+      .row-meta { grid-template-columns: 1fr 1fr; }
+      .editor-top { flex-direction: column; align-items: flex-start; }
+      .form-actions { flex-direction: column; align-items: stretch; }
+      .form-actions-right { flex-direction: column; }
     }
   </style>
 </head>
 <body>
+
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <a class="topbar-brand" href="https://www.arcasjoyeros.com/" target="_blank" rel="noreferrer">
+        <span class="topbar-logo">Arcas</span>
+        <span class="topbar-divider"></span>
+        <span class="topbar-subtitle">Joyeros</span>
+      </a>
+      <div class="topbar-right">
+        <div class="sync-indicator">
+          <span class="sync-dot" id="syncDot"></span>
+          <span id="syncStatus">Iniciando sistema</span>
+        </div>
+        <a class="topbar-link" href="https://www.arcasjoyeros.com/" target="_blank" rel="noreferrer">Tienda online</a>
+      </div>
+    </div>
+  </header>
+
   <main class="app-shell">
-    <section class="top-grid">
-      <article class="card brand-card">
-        <div class="brand-top">
-          <div class="brand-mark">
-            <div class="eyebrow">Operativa interna</div>
-            <h1 class="brand-title">Arcas Joyeros</h1>
-            <p class="brand-subtitle">Gestión de pedidos y recepción de mercancía con lectura de código, trazabilidad de proveedor y consulta rápida del estado de cada pedido.</p>
-          </div>
-          <a class="brand-link" href="https://www.arcasjoyeros.com/" target="_blank" rel="noreferrer">Visitar web</a>
-        </div>
 
-        <div class="summary-grid">
-          <div class="summary-box">
-            <div class="summary-label">Pedidos</div>
-            <div class="summary-value" id="summaryPedidos">0</div>
-          </div>
-          <div class="summary-box">
-            <div class="summary-label">Pendientes</div>
-            <div class="summary-value" id="summaryPendientes">0</div>
-          </div>
-          <div class="summary-box">
-            <div class="summary-label">Proveedores</div>
-            <div class="summary-value" id="summaryProveedores">0</div>
-          </div>
-        </div>
-      </article>
+    <!-- SUMMARY -->
+    <div class="summary-strip">
+      <div class="summary-item">
+        <div class="summary-label">Total pedidos</div>
+        <div class="summary-value" id="summaryPedidos">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Pendientes</div>
+        <div class="summary-value" id="summaryPendientes">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="summary-label">Proveedores</div>
+        <div class="summary-value" id="summaryProveedores">—</div>
+      </div>
+    </div>
 
-      <article class="card scanner-card">
-        <div class="section-head">
-          <h2 class="section-title">Lectura de código</h2>
-          <div class="status-pill" id="syncStatus">Preparando sistema</div>
+    <!-- STEP 1: SCANNER -->
+    <section class="step-section">
+      <div class="step-header">
+        <div class="step-number active" id="step1Num">1</div>
+        <div>
+          <div class="step-label">Primer paso</div>
+          <div class="step-title">Leer código del pedido</div>
         </div>
-
-        <div class="video-wrap">
-          <video id="video" autoplay playsinline muted></video>
-          <div class="scan-box"></div>
-        </div>
-
-        <div class="controls">
-          <button id="startBtn" class="btn-primary">Activar cámara</button>
-          <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
-        </div>
-
-        <div class="controls">
-          <button id="retryBtn" class="btn-secondary" disabled>Probar otra vez</button>
-          <button id="resetBtn" class="btn-secondary">Limpiar ficha</button>
-        </div>
-
-        <div class="scan-footer">
-          <div class="current-code">
-            <small>Código activo</small>
-            <strong id="currentCode">—</strong>
-          </div>
-          <div class="helper-text" id="scanMessage">Escanea un código de 5 dígitos para abrir o crear un pedido.</div>
-        </div>
-      </article>
-    </section>
-
-    <section class="card editor-card">
-      <div class="editor-head">
-        <div class="editor-title-block">
-          <h2 class="editor-title">Ficha del pedido</h2>
-          <p class="editor-note" id="editorNote">Escanea un código para cargar la ficha del pedido.</p>
-        </div>
-        <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
       </div>
 
-      <form id="pedidoForm" autocomplete="off">
-        <div class="form-grid">
-          <div class="field">
-            <label for="codigoInput">Código</label>
-            <input id="codigoInput" class="control" type="text" readonly placeholder="Pendiente de escaneo" />
-          </div>
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="scanner-layout">
 
-          <div class="field">
-            <label for="estadoInput">Estado</label>
-            <select id="estadoInput">
-              <option value="Pendiente">Pendiente</option>
-              <option value="En tránsito">En tránsito</option>
-              <option value="Recibido">Recibido</option>
-              <option value="Incidencia">Incidencia</option>
-            </select>
-          </div>
-
-          <div class="field field-full">
-            <label>Proveedor</label>
-            <div class="provider-selector">
-              <select id="proveedorSelect">
-                <option value="">Selecciona un proveedor</option>
-              </select>
-              <div class="provider-actions">
-                <button type="button" id="toggleNewProviderBtn" class="btn-secondary">Añadir nuevo proveedor</button>
+            <div class="video-wrap inactive" id="videoWrap">
+              <div class="video-placeholder" id="videoPlaceholder">
+                <svg width="56" height="56" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <rect x="4" y="4" width="18" height="18" rx="3" stroke="#888" stroke-width="1.5" fill="none"/>
+                  <path d="M4 15v7h7" stroke="#888" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                  <rect x="34" y="4" width="18" height="18" rx="3" stroke="#888" stroke-width="1.5" fill="none"/>
+                  <path d="M52 15v7h-7" stroke="#888" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                  <rect x="4" y="34" width="18" height="18" rx="3" stroke="#888" stroke-width="1.5" fill="none"/>
+                  <path d="M4 41v7h7" stroke="#888" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                  <path d="M34 34h4v4h-4zm8 0h4v4h-4zm-8 8h4v4h-4zm8 8h4v4h-4zm-8 0h4v-4" stroke="#888" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+                </svg>
+                <p>Activa la cámara para escanear<br>el código del pedido</p>
               </div>
-              <div id="newProviderBox" class="new-provider-box">
-                <div class="field">
-                  <label for="nuevoProveedorNombre">Nombre del proveedor</label>
-                  <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
-                </div>
-                <div class="field field-full">
-                  <label for="nuevoProveedorDescripcion">Descripción del proveedor</label>
-                  <textarea id="nuevoProveedorDescripcion" placeholder="Información interna o notas sobre este proveedor"></textarea>
-                </div>
+              <video id="video" autoplay playsinline muted style="display:none;"></video>
+              <div class="scan-box" id="scanBox" style="display:none;"></div>
+              <div class="scan-line" id="scanLine"></div>
+            </div>
+
+            <div class="scanner-controls">
+
+              <div class="scanner-status-box">
+                <div class="scanner-status-label">Código detectado</div>
+                <div class="scanner-code-display" id="currentCode">· · · · ·</div>
+                <div class="scanner-message" id="scanMessage">Activa la cámara y sitúa el código numérico dentro del recuadro.</div>
+              </div>
+
+              <div class="btn-row">
+                <button id="startBtn" class="btn-primary">Activar cámara</button>
+                <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
+              </div>
+
+              <div class="btn-row" style="grid-template-columns: 1fr 1fr; display:grid; gap:10px;">
+                <button id="retryBtn" class="btn-ghost" disabled>Repetir lectura</button>
+                <button id="resetBtn" class="btn-ghost">Limpiar ficha</button>
+              </div>
+
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- STEP 2: EDITOR (hidden until scan) -->
+    <section class="step-section editor-reveal" id="editorSection">
+      <div class="step-header">
+        <div class="step-number" id="step2Num">2</div>
+        <div>
+          <div class="step-label">Segundo paso</div>
+          <div class="step-title">Ficha del pedido</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-inner">
+          <div class="editor-top">
+            <div class="editor-code-display">
+              <div>
+                <div class="editor-code-eyebrow">Pedido</div>
+                <div class="editor-code-big" id="editorCodeBig">—</div>
               </div>
             </div>
+            <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
           </div>
 
-          <div class="field">
-            <label for="fechaEnvioInput">Fecha de envío</label>
-            <input id="fechaEnvioInput" type="date" />
-          </div>
+          <div class="divider" style="margin-bottom:28px;"></div>
 
-          <div class="field">
-            <label for="fechaReciboInput">Fecha de recibo</label>
-            <input id="fechaReciboInput" type="date" />
-          </div>
+          <form id="pedidoForm" autocomplete="off">
+            <div class="form-grid" style="margin-bottom:20px;">
 
-          <div class="field field-full">
-            <label for="descripcionInput">Descripción</label>
-            <textarea id="descripcionInput" placeholder="Detalle del pedido, contenido, referencias o incidencias"></textarea>
-          </div>
-        </div>
+              <div class="field">
+                <label for="codigoInput">Referencia</label>
+                <input id="codigoInput" type="text" readonly placeholder="—" />
+              </div>
 
-        <div class="form-actions">
-          <div class="helper-text" id="saveMessage">Los cambios se guardarán en Firebase, en las colecciones de pedidos y proveedores.</div>
-          <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
-        </div>
-      </form>
-    </section>
+              <div class="field">
+                <label for="estadoInput">Estado</label>
+                <select id="estadoInput">
+                  <option value="Pendiente">Pendiente</option>
+                  <option value="En tránsito">En tránsito</option>
+                  <option value="Recibido">Recibido</option>
+                  <option value="Incidencia">Incidencia</option>
+                </select>
+              </div>
 
-    <section class="card bottom-panel">
-      <div class="bottom-head">
-        <h2 class="section-title" style="margin:0;">Base de datos</h2>
-        <div class="tabs">
-          <button class="tab-btn active" id="tabPedidos" type="button">Pedidos</button>
-          <button class="tab-btn" id="tabProveedores" type="button">Proveedores</button>
+              <div class="field field-full">
+                <label>Proveedor</label>
+                <select id="proveedorSelect">
+                  <option value="">Selecciona un proveedor</option>
+                </select>
+                <button type="button" id="toggleNewProviderBtn" class="btn-ghost" style="margin-top:8px; text-align:left; padding:10px 14px;">
+                  + Añadir nuevo proveedor
+                </button>
+                <div id="newProviderBox" class="provider-box">
+                  <div class="field">
+                    <label for="nuevoProveedorNombre">Nombre del proveedor</label>
+                    <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
+                  </div>
+                  <div class="field">
+                    <label for="nuevoProveedorDescripcion">Notas internas</label>
+                    <textarea id="nuevoProveedorDescripcion" placeholder="Información interna sobre este proveedor" style="min-height:72px;"></textarea>
+                  </div>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="fechaEnvioInput">Fecha de envío</label>
+                <input id="fechaEnvioInput" type="date" />
+              </div>
+
+              <div class="field">
+                <label for="fechaReciboInput">Fecha de recibo</label>
+                <input id="fechaReciboInput" type="date" />
+              </div>
+
+              <div class="field field-full">
+                <label for="descripcionInput">Descripción del pedido</label>
+                <textarea id="descripcionInput" placeholder="Contenido, referencias, incidencias u observaciones del pedido"></textarea>
+              </div>
+
+            </div>
+
+            <div class="divider" style="margin-bottom:20px;"></div>
+
+            <div class="form-actions">
+              <span class="save-message" id="saveMessage">Los datos se sincronizarán con Firebase en tiempo real.</span>
+              <div class="form-actions-right">
+                <button type="button" class="btn-ghost" id="cancelEditBtn">Cancelar</button>
+                <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
+              </div>
+            </div>
+          </form>
         </div>
       </div>
-      <div class="panel-body">
-        <div id="pedidosPanel" class="list-grid"></div>
-        <div id="proveedoresPanel" class="list-grid" style="display:none;"></div>
+    </section>
+
+    <!-- STEP 3: RECORDS (hidden until there's data) -->
+    <section class="step-section records-reveal" id="recordsSection">
+      <div class="step-header">
+        <div class="step-number" id="step3Num">3</div>
+        <div>
+          <div class="step-label">Base de datos</div>
+          <div class="step-title">Registros guardados</div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-inner" style="padding-bottom:0; padding-left:0; padding-right:0;">
+          <div style="padding:0 32px;">
+            <div class="tab-bar">
+              <button class="tab-btn active" id="tabPedidos" type="button">Pedidos</button>
+              <button class="tab-btn" id="tabProveedores" type="button">Proveedores</button>
+            </div>
+          </div>
+          <div style="padding:24px 32px 32px;">
+            <div id="pedidosPanel" class="list-grid"></div>
+            <div id="proveedoresPanel" class="list-grid" style="display:none;"></div>
+          </div>
+        </div>
       </div>
     </section>
 
-    <div class="hidden-tools" aria-hidden="true">
-      <canvas id="cropCanvas"></canvas>
-      <canvas id="processedCanvas"></canvas>
-    </div>
   </main>
+
+  <div class="hidden-tools" aria-hidden="true">
+    <canvas id="cropCanvas"></canvas>
+    <canvas id="processedCanvas"></canvas>
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 
@@ -837,17 +1091,8 @@
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
     import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
     import {
-      getFirestore,
-      collection,
-      doc,
-      getDoc,
-      addDoc,
-      setDoc,
-      updateDoc,
-      onSnapshot,
-      serverTimestamp,
-      arrayUnion,
-      arrayRemove
+      getFirestore, collection, doc, getDoc, addDoc, setDoc, updateDoc,
+      onSnapshot, serverTimestamp, arrayUnion, arrayRemove
     } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
     const firebaseConfig = {
@@ -859,18 +1104,25 @@
       appId: "1:298563599142:web:2f1c1675ec2bcc7b9d9fe7",
       measurementId: "G-WGJ256MV0J"
     };
+
+    /* DOM */
     const video = document.getElementById('video');
+    const videoWrap = document.getElementById('videoWrap');
+    const videoPlaceholder = document.getElementById('videoPlaceholder');
+    const scanBox = document.getElementById('scanBox');
+    const scanLine = document.getElementById('scanLine');
     const startBtn = document.getElementById('startBtn');
     const captureBtn = document.getElementById('captureBtn');
     const retryBtn = document.getElementById('retryBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const syncDot = document.getElementById('syncDot');
     const syncStatus = document.getElementById('syncStatus');
     const scanMessage = document.getElementById('scanMessage');
     const currentCodeEl = document.getElementById('currentCode');
-    const editorNote = document.getElementById('editorNote');
     const estadoBadge = document.getElementById('estadoBadge');
     const saveMessage = document.getElementById('saveMessage');
-
+    const editorSection = document.getElementById('editorSection');
+    const recordsSection = document.getElementById('recordsSection');
     const pedidoForm = document.getElementById('pedidoForm');
     const codigoInput = document.getElementById('codigoInput');
     const proveedorSelect = document.getElementById('proveedorSelect');
@@ -883,732 +1135,454 @@
     const descripcionInput = document.getElementById('descripcionInput');
     const estadoInput = document.getElementById('estadoInput');
     const savePedidoBtn = document.getElementById('savePedidoBtn');
-
+    const cancelEditBtn = document.getElementById('cancelEditBtn');
     const summaryPedidos = document.getElementById('summaryPedidos');
     const summaryPendientes = document.getElementById('summaryPendientes');
     const summaryProveedores = document.getElementById('summaryProveedores');
-
     const pedidosPanel = document.getElementById('pedidosPanel');
     const proveedoresPanel = document.getElementById('proveedoresPanel');
     const tabPedidos = document.getElementById('tabPedidos');
     const tabProveedores = document.getElementById('tabProveedores');
-
+    const editorCodeBig = document.getElementById('editorCodeBig');
     const cropCanvas = document.getElementById('cropCanvas');
     const processedCanvas = document.getElementById('processedCanvas');
     const cropCtx = cropCanvas.getContext('2d', { willReadFrequently: true });
     const processedCtx = processedCanvas.getContext('2d', { willReadFrequently: true });
 
     const state = {
-      app: null,
-      auth: null,
-      db: null,
-      user: null,
-      stream: null,
-      worker: null,
-      busy: false,
-      firebaseReady: false,
-      pedidos: [],
-      proveedores: [],
-      pedidosMap: new Map(),
-      proveedoresMap: new Map(),
-      currentPedido: null,
-      currentCode: '',
-      providerMode: 'existing',
-      unsubs: []
+      app: null, auth: null, db: null, user: null, stream: null, worker: null,
+      busy: false, firebaseReady: false, pedidos: [], proveedores: [],
+      pedidosMap: new Map(), proveedoresMap: new Map(),
+      currentPedido: null, currentCode: '', providerMode: 'existing', unsubs: []
     };
 
     let firebaseInitPromise = null;
 
-    function setSyncStatus(text) {
+    /* SYNC STATUS */
+    function setSyncStatus(text, state_dot = '') {
       syncStatus.textContent = text;
+      syncDot.className = 'sync-dot' + (state_dot ? ' ' + state_dot : '');
     }
 
-    function setScanMessage(text) {
-      scanMessage.textContent = text;
+    function setScanMessage(text) { scanMessage.textContent = text; }
+    function setSaveMessage(text) { saveMessage.textContent = text; }
+
+    function escapeHtml(v) {
+      return String(v || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
     }
 
-    function setSaveMessage(text) {
-      saveMessage.textContent = text;
+    function toMillis(v) {
+      if (!v) return 0;
+      if (typeof v.toMillis === 'function') return v.toMillis();
+      const d = new Date(v); return isNaN(d.getTime()) ? 0 : d.getTime();
     }
 
-    function hasFirebasePlaceholders() {
-      return Object.values(firebaseConfig).some((value) => !value || String(value).includes('PON_AQUI_TU_'));
-    }
-
-    function escapeHtml(value) {
-      return String(value || '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/\"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    function toMillis(value) {
-      if (!value) return 0;
-      if (typeof value.toMillis === 'function') return value.toMillis();
-      const date = new Date(value);
-      return Number.isNaN(date.getTime()) ? 0 : date.getTime();
-    }
-
-    function formatDate(value) {
-      if (!value) return '—';
-      if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-        const [y, m, d] = value.split('-');
-        return `${d}/${m}/${y}`;
+    function formatDate(v) {
+      if (!v) return '—';
+      if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) {
+        const [y,m,d] = v.split('-'); return `${d}/${m}/${y}`;
       }
-      const date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
-      if (Number.isNaN(date.getTime())) return '—';
-      return date.toLocaleDateString('es-ES');
+      const d = typeof v.toDate === 'function' ? v.toDate() : new Date(v);
+      return isNaN(d.getTime()) ? '—' : d.toLocaleDateString('es-ES');
     }
 
-    function normalizeText(value) {
-      return String(value || '')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .trim()
-        .toLowerCase();
+    function normalizeText(v) {
+      return String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();
     }
 
     function setEstadoBadge(estado) {
-      const value = estado || 'Pendiente';
-      estadoBadge.textContent = value;
+      const v = estado || 'Pendiente';
+      estadoBadge.textContent = v;
       estadoBadge.className = 'status-badge';
-      if (value === 'Pendiente') estadoBadge.classList.add('estado-pendiente');
-      if (value === 'En tránsito') estadoBadge.classList.add('estado-en-transito');
-      if (value === 'Recibido') estadoBadge.classList.add('estado-recibido');
-      if (value === 'Incidencia') estadoBadge.classList.add('estado-incidencia');
+      if (v==='Pendiente') estadoBadge.classList.add('estado-pendiente');
+      if (v==='En tránsito') estadoBadge.classList.add('estado-en-transito');
+      if (v==='Recibido') estadoBadge.classList.add('estado-recibido');
+      if (v==='Incidencia') estadoBadge.classList.add('estado-incidencia');
     }
 
     function renderSummary() {
-      summaryPedidos.textContent = String(state.pedidos.length);
-      summaryPendientes.textContent = String(state.pedidos.filter((item) => item.estado !== 'Recibido').length);
-      summaryProveedores.textContent = String(state.proveedores.length);
+      summaryPedidos.textContent = state.pedidos.length || '0';
+      summaryPendientes.textContent = state.pedidos.filter(i=>i.estado!=='Recibido').length || '0';
+      summaryProveedores.textContent = state.proveedores.length || '0';
+
+      // Show records section when there's data
+      if (state.pedidos.length > 0 || state.proveedores.length > 0) {
+        recordsSection.classList.add('visible');
+        document.getElementById('step3Num').classList.add('active');
+      }
     }
 
     function renderProveedorSelect() {
-      const currentValue = proveedorSelect.value;
-      const options = ['<option value="">Selecciona un proveedor</option>'];
-      const items = [...state.proveedores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
-      for (const proveedor of items) {
-        options.push(`<option value="${proveedor.id}">${escapeHtml(proveedor.nombre)}</option>`);
-      }
-      proveedorSelect.innerHTML = options.join('');
-      if (items.some((item) => item.id === currentValue)) {
-        proveedorSelect.value = currentValue;
-      }
+      const cur = proveedorSelect.value;
+      const opts = ['<option value="">Selecciona un proveedor</option>'];
+      [...state.proveedores].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'})).forEach(p=>{
+        opts.push(`<option value="${p.id}">${escapeHtml(p.nombre)}</option>`);
+      });
+      proveedorSelect.innerHTML = opts.join('');
+      if (state.proveedores.some(p=>p.id===cur)) proveedorSelect.value = cur;
     }
 
     function renderPedidosList() {
       if (!state.pedidos.length) {
-        pedidosPanel.innerHTML = '<div class="empty-state">Todavía no hay pedidos guardados. Escanea un código para crear el primero.</div>';
+        pedidosPanel.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay pedidos guardados. Escanea un código para crear el primero.</p></div>';
         return;
       }
-
-      const ordered = [...state.pedidos].sort((a, b) => toMillis(b.updatedAt) - toMillis(a.updatedAt));
-      pedidosPanel.innerHTML = ordered.map((pedido) => {
-        const estadoClass = pedido.estado === 'Recibido'
-          ? 'estado-recibido'
-          : pedido.estado === 'En tránsito'
-            ? 'estado-en-transito'
-            : pedido.estado === 'Incidencia'
-              ? 'estado-incidencia'
-              : 'estado-pendiente';
-
-        return `
-          <article class="row-card" data-open-pedido="${pedido.codigo}">
-            <div class="row-top">
-              <div class="code-block">
-                <span class="code-label">Pedido</span>
-                <div class="code-value">${escapeHtml(pedido.codigo)}</div>
-              </div>
-              <div class="status-badge ${estadoClass}">${escapeHtml(pedido.estado || 'Pendiente')}</div>
-            </div>
-            <div class="meta-grid">
-              <div class="meta-item">
-                <span>Proveedor</span>
-                <strong>${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</strong>
-              </div>
-              <div class="meta-item">
-                <span>Fecha envío</span>
-                <strong>${escapeHtml(formatDate(pedido.fechaEnvio))}</strong>
-              </div>
-              <div class="meta-item">
-                <span>Fecha recibo</span>
-                <strong>${escapeHtml(formatDate(pedido.fechaRecibo))}</strong>
-              </div>
-              <div class="meta-item">
-                <span>Última actualización</span>
-                <strong>${escapeHtml(formatDate(pedido.updatedAt))}</strong>
-              </div>
-            </div>
-            <div class="description">${escapeHtml(pedido.descripcion || 'Sin descripción')}</div>
-          </article>
-        `;
+      const ordered = [...state.pedidos].sort((a,b)=>toMillis(b.updatedAt)-toMillis(a.updatedAt));
+      pedidosPanel.innerHTML = ordered.map(p => {
+        const cls = p.estado==='Recibido' ? 'estado-recibido' : p.estado==='En tránsito' ? 'estado-en-transito' : p.estado==='Incidencia' ? 'estado-incidencia' : 'estado-pendiente';
+        return `<article class="row-card" data-open-pedido="${p.codigo}">
+          <div class="row-top">
+            <div><div class="row-code-eyebrow">Referencia</div><div class="row-code">${escapeHtml(p.codigo)}</div></div>
+            <span class="status-badge ${cls}">${escapeHtml(p.estado||'Pendiente')}</span>
+          </div>
+          <div class="row-meta">
+            <div class="meta-item"><span class="meta-label">Proveedor</span><span class="meta-value">${escapeHtml(p.proveedorNombre||'Sin asignar')}</span></div>
+            <div class="meta-item"><span class="meta-label">Fecha envío</span><span class="meta-value">${escapeHtml(formatDate(p.fechaEnvio))}</span></div>
+            <div class="meta-item"><span class="meta-label">Fecha recibo</span><span class="meta-value">${escapeHtml(formatDate(p.fechaRecibo))}</span></div>
+            <div class="meta-item"><span class="meta-label">Actualizado</span><span class="meta-value">${escapeHtml(formatDate(p.updatedAt))}</span></div>
+          </div>
+          ${p.descripcion ? `<div class="row-desc">${escapeHtml(p.descripcion)}</div>` : ''}
+        </article>`;
       }).join('');
-
-      pedidosPanel.querySelectorAll('[data-open-pedido]').forEach((element) => {
-        element.addEventListener('click', () => openPedidoByCode(element.dataset.openPedido));
+      pedidosPanel.querySelectorAll('[data-open-pedido]').forEach(el=>{
+        el.addEventListener('click',()=>openPedidoByCode(el.dataset.openPedido));
       });
     }
 
     function renderProveedoresList() {
       if (!state.proveedores.length) {
-        proveedoresPanel.innerHTML = '<div class="empty-state">Todavía no hay proveedores. Puedes crear uno nuevo desde la ficha de pedido.</div>';
+        proveedoresPanel.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay proveedores. Crea uno desde la ficha de pedido.</p></div>';
         return;
       }
-
-      const ordered = [...state.proveedores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
-      proveedoresPanel.innerHTML = ordered.map((proveedor) => {
-        const pedidosAsignados = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
-        const chips = pedidosAsignados.length
-          ? pedidosAsignados.map((codigo) => `<span class="chip" data-open-pedido="${codigo}">${escapeHtml(codigo)}</span>`).join('')
-          : '<span class="chip">Sin pedidos</span>';
-
-        return `
-          <article class="provider-card">
-            <div class="provider-title">
-              <h3 class="provider-name">${escapeHtml(proveedor.nombre)}</h3>
-              <span class="chip">${pedidosAsignados.length} pedido${pedidosAsignados.length === 1 ? '' : 's'}</span>
-            </div>
-            <div class="provider-desc">${escapeHtml(proveedor.descripcion || 'Sin descripción interna')}</div>
-            <div class="chips">${chips}</div>
-          </article>
-        `;
+      const ordered = [...state.proveedores].sort((a,b)=>a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
+      proveedoresPanel.innerHTML = ordered.map(p=>{
+        const pedidos = Array.isArray(p.pedidosAsignados) ? p.pedidosAsignados : [];
+        const chips = pedidos.length
+          ? pedidos.map(c=>`<span class="chip" data-open-pedido="${c}">${escapeHtml(c)}</span>`).join('')
+          : '<span class="chip no-link">Sin pedidos</span>';
+        return `<article class="provider-record-card">
+          <div class="provider-record-head">
+            <h3 class="provider-record-name">${escapeHtml(p.nombre)}</h3>
+            <span class="chip no-link">${pedidos.length} pedido${pedidos.length===1?'':'s'}</span>
+          </div>
+          ${p.descripcion ? `<div class="provider-record-desc">${escapeHtml(p.descripcion)}</div>` : ''}
+          <div class="chips">${chips}</div>
+        </article>`;
       }).join('');
-
-      proveedoresPanel.querySelectorAll('[data-open-pedido]').forEach((element) => {
-        element.addEventListener('click', () => openPedidoByCode(element.dataset.openPedido));
+      proveedoresPanel.querySelectorAll('[data-open-pedido]').forEach(el=>{
+        el.addEventListener('click',()=>openPedidoByCode(el.dataset.openPedido));
       });
     }
 
     function setTab(tab) {
-      const isPedidos = tab === 'pedidos';
-      tabPedidos.classList.toggle('active', isPedidos);
-      tabProveedores.classList.toggle('active', !isPedidos);
+      const isPedidos = tab==='pedidos';
+      tabPedidos.classList.toggle('active',isPedidos);
+      tabProveedores.classList.toggle('active',!isPedidos);
       pedidosPanel.style.display = isPedidos ? 'grid' : 'none';
       proveedoresPanel.style.display = isPedidos ? 'none' : 'grid';
     }
 
     function setProviderMode(mode) {
       state.providerMode = mode;
-      const isNew = mode === 'new';
-      newProviderBox.classList.toggle('visible', isNew);
-      toggleNewProviderBtn.textContent = isNew ? 'Usar proveedor existente' : 'Añadir nuevo proveedor';
+      const isNew = mode==='new';
+      newProviderBox.classList.toggle('visible',isNew);
+      toggleNewProviderBtn.textContent = isNew ? '− Usar proveedor existente' : '+ Añadir nuevo proveedor';
       proveedorSelect.disabled = isNew;
-      if (!isNew) {
-        nuevoProveedorNombre.value = '';
-        nuevoProveedorDescripcion.value = '';
-      }
+      if (!isNew) { nuevoProveedorNombre.value=''; nuevoProveedorDescripcion.value=''; }
+    }
+
+    function showEditor() {
+      editorSection.classList.add('visible');
+      document.getElementById('step2Num').classList.add('active');
+      // smooth scroll
+      setTimeout(()=>editorSection.scrollIntoView({behavior:'smooth',block:'start'}),80);
+    }
+
+    function hideEditor() {
+      editorSection.classList.remove('visible');
+      document.getElementById('step2Num').classList.remove('active','done');
     }
 
     function fillFormFromPedido(pedido) {
-      state.currentPedido = pedido || null;
-      state.currentCode = pedido?.codigo || '';
+      state.currentPedido = pedido||null;
+      state.currentCode = pedido?.codigo||'';
 
-      codigoInput.value = pedido?.codigo || '';
-      currentCodeEl.textContent = pedido?.codigo || '—';
-      estadoInput.value = pedido?.estado || 'Pendiente';
-      fechaEnvioInput.value = pedido?.fechaEnvio || '';
-      fechaReciboInput.value = pedido?.fechaRecibo || '';
-      descripcionInput.value = pedido?.descripcion || '';
-      proveedorSelect.value = pedido?.proveedorId || '';
-
-      setEstadoBadge(pedido?.estado || 'Pendiente');
+      codigoInput.value = pedido?.codigo||'';
+      editorCodeBig.textContent = pedido?.codigo||'—';
+      currentCodeEl.textContent = pedido?.codigo||'· · · · ·';
+      estadoInput.value = pedido?.estado||'Pendiente';
+      fechaEnvioInput.value = pedido?.fechaEnvio||'';
+      fechaReciboInput.value = pedido?.fechaRecibo||'';
+      descripcionInput.value = pedido?.descripcion||'';
+      proveedorSelect.value = pedido?.proveedorId||'';
+      setEstadoBadge(pedido?.estado||'Pendiente');
       setProviderMode('existing');
 
       if (pedido) {
-        editorNote.textContent = pedido.existsInDb
-          ? 'Pedido cargado desde Firebase. Puedes actualizar proveedor, estado o fechas.'
-          : 'Pedido nuevo. Completa los datos y guárdalo.';
-      } else {
-        editorNote.textContent = 'Escanea un código para cargar la ficha del pedido.';
+        showEditor();
+        document.getElementById('step1Num').classList.add('done');
+        document.getElementById('step1Num').classList.remove('active');
       }
     }
 
     function buildNewPedido(code) {
-      return {
-        codigo: code,
-        proveedorId: '',
-        proveedorNombre: '',
-        fechaEnvio: '',
-        fechaRecibo: '',
-        descripcion: '',
-        estado: 'Pendiente',
-        existsInDb: false
-      };
+      return { codigo:code, proveedorId:'', proveedorNombre:'', fechaEnvio:'', fechaRecibo:'', descripcion:'', estado:'Pendiente', existsInDb:false };
     }
 
     function clearForm() {
-      fillFormFromPedido(null);
-      codigoInput.value = '';
-      currentCodeEl.textContent = '—';
-      proveedorSelect.value = '';
-      fechaEnvioInput.value = '';
-      fechaReciboInput.value = '';
-      descripcionInput.value = '';
-      estadoInput.value = 'Pendiente';
-      setEstadoBadge('Pendiente');
-      setProviderMode('existing');
-      setScanMessage('Escanea un código de 5 dígitos para abrir o crear un pedido.');
-      setSaveMessage('Los cambios se guardarán en Firebase, en las colecciones de pedidos y proveedores.');
+      state.currentPedido = null; state.currentCode = '';
+      codigoInput.value=''; editorCodeBig.textContent='—';
+      currentCodeEl.textContent='· · · · ·';
+      proveedorSelect.value=''; fechaEnvioInput.value=''; fechaReciboInput.value='';
+      descripcionInput.value=''; estadoInput.value='Pendiente';
+      setEstadoBadge('Pendiente'); setProviderMode('existing');
+      setScanMessage('Activa la cámara y sitúa el código numérico dentro del recuadro.');
+      setSaveMessage('Los datos se sincronizarán con Firebase en tiempo real.');
+      hideEditor();
+      document.getElementById('step1Num').classList.remove('done');
+      document.getElementById('step1Num').classList.add('active');
+    }
+
+    /* FIREBASE */
+    function hasFirebasePlaceholders() {
+      return Object.values(firebaseConfig).some(v=>!v||String(v).includes('PON_AQUI_TU_'));
     }
 
     async function initFirebase() {
       if (firebaseInitPromise) return firebaseInitPromise;
-
-      firebaseInitPromise = (async () => {
-        if (hasFirebasePlaceholders()) {
-          throw new Error('Rellena primero la configuración de Firebase en este archivo.');
-        }
-
+      firebaseInitPromise = (async()=>{
+        if (hasFirebasePlaceholders()) throw new Error('Configura Firebase antes de usar el sistema.');
         state.app = initializeApp(firebaseConfig);
         state.auth = getAuth(state.app);
         state.db = getFirestore(state.app);
-
-        const credential = await signInAnonymously(state.auth);
-        state.user = credential.user;
+        const cred = await signInAnonymously(state.auth);
+        state.user = cred.user;
         state.firebaseReady = true;
-        setSyncStatus('Conectado con Firebase');
-        setSaveMessage('Sistema listo para guardar pedidos y proveedores en tiempo real.');
-
+        setSyncStatus('Conectado con Firebase','ready');
+        setSaveMessage('Sistema listo. Los cambios se guardan en tiempo real.');
         subscribeToCollections();
         return true;
-      })().catch((error) => {
-        firebaseInitPromise = null;
-        state.firebaseReady = false;
-        throw error;
+      })().catch(err=>{
+        firebaseInitPromise=null; state.firebaseReady=false;
+        setSyncStatus('Error de conexión','error');
+        throw err;
       });
-
       return firebaseInitPromise;
     }
 
     function subscribeToCollections() {
-      state.unsubs.forEach((unsub) => unsub());
-      state.unsubs = [];
-
-      const pedidosUnsub = onSnapshot(collection(state.db, 'pedidos'), (snapshot) => {
-        state.pedidos = snapshot.docs.map((item) => ({ id: item.id, ...item.data(), existsInDb: true }));
-        state.pedidosMap = new Map(state.pedidos.map((item) => [item.codigo, item]));
-        renderPedidosList();
-        renderSummary();
-      });
-
-      const proveedoresUnsub = onSnapshot(collection(state.db, 'proveedores'), (snapshot) => {
-        state.proveedores = snapshot.docs.map((item) => ({ id: item.id, ...item.data() }));
-        state.proveedoresMap = new Map(state.proveedores.map((item) => [item.id, item]));
-        renderProveedorSelect();
-        renderProveedoresList();
-        renderSummary();
-      });
-
-      state.unsubs.push(pedidosUnsub, proveedoresUnsub);
+      state.unsubs.forEach(u=>u()); state.unsubs=[];
+      state.unsubs.push(
+        onSnapshot(collection(state.db,'pedidos'),snap=>{
+          state.pedidos = snap.docs.map(d=>({id:d.id,...d.data(),existsInDb:true}));
+          state.pedidosMap = new Map(state.pedidos.map(p=>[p.codigo,p]));
+          renderPedidosList(); renderSummary();
+        }),
+        onSnapshot(collection(state.db,'proveedores'),snap=>{
+          state.proveedores = snap.docs.map(d=>({id:d.id,...d.data()}));
+          state.proveedoresMap = new Map(state.proveedores.map(p=>[p.id,p]));
+          renderProveedorSelect(); renderProveedoresList(); renderSummary();
+        })
+      );
     }
 
+    /* CAMERA */
     async function startCamera() {
-      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        setSyncStatus('Cámara no compatible');
+      if (!navigator.mediaDevices?.getUserMedia) {
+        setSyncStatus('Cámara no compatible','error');
         setScanMessage('Tu navegador no soporta acceso a cámara.');
         return;
       }
-
       try {
-        if (state.stream) {
-          state.stream.getTracks().forEach((track) => track.stop());
-        }
-
+        if (state.stream) state.stream.getTracks().forEach(t=>t.stop());
         let stream;
-        try {
-          stream = await navigator.mediaDevices.getUserMedia({
-            audio: false,
-            video: {
-              facingMode: { ideal: 'environment' },
-              width: { ideal: 1280 },
-              height: { ideal: 720 }
-            }
-          });
-        } catch {
-          stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
-        }
-
+        try { stream = await navigator.mediaDevices.getUserMedia({audio:false,video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}}}); }
+        catch { stream = await navigator.mediaDevices.getUserMedia({video:true,audio:false}); }
         state.stream = stream;
         video.srcObject = stream;
+        video.style.display = 'block';
+        videoPlaceholder.style.display = 'none';
+        scanBox.style.display = 'block';
+        videoWrap.classList.remove('inactive');
         await video.play();
         captureBtn.disabled = false;
         retryBtn.disabled = false;
-        setSyncStatus('Cámara activa');
-        setScanMessage('Sitúa el código dentro del recuadro y pulsa “Escanear pedido”.');
-      } catch (error) {
-        console.error(error);
-        setSyncStatus('Error de cámara');
-        setScanMessage('No se ha podido abrir la cámara. Comprueba permisos y usa HTTPS o localhost.');
+        setSyncStatus('Cámara activa','busy');
+        setScanMessage('Sitúa el código dentro del recuadro y pulsa "Escanear pedido".');
+        startBtn.textContent = 'Reiniciar cámara';
+      } catch(err) {
+        console.error(err);
+        setSyncStatus('Error de cámara','error');
+        setScanMessage('No se ha podido abrir la cámara. Verifica permisos y usa HTTPS o localhost.');
       }
     }
 
     async function ensureWorker() {
       if (state.worker) return state.worker;
-
       const { createWorker, PSM } = Tesseract;
-      setSyncStatus('Cargando OCR');
-
-      state.worker = await createWorker('eng', 1, {
-        logger: (message) => {
-          if (!message || !message.status) return;
-          if (message.status === 'recognizing') {
-            setSyncStatus('Leyendo código');
-          }
-        }
-      });
-
-      const params = {
-        tessedit_char_whitelist: '0123456789',
-        preserve_interword_spaces: '0'
-      };
-
-      if (PSM && typeof PSM.SINGLE_LINE !== 'undefined') {
-        params.tessedit_pageseg_mode = PSM.SINGLE_LINE;
-      }
-
+      setSyncStatus('Cargando OCR…','busy');
+      state.worker = await createWorker('eng',1,{logger:m=>{if(m?.status==='recognizing')setSyncStatus('Leyendo código','busy');}});
+      const params = { tessedit_char_whitelist:'0123456789', preserve_interword_spaces:'0' };
+      if (PSM?.SINGLE_LINE!==undefined) params.tessedit_pageseg_mode = PSM.SINGLE_LINE;
       await state.worker.setParameters(params);
-      setSyncStatus('OCR listo');
+      setSyncStatus('OCR listo','ready');
       return state.worker;
     }
 
     function captureRegion() {
-      const vw = video.videoWidth;
-      const vh = video.videoHeight;
-
-      if (!vw || !vh) {
-        throw new Error('La cámara todavía no está lista.');
-      }
-
-      const cropWidth = Math.floor(vw * 0.76);
-      const cropHeight = Math.floor(vh * 0.22);
-      const sx = Math.floor((vw - cropWidth) / 2);
-      const sy = Math.floor((vh - cropHeight) / 2);
-
-      cropCanvas.width = cropWidth;
-      cropCanvas.height = cropHeight;
-      cropCtx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-      return { cropWidth, cropHeight };
+      const vw=video.videoWidth, vh=video.videoHeight;
+      if (!vw||!vh) throw new Error('La cámara todavía no está lista.');
+      const cw=Math.floor(vw*0.76), ch=Math.floor(vh*0.22);
+      const sx=Math.floor((vw-cw)/2), sy=Math.floor((vh-ch)/2);
+      cropCanvas.width=cw; cropCanvas.height=ch;
+      cropCtx.drawImage(video,sx,sy,cw,ch,0,0,cw,ch);
+      return {cropWidth:cw,cropHeight:ch};
     }
 
-    function preprocessImage({ cropWidth, cropHeight }) {
-      const scale = 1.35;
-      processedCanvas.width = Math.max(1, Math.floor(cropWidth * scale));
-      processedCanvas.height = Math.max(1, Math.floor(cropHeight * scale));
-      processedCtx.imageSmoothingEnabled = false;
-      processedCtx.drawImage(cropCanvas, 0, 0, processedCanvas.width, processedCanvas.height);
-
-      const imageData = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height);
-      const data = imageData.data;
-      let sum = 0;
-      const totalPixels = data.length / 4;
-
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-        sum += gray;
-      }
-
-      const avg = sum / totalPixels;
-      const threshold = Math.max(112, Math.min(176, avg * 0.96));
-
-      for (let i = 0; i < data.length; i += 4) {
-        const gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-        const out = gray > threshold ? 255 : 0;
-        data[i] = out;
-        data[i + 1] = out;
-        data[i + 2] = out;
-        data[i + 3] = 255;
-      }
-
-      processedCtx.putImageData(imageData, 0, 0);
+    function preprocessImage({cropWidth:cw,cropHeight:ch}) {
+      const s=1.35;
+      processedCanvas.width=Math.max(1,Math.floor(cw*s)); processedCanvas.height=Math.max(1,Math.floor(ch*s));
+      processedCtx.imageSmoothingEnabled=false;
+      processedCtx.drawImage(cropCanvas,0,0,processedCanvas.width,processedCanvas.height);
+      const img=processedCtx.getImageData(0,0,processedCanvas.width,processedCanvas.height);
+      const data=img.data; let sum=0;
+      const total=data.length/4;
+      for(let i=0;i<data.length;i+=4) sum+=0.2126*data[i]+0.7152*data[i+1]+0.0722*data[i+2];
+      const avg=sum/total, thr=Math.max(112,Math.min(176,avg*0.96));
+      for(let i=0;i<data.length;i+=4){ const g=0.2126*data[i]+0.7152*data[i+1]+0.0722*data[i+2]; const o=g>thr?255:0; data[i]=o;data[i+1]=o;data[i+2]=o;data[i+3]=255; }
+      processedCtx.putImageData(img,0,0);
     }
 
     function extractFiveDigits(text) {
-      const cleaned = (text || '').replace(/\s+/g, ' ').trim();
-      const direct = cleaned.match(/\b\d{5}\b/);
-      if (direct) return direct[0];
-
-      const mergedDigits = cleaned.replace(/\D/g, '');
-      const merged = mergedDigits.match(/\d{5}/);
-      return merged ? merged[0] : null;
+      const c=(text||'').replace(/\s+/g,' ').trim();
+      const d=c.match(/\b\d{5}\b/); if(d) return d[0];
+      const m=c.replace(/\D/g,'').match(/\d{5}/); return m?m[0]:null;
     }
 
     function extractFastCandidate(text) {
-      const digits = String(text || '').replace(/\D/g, '');
-      if (!digits) return null;
-      if (digits.length === 5) return digits;
-      if (digits.length > 5) return digits.slice(0, 5);
-      if (digits.length === 4) return digits;
+      const d=String(text||'').replace(/\D/g,'');
+      if(!d) return null;
+      if(d.length===5) return d;
+      if(d.length>5) return d.slice(0,5);
+      if(d.length===4) return d;
       return null;
     }
 
-    async function readNumber(forceRetry = false) {
-      if (state.busy) return;
-      state.busy = true;
-      captureBtn.disabled = true;
-      retryBtn.disabled = true;
-      setSyncStatus('Escaneando');
-      setScanMessage(forceRetry ? 'Repitiendo lectura...' : 'Analizando el código del pedido...');
-
+    async function readNumber(forceRetry=false) {
+      if(state.busy) return;
+      state.busy=true; captureBtn.disabled=true; retryBtn.disabled=true;
+      videoWrap.classList.add('scanning');
+      setSyncStatus('Escaneando','busy');
+      setScanMessage(forceRetry?'Repitiendo lectura…':'Analizando el código del pedido…');
       try {
         await initFirebase();
-
-        const size = captureRegion();
-        preprocessImage(size);
-        const worker = await ensureWorker();
-
-        let rawText = '';
-        let value = null;
-
-        const quickResult = await worker.recognize(cropCanvas, {
-          tessedit_char_whitelist: '0123456789'
-        });
-        rawText = quickResult?.data?.text || '';
-        value = extractFastCandidate(rawText);
-
-        if (!value || value.length < 5) {
-          const processedResult = await worker.recognize(processedCanvas, {
-            tessedit_char_whitelist: '0123456789'
-          });
-          rawText = processedResult?.data?.text || rawText || '';
-          value = extractFiveDigits(rawText) || extractFastCandidate(rawText);
+        const size=captureRegion(); preprocessImage(size);
+        const worker=await ensureWorker();
+        let raw='', value=null;
+        const q=await worker.recognize(cropCanvas,{tessedit_char_whitelist:'0123456789'});
+        raw=q?.data?.text||''; value=extractFastCandidate(raw);
+        if(!value||value.length<5){
+          const p=await worker.recognize(processedCanvas,{tessedit_char_whitelist:'0123456789'});
+          raw=p?.data?.text||raw||''; value=extractFiveDigits(raw)||extractFastCandidate(raw);
         }
-
-        if (!value) {
-          setSyncStatus('Código no detectado');
-          setScanMessage('No se ha podido leer el código. Pulsa “Probar otra vez”.');
-          return;
-        }
-
-        if (value.length !== 5) {
-          currentCodeEl.textContent = value;
-          codigoInput.value = value;
-          setSyncStatus('Lectura aproximada');
-          setScanMessage('Se ha leído un código aproximado. Repite la lectura si no coincide.');
-          return;
-        }
-
+        if(!value){ setSyncStatus('No detectado','error'); setScanMessage('No se pudo leer el código. Pulsa "Repetir lectura".'); return; }
+        if(value.length!==5){ currentCodeEl.textContent=value; codigoInput.value=value; setSyncStatus('Lectura parcial','busy'); setScanMessage('Código aproximado. Repite si no coincide.'); return; }
         await openPedidoByCode(value);
-        setSyncStatus('Pedido cargado');
+        setSyncStatus('Pedido cargado','ready');
         setScanMessage(`Pedido ${value} listo para consulta o edición.`);
-      } catch (error) {
-        console.error(error);
-        setSyncStatus('Error de lectura');
-        setScanMessage(error.message || 'Ha ocurrido un error durante el escaneo.');
-      } finally {
-        state.busy = false;
-        captureBtn.disabled = false;
-        retryBtn.disabled = false;
-      }
+      } catch(err){ console.error(err); setSyncStatus('Error','error'); setScanMessage(err.message||'Error durante el escaneo.'); }
+      finally { state.busy=false; captureBtn.disabled=false; retryBtn.disabled=false; videoWrap.classList.remove('scanning'); }
     }
 
     async function openPedidoByCode(code) {
       await initFirebase();
-
-      const safeCode = String(code || '').trim();
-      if (!/^\d{5}$/.test(safeCode)) {
-        throw new Error('El código debe tener exactamente 5 dígitos.');
-      }
-
-      currentCodeEl.textContent = safeCode;
-      codigoInput.value = safeCode;
-
-      const localMatch = state.pedidosMap.get(safeCode);
-      if (localMatch) {
-        fillFormFromPedido(localMatch);
-        return;
-      }
-
-      const snapshot = await getDoc(doc(state.db, 'pedidos', safeCode));
-      if (snapshot.exists()) {
-        fillFormFromPedido({ id: snapshot.id, ...snapshot.data(), existsInDb: true });
-      } else {
-        fillFormFromPedido(buildNewPedido(safeCode));
-      }
+      const safe=String(code||'').trim();
+      if(!/^\d{5}$/.test(safe)) throw new Error('El código debe tener exactamente 5 dígitos.');
+      currentCodeEl.textContent=safe;
+      const local=state.pedidosMap.get(safe);
+      if(local){ fillFormFromPedido(local); return; }
+      const snap=await getDoc(doc(state.db,'pedidos',safe));
+      fillFormFromPedido(snap.exists()?{id:snap.id,...snap.data(),existsInDb:true}:buildNewPedido(safe));
     }
 
     function findProveedorByName(name) {
-      const normalized = normalizeText(name);
-      return state.proveedores.find((item) => normalizeText(item.nombre) === normalized) || null;
+      const n=normalizeText(name);
+      return state.proveedores.find(p=>normalizeText(p.nombre)===n)||null;
     }
 
-    async function resolveProveedorForSave(currentCode) {
-      if (state.providerMode === 'new') {
-        const nombre = nuevoProveedorNombre.value.trim();
-        const descripcion = nuevoProveedorDescripcion.value.trim();
-
-        if (!nombre) {
-          throw new Error('Indica el nombre del proveedor.');
+    async function resolveProveedorForSave(codigo) {
+      if(state.providerMode==='new'){
+        const nombre=nuevoProveedorNombre.value.trim();
+        const desc=nuevoProveedorDescripcion.value.trim();
+        if(!nombre) throw new Error('Indica el nombre del proveedor.');
+        const ex=findProveedorByName(nombre);
+        if(ex){
+          if(desc&&desc!==(ex.descripcion||'')) await updateDoc(doc(state.db,'proveedores',ex.id),{descripcion:desc,updatedAt:serverTimestamp()});
+          return {id:ex.id,nombre:ex.nombre,descripcion:desc||ex.descripcion||'',created:false};
         }
-
-        const existing = findProveedorByName(nombre);
-        if (existing) {
-          if (descripcion && descripcion !== (existing.descripcion || '')) {
-            await updateDoc(doc(state.db, 'proveedores', existing.id), {
-              descripcion,
-              updatedAt: serverTimestamp()
-            });
-          }
-          return {
-            id: existing.id,
-            nombre: existing.nombre,
-            descripcion: descripcion || existing.descripcion || '',
-            created: false
-          };
-        }
-
-        const providerRef = await addDoc(collection(state.db, 'proveedores'), {
-          nombre,
-          descripcion,
-          pedidosAsignados: [currentCode],
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-          createdBy: state.user.uid,
-          updatedBy: state.user.uid
-        });
-
-        return {
-          id: providerRef.id,
-          nombre,
-          descripcion,
-          created: true
-        };
+        const ref=await addDoc(collection(state.db,'proveedores'),{nombre,descripcion:desc,pedidosAsignados:[codigo],createdAt:serverTimestamp(),updatedAt:serverTimestamp(),createdBy:state.user.uid,updatedBy:state.user.uid});
+        return {id:ref.id,nombre,descripcion:desc,created:true};
       }
-
-      const providerId = proveedorSelect.value;
-      if (!providerId) {
-        throw new Error('Selecciona un proveedor o crea uno nuevo.');
-      }
-
-      const provider = state.proveedoresMap.get(providerId);
-      if (!provider) {
-        throw new Error('No se ha encontrado el proveedor seleccionado.');
-      }
-
-      return {
-        id: provider.id,
-        nombre: provider.nombre,
-        descripcion: provider.descripcion || '',
-        created: false
-      };
+      const pid=proveedorSelect.value;
+      if(!pid) throw new Error('Selecciona un proveedor o crea uno nuevo.');
+      const prov=state.proveedoresMap.get(pid);
+      if(!prov) throw new Error('Proveedor no encontrado.');
+      return {id:prov.id,nombre:prov.nombre,descripcion:prov.descripcion||'',created:false};
     }
 
-    async function savePedido(event) {
-      event.preventDefault();
-      await initFirebase();
-
-      if (!state.firebaseReady) {
-        setSaveMessage('Firebase todavía no está listo.');
-        return;
-      }
-
-      const codigo = codigoInput.value.trim();
-      if (!/^\d{5}$/.test(codigo)) {
-        setSaveMessage('Escanea primero un código válido de 5 dígitos.');
-        return;
-      }
-
-      savePedidoBtn.disabled = true;
-      setSaveMessage('Guardando pedido...');
-
+    async function savePedido(e) {
+      e.preventDefault(); await initFirebase();
+      if(!state.firebaseReady){ setSaveMessage('Firebase no está listo.'); return; }
+      const codigo=codigoInput.value.trim();
+      if(!/^\d{5}$/.test(codigo)){ setSaveMessage('Escanea primero un código válido de 5 dígitos.'); return; }
+      savePedidoBtn.disabled=true; setSaveMessage('Guardando…');
       try {
-        const proveedor = await resolveProveedorForSave(codigo);
-        const previous = state.currentPedido || null;
-        const pedidoRef = doc(state.db, 'pedidos', codigo);
-        const isExisting = !!previous?.existsInDb;
-
-        const payload = {
-          codigo,
-          proveedorId: proveedor.id,
-          proveedorNombre: proveedor.nombre,
-          fechaEnvio: fechaEnvioInput.value || '',
-          fechaRecibo: fechaReciboInput.value || '',
-          descripcion: descripcionInput.value.trim(),
-          estado: estadoInput.value,
-          updatedAt: serverTimestamp(),
-          updatedBy: state.user.uid
-        };
-
-        if (isExisting) {
-          await setDoc(pedidoRef, payload, { merge: true });
-        } else {
-          await setDoc(pedidoRef, {
-            ...payload,
-            createdAt: serverTimestamp()
-          });
-        }
-
-        if (!proveedor.created) {
-          await setDoc(doc(state.db, 'proveedores', proveedor.id), {
-            nombre: proveedor.nombre,
-            descripcion: proveedor.descripcion || '',
-            updatedAt: serverTimestamp(),
-            updatedBy: state.user.uid,
-            pedidosAsignados: arrayUnion(codigo)
-          }, { merge: true });
-        }
-
-        const oldProveedorId = previous?.proveedorId || '';
-        if (oldProveedorId && oldProveedorId !== proveedor.id) {
-          await updateDoc(doc(state.db, 'proveedores', oldProveedorId), {
-            pedidosAsignados: arrayRemove(codigo),
-            updatedAt: serverTimestamp(),
-            updatedBy: state.user.uid
-          });
-        }
-
-        const savedSnapshot = await getDoc(pedidoRef);
-        if (savedSnapshot.exists()) {
-          fillFormFromPedido({ id: savedSnapshot.id, ...savedSnapshot.data(), existsInDb: true });
-        }
-
-        setProviderMode('existing');
-        proveedorSelect.value = proveedor.id;
+        const prov=await resolveProveedorForSave(codigo);
+        const prev=state.currentPedido||null;
+        const ref=doc(state.db,'pedidos',codigo);
+        const isEx=!!prev?.existsInDb;
+        const payload={codigo,proveedorId:prov.id,proveedorNombre:prov.nombre,fechaEnvio:fechaEnvioInput.value||'',fechaRecibo:fechaReciboInput.value||'',descripcion:descripcionInput.value.trim(),estado:estadoInput.value,updatedAt:serverTimestamp(),updatedBy:state.user.uid};
+        if(isEx) await setDoc(ref,payload,{merge:true});
+        else await setDoc(ref,{...payload,createdAt:serverTimestamp()});
+        if(!prov.created) await setDoc(doc(state.db,'proveedores',prov.id),{nombre:prov.nombre,descripcion:prov.descripcion||'',updatedAt:serverTimestamp(),updatedBy:state.user.uid,pedidosAsignados:arrayUnion(codigo)},{merge:true});
+        const oldPid=prev?.proveedorId||'';
+        if(oldPid&&oldPid!==prov.id) await updateDoc(doc(state.db,'proveedores',oldPid),{pedidosAsignados:arrayRemove(codigo),updatedAt:serverTimestamp(),updatedBy:state.user.uid});
+        const saved=await getDoc(ref);
+        if(saved.exists()) fillFormFromPedido({id:saved.id,...saved.data(),existsInDb:true});
+        setProviderMode('existing'); proveedorSelect.value=prov.id;
         setSaveMessage(`Pedido ${codigo} guardado correctamente.`);
-        setSyncStatus('Datos sincronizados');
-      } catch (error) {
-        console.error(error);
-        setSaveMessage(error.message || 'No se ha podido guardar el pedido.');
-        setSyncStatus('Error de guardado');
-      } finally {
-        savePedidoBtn.disabled = false;
-      }
+        setSyncStatus('Sincronizado','ready');
+        document.getElementById('step2Num').classList.add('done');
+      } catch(err){ console.error(err); setSaveMessage(err.message||'No se pudo guardar.'); setSyncStatus('Error','error'); }
+      finally{ savePedidoBtn.disabled=false; }
     }
 
-    estadoInput.addEventListener('change', () => setEstadoBadge(estadoInput.value));
-    startBtn.addEventListener('click', startCamera);
-    captureBtn.addEventListener('click', () => readNumber(false));
-    retryBtn.addEventListener('click', () => readNumber(true));
-    resetBtn.addEventListener('click', clearForm);
-    pedidoForm.addEventListener('submit', savePedido);
-    toggleNewProviderBtn.addEventListener('click', () => {
-      setProviderMode(state.providerMode === 'new' ? 'existing' : 'new');
-    });
-    tabPedidos.addEventListener('click', () => setTab('pedidos'));
-    tabProveedores.addEventListener('click', () => setTab('proveedores'));
+    /* EVENTS */
+    estadoInput.addEventListener('change',()=>setEstadoBadge(estadoInput.value));
+    startBtn.addEventListener('click',startCamera);
+    captureBtn.addEventListener('click',()=>readNumber(false));
+    retryBtn.addEventListener('click',()=>readNumber(true));
+    resetBtn.addEventListener('click',clearForm);
+    cancelEditBtn.addEventListener('click',clearForm);
+    pedidoForm.addEventListener('submit',savePedido);
+    toggleNewProviderBtn.addEventListener('click',()=>setProviderMode(state.providerMode==='new'?'existing':'new'));
+    tabPedidos.addEventListener('click',()=>setTab('pedidos'));
+    tabProveedores.addEventListener('click',()=>setTab('proveedores'));
 
-    window.addEventListener('beforeunload', () => {
-      if (state.stream) {
-        state.stream.getTracks().forEach((track) => track.stop());
-      }
-      if (state.worker) {
-        state.worker.terminate();
-      }
-      state.unsubs.forEach((unsub) => unsub());
+    window.addEventListener('beforeunload',()=>{
+      state.stream?.getTracks().forEach(t=>t.stop());
+      state.worker?.terminate();
+      state.unsubs.forEach(u=>u());
     });
 
+    /* INIT */
     clearForm();
-    renderPedidosList();
-    renderProveedoresList();
-    renderSummary();
+    renderPedidosList(); renderProveedoresList(); renderSummary();
 
-    initFirebase().catch((error) => {
-      console.error(error);
-      setSyncStatus('Firebase pendiente');
-      setScanMessage(error.message || 'Revisa la configuración de Firebase.');
-      setSaveMessage('Configura Firebase y las reglas antes de usar esta versión.');
+    initFirebase().catch(err=>{
+      console.error(err);
+      setSyncStatus('Firebase pendiente','error');
+      setScanMessage(err.message||'Revisa la configuración de Firebase.');
     });
   </script>
 </body>
