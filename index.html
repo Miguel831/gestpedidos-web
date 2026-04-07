@@ -1093,97 +1093,89 @@
             </div>
           </section>
 
-          <section class="step-section editor-reveal" id="editorSection">
-            <div class="step-header">
-              <div class="step-number" id="step2Num">2</div>
-              <div>
-                <div class="step-label">Segundo paso</div>
-                <div class="step-title">Ficha del pedido</div>
-              </div>
-            </div>
-
-            <div class="panel">
-              <div class="panel-inner">
-                <div class="editor-top">
-                  <div class="editor-code-display">
-                    <div>
-                      <div class="editor-code-eyebrow">Pedido</div>
-                      <div class="editor-code-big" id="editorCodeBig">—</div>
-                    </div>
+          <div class="modal-backdrop" id="editorModal">
+            <div class="modal-card" style="max-width: 800px;">
+              <div class="modal-head" style="margin-bottom: 24px;">
+                <div>
+                  <div class="modal-eyebrow">Ficha del pedido</div>
+                  <div class="editor-code-display" style="margin-top: 8px;">
+                    <div class="editor-code-big" id="editorCodeBig" title="Doble clic para editar" style="cursor: text; border-bottom: 2px dashed var(--line-mid); padding-bottom: 4px;">—</div>
+                    <input type="text" id="editorCodeInput" maxlength="5" style="display: none; font-family: 'Cormorant Garamond', Georgia, serif; font-size: 2.4rem; font-weight: 300; color: var(--brand); letter-spacing: 0.12em; width: 140px; border: 1px solid var(--line-strong); border-radius: var(--r-sm); padding: 4px 10px; outline: none; background: var(--bg-soft);" />
                   </div>
-                  <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
                 </div>
+                <div style="display: flex; gap: 12px; align-items: flex-start;">
+                  <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
+                  <button type="button" class="modal-close" id="closeEditorModalBtn" aria-label="Cerrar">✕</button>
+                </div>
+              </div>
 
-                <div class="divider" style="margin-bottom:28px;"></div>
+              <form id="pedidoForm" autocomplete="off">
+                <div class="form-grid" style="margin-bottom:20px;">
 
-                <form id="pedidoForm" autocomplete="off">
-                  <div class="form-grid" style="margin-bottom:20px;">
+                  <div class="field" style="display: none;">
+                    <label for="codigoInput">Referencia</label>
+                    <input id="codigoInput" type="text" readonly />
+                  </div>
 
-                    <div class="field">
-                      <label for="codigoInput">Referencia</label>
-                      <input id="codigoInput" type="text" readonly placeholder="—" />
-                    </div>
+                  <div class="field">
+                    <label for="estadoInput">Estado</label>
+                    <select id="estadoInput">
+                      <option value="Pendiente">Pendiente</option>
+                      <option value="En tránsito">En tránsito</option>
+                      <option value="Recibido">Recibido</option>
+                      <option value="Incidencia">Incidencia</option>
+                    </select>
+                  </div>
 
-                    <div class="field">
-                      <label for="estadoInput">Estado</label>
-                      <select id="estadoInput">
-                        <option value="Pendiente">Pendiente</option>
-                        <option value="En tránsito">En tránsito</option>
-                        <option value="Recibido">Recibido</option>
-                        <option value="Incidencia">Incidencia</option>
-                      </select>
-                    </div>
-
-                    <div class="field field-full">
-                      <label>Proveedor</label>
-                      <select id="proveedorSelect">
-                        <option value="">Selecciona un proveedor</option>
-                      </select>
-                      <button type="button" id="toggleNewProviderBtn" class="btn-ghost" style="margin-top:8px; text-align:left; padding:10px 14px;">
-                        + Añadir nuevo proveedor
-                      </button>
-                      <div id="newProviderBox" class="provider-box">
-                        <div class="field">
-                          <label for="nuevoProveedorNombre">Nombre del proveedor</label>
-                          <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
-                        </div>
-                        <div class="field">
-                          <label for="nuevoProveedorDescripcion">Notas internas</label>
-                          <textarea id="nuevoProveedorDescripcion" placeholder="Información interna sobre este proveedor" style="min-height:72px;"></textarea>
-                        </div>
+                  <div class="field field-full">
+                    <label>Proveedor</label>
+                    <select id="proveedorSelect">
+                      <option value="">Selecciona un proveedor</option>
+                    </select>
+                    <button type="button" id="toggleNewProviderBtn" class="btn-ghost" style="margin-top:8px; text-align:left; padding:10px 14px;">
+                      + Añadir nuevo proveedor
+                    </button>
+                    <div id="newProviderBox" class="provider-box">
+                      <div class="field">
+                        <label for="nuevoProveedorNombre">Nombre del proveedor</label>
+                        <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
+                      </div>
+                      <div class="field">
+                        <label for="nuevoProveedorDescripcion">Notas internas</label>
+                        <textarea id="nuevoProveedorDescripcion" placeholder="Información interna sobre este proveedor" style="min-height:72px;"></textarea>
                       </div>
                     </div>
-
-                    <div class="field">
-                      <label for="fechaEnvioInput">Fecha de envío</label>
-                      <input id="fechaEnvioInput" type="date" />
-                    </div>
-
-                    <div class="field">
-                      <label for="fechaReciboInput">Fecha de recibo</label>
-                      <input id="fechaReciboInput" type="date" />
-                    </div>
-
-                    <div class="field field-full">
-                      <label for="descripcionInput">Descripción del pedido</label>
-                      <textarea id="descripcionInput" placeholder="Contenido, referencias, incidencias u observaciones del pedido"></textarea>
-                    </div>
-
                   </div>
 
-                  <div class="divider" style="margin-bottom:20px;"></div>
-
-                  <div class="form-actions">
-                    <span class="save-message" id="saveMessage">Los datos se sincronizarán con Firebase en tiempo real.</span>
-                    <div class="form-actions-right">
-                      <button type="button" class="btn-ghost" id="cancelEditBtn">Cancelar</button>
-                      <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
-                    </div>
+                  <div class="field">
+                    <label for="fechaEnvioInput">Fecha de envío</label>
+                    <input id="fechaEnvioInput" type="date" />
                   </div>
-                </form>
-              </div>
+
+                  <div class="field">
+                    <label for="fechaReciboInput">Fecha de recibo</label>
+                    <input id="fechaReciboInput" type="date" />
+                  </div>
+
+                  <div class="field field-full">
+                    <label for="descripcionInput">Descripción del pedido</label>
+                    <textarea id="descripcionInput" placeholder="Contenido, referencias, incidencias u observaciones del pedido"></textarea>
+                  </div>
+
+                </div>
+
+                <div class="divider" style="margin-bottom:20px;"></div>
+
+                <div class="form-actions">
+                  <span class="save-message" id="saveMessage">Los datos se sincronizarán con Firebase en tiempo real.</span>
+                  <div class="form-actions-right">
+                    <button type="button" class="btn-ghost" id="cancelEditBtn">Cancelar</button>
+                    <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
+                  </div>
+                </div>
+              </form>
             </div>
-          </section>
+          </div>
 
           <section class="step-section">
             <div class="step-header">
@@ -1316,7 +1308,9 @@
     const currentCodeEl = document.getElementById('currentCode');
     const estadoBadge = document.getElementById('estadoBadge');
     const saveMessage = document.getElementById('saveMessage');
-    const editorSection = document.getElementById('editorSection');
+    const editorModal = document.getElementById('editorModal');
+    const closeEditorModalBtn = document.getElementById('closeEditorModalBtn');
+    const editorCodeInput = document.getElementById('editorCodeInput');
     const pedidoForm = document.getElementById('pedidoForm');
     const codigoInput = document.getElementById('codigoInput');
     const proveedorSelect = document.getElementById('proveedorSelect');
@@ -1586,14 +1580,17 @@
     }
 
     function showEditor() {
-      editorSection.classList.add('visible');
-      document.getElementById('step2Num').classList.add('active');
-      setTimeout(() => editorSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+      editorModal.classList.add('visible');
+      document.body.classList.add('no-scroll');
     }
 
     function hideEditor() {
-      editorSection.classList.remove('visible');
-      document.getElementById('step2Num').classList.remove('active', 'done');
+      editorModal.classList.remove('visible');
+      document.body.classList.remove('no-scroll');
+      
+      // Reseteamos la vista de edición por si se cerró mientras se editaba
+      editorCodeInput.style.display = 'none';
+      editorCodeBig.style.display = 'inline-block';
     }
 
     function fillFormFromPedido(pedido) {
@@ -1631,6 +1628,55 @@
         existsInDb: false
       };
     }
+
+    // Abrir edición al hacer doble clic
+    editorCodeBig.addEventListener('dblclick', () => {
+      editorCodeBig.style.display = 'none';
+      editorCodeInput.style.display = 'inline-block';
+      editorCodeInput.value = state.currentCode;
+      editorCodeInput.focus();
+      editorCodeInput.select(); // Selecciona el texto para borrarlo rápido
+    });
+
+    // Guardar el nuevo código al quitar el foco o pulsar Enter
+    async function aplicarCambioCodigo() {
+      const nuevoCodigo = editorCodeInput.value.trim();
+      
+      // Volver a la vista normal
+      editorCodeInput.style.display = 'none';
+      editorCodeBig.style.display = 'inline-block';
+      
+      // Validar que sean 5 dígitos
+      if (/^\d{5}$/.test(nuevoCodigo) && nuevoCodigo !== state.currentCode) {
+        editorCodeBig.textContent = nuevoCodigo;
+        codigoInput.value = nuevoCodigo;
+        currentCodeEl.textContent = nuevoCodigo;
+        
+        // Si el código cambia, cargamos los datos del nuevo código desde Firebase
+        setSaveMessage('Cargando datos del nuevo código...');
+        const pedidoActualizado = await loadPedidoByCode(nuevoCodigo);
+        fillFormFromPedido(pedidoActualizado);
+        setSaveMessage('Los datos se sincronizarán con Firebase en tiempo real.');
+      } else {
+        // Si no es válido, restauramos el texto visual anterior
+        editorCodeBig.textContent = state.currentCode || '—';
+      }
+    }
+
+    editorCodeInput.addEventListener('blur', aplicarCambioCodigo);
+    editorCodeInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        aplicarCambioCodigo();
+      }
+      if (e.key === 'Escape') {
+        editorCodeInput.value = state.currentCode; // Deshacer
+        aplicarCambioCodigo();
+      }
+    });
+
+    // Evento para el botón de cerrar la X del modal
+    closeEditorModalBtn.addEventListener('click', clearForm);
 
     function clearForm() {
       state.currentPedido = null;
