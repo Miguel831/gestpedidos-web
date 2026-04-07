@@ -51,6 +51,11 @@
       line-height: 1.2;
     }
 
+    h2 {
+      margin: 0 0 12px;
+      font-size: 1.05rem;
+    }
+
     p {
       margin: 0;
       color: var(--muted);
@@ -139,7 +144,11 @@
 
     .primary { background: linear-gradient(135deg, var(--accent), #16a34a); }
     .secondary { background: linear-gradient(135deg, var(--accent-2), #2563eb); }
-    .danger { background: linear-gradient(135deg, #f97316, var(--danger)); }
+    .ghost {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
 
     .status {
       margin-top: 12px;
@@ -166,72 +175,64 @@
     .ok { color: #86efac; }
     .warn { color: #fbbf24; }
 
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
+    .record-card {
+      display: none;
       gap: 12px;
     }
 
-    .preview {
+    .record-card.visible {
       display: grid;
-      gap: 8px;
     }
 
-    .preview h3,
-    .history h3 {
-      margin: 0;
-      font-size: 1rem;
-    }
-
-    canvas {
-      width: 100%;
-      background: #000;
-      border-radius: 14px;
-      border: 1px solid var(--border);
-      aspect-ratio: 3 / 1;
-    }
-
-    ul {
-      list-style: none;
-      margin: 12px 0 0;
-      padding: 0;
-      display: grid;
-      gap: 10px;
-      max-height: 260px;
-      overflow: auto;
-    }
-
-    li {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
+    .record-summary {
       padding: 12px 14px;
       border-radius: 14px;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
+      line-height: 1.45;
     }
 
-    .pill {
-      font-size: 1.2rem;
-      font-weight: 800;
-      letter-spacing: 0.08em;
+    .record-grid {
+      display: grid;
+      gap: 12px;
     }
 
-    .meta {
-      color: var(--muted);
-      font-size: 0.88rem;
-      text-align: right;
+    label {
+      display: grid;
+      gap: 8px;
+      font-size: 0.95rem;
+      color: var(--text);
     }
 
-    .empty {
-      color: var(--muted);
-      padding: 12px 0 0;
+    input,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.7);
+      color: var(--text);
+      padding: 14px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .hidden-tools {
+      display: none;
     }
 
     @media (max-width: 640px) {
-      .grid,
-      .controls {
+      .controls,
+      .actions {
         grid-template-columns: 1fr;
       }
 
@@ -245,7 +246,7 @@
   <main class="app">
     <section class="card">
       <h1>MVP: leer un número de 5 dígitos con la cámara</h1>
-      <p>Apunta el número dentro del recuadro verde y pulsa <strong>Capturar y leer</strong>. Si detecta exactamente 5 dígitos, el número se guarda automáticamente en el historial.</p>
+      <p>Apunta el número dentro del recuadro verde y pulsa <strong>Capturar y leer</strong>. Si detecta exactamente 5 dígitos, podrás guardar información asociada a ese código.</p>
       <p class="notice">Para que la cámara funcione bien, abre esta página desde <strong>https</strong> o <strong>localhost</strong>.</p>
     </section>
 
@@ -263,111 +264,181 @@
 
     <section class="card result">
       <div>
-        <div style="color: var(--muted); font-size: 0.92rem; margin-bottom: 6px;">Último resultado</div>
+        <div style="color: var(--muted); font-size: 0.92rem; margin-bottom: 6px;">Último código leído</div>
         <div id="resultValue" class="result-value">—</div>
       </div>
       <div id="ocrRaw" style="color: var(--muted); font-size: 0.95rem;">Texto OCR: —</div>
     </section>
 
-    <section class="grid">
-      <section class="card preview">
-        <h3>Recorte usado</h3>
-        <canvas id="cropCanvas"></canvas>
-        <p>Se recorta la zona central del vídeo para intentar leer solo el número.</p>
-      </section>
+    <section id="recordCard" class="card record-card">
+      <h2 id="recordTitle">Información del código</h2>
+      <div id="recordSummary" class="record-summary"></div>
 
-      <section class="card preview">
-        <h3>Imagen procesada</h3>
-        <canvas id="processedCanvas"></canvas>
-        <p>Se amplía, pasa a gris y se binariza para ayudar al OCR.</p>
-      </section>
-    </section>
-
-    <section class="card history">
-      <div style="display:flex; justify-content:space-between; align-items:center; gap:12px;">
-        <h3>Números guardados</h3>
-        <button id="clearBtn" class="danger" style="padding:10px 14px; font-size:0.92rem;">Vaciar historial</button>
+      <div id="recordFormWrap" class="record-grid">
+        <label>
+          Nombre o referencia
+          <input id="nameInput" type="text" placeholder="Ej. Caja 12, Producto A, Cliente X" maxlength="80" />
+        </label>
+        <label>
+          Observaciones
+          <textarea id="notesInput" placeholder="Escribe aquí la información que quieras guardar para este código"></textarea>
+        </label>
+        <div class="actions">
+          <button id="saveInfoBtn" class="primary">Guardar información</button>
+          <button id="editInfoBtn" class="ghost" type="button">Editar información</button>
+        </div>
       </div>
-      <ul id="savedList"></ul>
-      <div id="emptyState" class="empty">Todavía no hay números guardados.</div>
     </section>
+
+    <div class="hidden-tools" aria-hidden="true">
+      <canvas id="cropCanvas"></canvas>
+      <canvas id="processedCanvas"></canvas>
+    </div>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
   <script>
-    const STORAGE_KEY = 'ocr-5-digit-mvp-history';
+    const STORAGE_KEY = 'ocr-5-digit-mvp-records';
 
     const video = document.getElementById('video');
     const startBtn = document.getElementById('startBtn');
     const captureBtn = document.getElementById('captureBtn');
-    const clearBtn = document.getElementById('clearBtn');
     const statusEl = document.getElementById('status');
     const resultValueEl = document.getElementById('resultValue');
     const ocrRawEl = document.getElementById('ocrRaw');
-    const savedListEl = document.getElementById('savedList');
-    const emptyStateEl = document.getElementById('emptyState');
     const cropCanvas = document.getElementById('cropCanvas');
     const processedCanvas = document.getElementById('processedCanvas');
     const cropCtx = cropCanvas.getContext('2d', { willReadFrequently: true });
     const processedCtx = processedCanvas.getContext('2d', { willReadFrequently: true });
 
+    const recordCard = document.getElementById('recordCard');
+    const recordTitle = document.getElementById('recordTitle');
+    const recordSummary = document.getElementById('recordSummary');
+    const recordFormWrap = document.getElementById('recordFormWrap');
+    const nameInput = document.getElementById('nameInput');
+    const notesInput = document.getElementById('notesInput');
+    const saveInfoBtn = document.getElementById('saveInfoBtn');
+    const editInfoBtn = document.getElementById('editInfoBtn');
+
     const state = {
       stream: null,
       worker: null,
       busy: false,
-      history: loadHistory(),
+      records: loadRecords(),
+      currentCode: null
     };
-
-    renderHistory();
 
     function setStatus(message) {
       statusEl.innerHTML = message;
     }
 
-    function loadHistory() {
+    function loadRecords() {
       try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
       } catch {
-        return [];
+        return {};
       }
     }
 
-    function saveHistory() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.history));
+    function saveRecords() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
     }
 
-    function renderHistory() {
-      savedListEl.innerHTML = '';
-      emptyStateEl.style.display = state.history.length ? 'none' : 'block';
-
-      state.history.forEach((item) => {
-        const li = document.createElement('li');
-        const date = new Date(item.createdAt);
-        li.innerHTML = `
-          <div class="pill">${item.value}</div>
-          <div class="meta">${date.toLocaleDateString('es-ES')}<br>${date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</div>
-        `;
-        savedListEl.appendChild(li);
+    function formatDate(isoDate) {
+      if (!isoDate) return 'sin fecha';
+      const date = new Date(isoDate);
+      return date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
       });
     }
 
-    function saveNumber(value) {
-      state.history.unshift({ value, createdAt: new Date().toISOString() });
-      saveHistory();
-      renderHistory();
+    function escapeHtml(value) {
+      return String(value || '')
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    function showRecordCard() {
+      recordCard.classList.add('visible');
+    }
+
+    function hideRecordCard() {
+      recordCard.classList.remove('visible');
+    }
+
+    function renderRecordView(code, editable) {
+      const record = state.records[code];
+      state.currentCode = code;
+      showRecordCard();
+
+      if (!record) {
+        recordTitle.textContent = 'Información del código ' + code;
+        recordSummary.innerHTML = 'Código nuevo detectado. Añade la información que quieras guardar.';
+        recordFormWrap.style.display = 'grid';
+        nameInput.value = '';
+        notesInput.value = '';
+        editInfoBtn.style.display = 'none';
+        return;
+      }
+
+      recordTitle.textContent = 'Información del código ' + code;
+      recordSummary.innerHTML =
+        '<strong>Nombre o referencia:</strong> ' + escapeHtml(record.name || '—') + '<br>' +
+        '<strong>Observaciones:</strong> ' + escapeHtml(record.notes || '—').replace(/\n/g, '<br>') + '<br>' +
+        '<strong>Guardado:</strong> ' + escapeHtml(formatDate(record.createdAt)) + '<br>' +
+        '<strong>Última actualización:</strong> ' + escapeHtml(formatDate(record.updatedAt));
+
+      nameInput.value = record.name || '';
+      notesInput.value = record.notes || '';
+      editInfoBtn.style.display = 'block';
+      recordFormWrap.style.display = editable ? 'grid' : 'none';
+    }
+
+    function saveCurrentRecord() {
+      const code = state.currentCode;
+      if (!code) return;
+
+      const name = nameInput.value.trim();
+      const notes = notesInput.value.trim();
+
+      if (!name && !notes) {
+        setStatus('Escribe al menos un nombre o una observación antes de guardar.');
+        return;
+      }
+
+      const existing = state.records[code];
+      const now = new Date().toISOString();
+
+      state.records[code] = {
+        code: code,
+        name: name,
+        notes: notes,
+        createdAt: existing && existing.createdAt ? existing.createdAt : now,
+        updatedAt: now
+      };
+
+      saveRecords();
+      renderRecordView(code, false);
+      setStatus('Información guardada correctamente para el código <strong>' + code + '</strong>.');
     }
 
     async function ensureWorker() {
       if (state.worker) return state.worker;
 
-      const { createWorker, PSM } = Tesseract;
+      const createWorker = Tesseract.createWorker;
+      const PSM = Tesseract.PSM;
       setStatus('Cargando motor OCR...');
 
       state.worker = await createWorker('eng', 1, {
-        logger: (m) => {
+        logger: function (m) {
           if (!m || !m.status) return;
-          const percent = typeof m.progress === 'number' ? ` ${Math.round(m.progress * 100)}%` : '';
-          setStatus(`OCR: ${translateStatus(m.status)}${percent}`);
+          const percent = typeof m.progress === 'number' ? ' ' + Math.round(m.progress * 100) + '%' : '';
+          setStatus('OCR: ' + translateStatus(m.status) + percent);
         }
       });
 
@@ -405,7 +476,7 @@
 
       try {
         if (state.stream) {
-          state.stream.getTracks().forEach(track => track.stop());
+          state.stream.getTracks().forEach(function (track) { track.stop(); });
         }
 
         let stream;
@@ -418,7 +489,7 @@
               height: { ideal: 720 }
             }
           });
-        } catch {
+        } catch (e) {
           stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         }
 
@@ -429,7 +500,8 @@
         const track = stream.getVideoTracks()[0];
         const settings = track && track.getSettings ? track.getSettings() : {};
         captureBtn.disabled = false;
-        setStatus(`Cámara activa${settings.width ? ` (${settings.width}×${settings.height})` : ''}. Coloca el número en el recuadro y pulsa <strong>Capturar y leer</strong>.`);
+        const resolution = settings.width ? ' (' + settings.width + '×' + settings.height + ')' : '';
+        setStatus('Cámara activa' + resolution + '. Coloca el número en el recuadro y pulsa <strong>Capturar y leer</strong>.');
       } catch (error) {
         console.error(error);
         setStatus('No se pudo abrir la cámara. Revisa permisos, prueba en <strong>https</strong> o <strong>localhost</strong> y vuelve a intentarlo.');
@@ -453,11 +525,14 @@
       cropCanvas.height = cropHeight;
       cropCtx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
-      return { cropWidth, cropHeight };
+      return { cropWidth: cropWidth, cropHeight: cropHeight };
     }
 
-    function preprocessImage({ cropWidth, cropHeight }) {
+    function preprocessImage(size) {
+      const cropWidth = size.cropWidth;
+      const cropHeight = size.cropHeight;
       const scale = 2;
+
       processedCanvas.width = cropWidth * scale;
       processedCanvas.height = cropHeight * scale;
       processedCtx.imageSmoothingEnabled = false;
@@ -506,10 +581,11 @@
       resultValueEl.textContent = '...';
       resultValueEl.className = 'result-value';
       ocrRawEl.textContent = 'Texto OCR: procesando...';
+      hideRecordCard();
 
       try {
-        captureRegion();
-        preprocessImage({ cropWidth: cropCanvas.width, cropHeight: cropCanvas.height });
+        const size = captureRegion();
+        preprocessImage(size);
         const worker = await ensureWorker();
 
         setStatus('Leyendo número en la imagen procesada...');
@@ -529,13 +605,19 @@
           value = extractFiveDigits(rawText);
         }
 
-        ocrRawEl.textContent = `Texto OCR: ${rawText.trim() || 'sin texto detectado'}`;
+        ocrRawEl.textContent = 'Texto OCR: ' + (rawText.trim() || 'sin texto detectado');
 
         if (value) {
           resultValueEl.textContent = value;
           resultValueEl.className = 'result-value ok';
-          saveNumber(value);
-          setStatus(`Número válido detectado y guardado: <strong>${value}</strong>.`);
+
+          if (state.records[value]) {
+            renderRecordView(value, false);
+            setStatus('El código <strong>' + value + '</strong> ya existía. Te muestro la información guardada.');
+          } else {
+            renderRecordView(value, true);
+            setStatus('Código nuevo detectado: <strong>' + value + '</strong>. Añade ahora la información asociada y guárdala.');
+          }
         } else {
           resultValueEl.textContent = 'No válido';
           resultValueEl.className = 'result-value warn';
@@ -546,7 +628,7 @@
         resultValueEl.textContent = 'Error';
         resultValueEl.className = 'result-value warn';
         ocrRawEl.textContent = 'Texto OCR: error durante la lectura';
-        setStatus(`Ha ocurrido un error: ${error.message}`);
+        setStatus('Ha ocurrido un error: ' + error.message);
       } finally {
         state.busy = false;
         captureBtn.disabled = false;
@@ -555,16 +637,16 @@
 
     startBtn.addEventListener('click', startCamera);
     captureBtn.addEventListener('click', readNumber);
-    clearBtn.addEventListener('click', () => {
-      state.history = [];
-      saveHistory();
-      renderHistory();
-      setStatus('Historial borrado.');
+    saveInfoBtn.addEventListener('click', saveCurrentRecord);
+    editInfoBtn.addEventListener('click', function () {
+      if (!state.currentCode) return;
+      renderRecordView(state.currentCode, true);
+      setStatus('Editando la información del código <strong>' + state.currentCode + '</strong>.');
     });
 
-    window.addEventListener('beforeunload', () => {
+    window.addEventListener('beforeunload', function () {
       if (state.stream) {
-        state.stream.getTracks().forEach(track => track.stop());
+        state.stream.getTracks().forEach(function (track) { track.stop(); });
       }
       if (state.worker) {
         state.worker.terminate();
