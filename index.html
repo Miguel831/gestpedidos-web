@@ -42,14 +42,9 @@
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
-
-    html, body {
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100%;
-    }
-
+    html, body { background: var(--bg); color: var(--text); min-height: 100%; }
     body { min-height: 100vh; }
+    body.no-scroll { overflow: hidden; }
 
     .drawer-backdrop {
       position: fixed;
@@ -61,11 +56,7 @@
       transition: opacity 0.22s ease;
       z-index: 140;
     }
-
-    .drawer-backdrop.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .drawer-backdrop.visible { opacity: 1; pointer-events: auto; }
 
     .app-drawer {
       position: fixed;
@@ -82,7 +73,6 @@
       display: grid;
       grid-template-rows: auto 1fr;
     }
-
     .app-drawer.open { transform: translateX(0); }
 
     .drawer-head {
@@ -91,7 +81,6 @@
       display: grid;
       gap: 6px;
     }
-
     .drawer-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 1.8rem;
@@ -100,7 +89,6 @@
       font-weight: 300;
       line-height: 1;
     }
-
     .drawer-subtitle {
       font-family: 'Cormorant SC', Georgia, serif;
       font-size: 0.68rem;
@@ -108,14 +96,12 @@
       color: var(--text-muted);
       text-transform: uppercase;
     }
-
     .drawer-nav {
       padding: 16px 12px;
       display: grid;
       gap: 6px;
       align-content: start;
     }
-
     .drawer-nav button {
       width: 100%;
       text-align: left;
@@ -126,8 +112,8 @@
       border-radius: var(--r-md);
       font-weight: 500;
       letter-spacing: 0.03em;
+      box-shadow: none;
     }
-
     .drawer-nav button.active {
       background: var(--accent-pale);
       color: var(--brand);
@@ -142,7 +128,6 @@
       top: 0;
       z-index: 100;
     }
-
     .topbar-inner {
       max-width: 1140px;
       margin: 0 auto;
@@ -153,14 +138,12 @@
       justify-content: space-between;
       gap: 24px;
     }
-
     .topbar-left {
       display: flex;
       align-items: center;
       gap: 16px;
       min-width: 0;
     }
-
     .menu-btn {
       width: 44px;
       height: 44px;
@@ -172,16 +155,13 @@
       place-items: center;
       box-shadow: none;
     }
-
     .menu-btn:hover { background: var(--bg-soft); }
-
     .menu-icon {
       width: 18px;
       height: 12px;
       position: relative;
       display: block;
     }
-
     .menu-icon span {
       position: absolute;
       left: 0;
@@ -190,17 +170,19 @@
       background: var(--brand);
       border-radius: 999px;
     }
-
     .menu-icon span:nth-child(1) { top: 0; }
     .menu-icon span:nth-child(2) { top: 5px; }
     .menu-icon span:nth-child(3) { top: 10px; }
 
-    .topbar-brand {
+    .brand-btn {
+      background: transparent;
+      border: none;
+      padding: 0;
       display: grid;
       gap: 2px;
-      min-width: 0;
+      text-align: left;
+      box-shadow: none;
     }
-
     .topbar-logo {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-style: italic;
@@ -210,7 +192,6 @@
       color: var(--brand);
       letter-spacing: -0.01em;
     }
-
     .topbar-subtitle {
       font-family: 'Cormorant SC', Georgia, serif;
       font-weight: 400;
@@ -219,14 +200,12 @@
       color: var(--brand-soft);
       text-transform: uppercase;
     }
-
     .topbar-right {
       display: flex;
       align-items: center;
       gap: 20px;
       flex-shrink: 0;
     }
-
     .sync-indicator {
       display: flex;
       align-items: center;
@@ -237,7 +216,6 @@
       letter-spacing: 0.03em;
       text-align: right;
     }
-
     .sync-dot {
       width: 7px;
       height: 7px;
@@ -246,38 +224,104 @@
       transition: background 0.4s ease;
       flex-shrink: 0;
     }
-
     .sync-dot.ready { background: var(--ok); }
     .sync-dot.error { background: var(--danger); }
     .sync-dot.busy {
       background: var(--warn);
       animation: pulse 1.2s infinite;
     }
-
     @keyframes pulse {
       0%, 100% { opacity: 1; }
       50% { opacity: 0.4; }
     }
 
-    .app-shell {
+    .screen-shell {
       max-width: 1140px;
       margin: 0 auto;
       padding: 40px 24px 64px;
-      display: grid;
-      gap: 40px;
+    }
+    .screen { display: none; }
+    .screen.active { display: block; }
+    .screen-grid { display: grid; gap: 40px; }
+
+    .screen-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .screen-eyebrow {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.68rem;
+      letter-spacing: 0.2em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .screen-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 400;
+      line-height: 1;
+      color: var(--text);
+    }
+    .screen-note {
+      font-size: 0.9rem;
+      color: var(--text-muted);
+      line-height: 1.6;
+      max-width: 42ch;
     }
 
-    .step-section {
+    .summary-strip {
+      display: flex;
+      gap: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
+    }
+    .summary-item {
+      flex: 1;
+      padding: 22px 24px;
       display: grid;
-      gap: 24px;
+      gap: 6px;
+      border-right: 1px solid var(--line);
+      transition: background 0.2s;
+    }
+    .summary-item:last-child { border-right: none; }
+    .summary-item:hover { background: var(--bg-soft); }
+    .summary-label {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.22em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+    }
+    .summary-value {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2.2rem;
+      font-weight: 400;
+      line-height: 1;
+      color: var(--brand);
     }
 
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r-xl);
+      box-shadow: var(--shadow-sm);
+      overflow: hidden;
+    }
+    .panel-inner { padding: 32px; }
+
+    .step-section { display: grid; gap: 24px; }
     .step-header {
       display: flex;
       align-items: center;
       gap: 16px;
     }
-
     .step-number {
       width: 36px;
       height: 36px;
@@ -292,19 +336,16 @@
       flex-shrink: 0;
       background: var(--panel);
     }
-
     .step-number.active {
       background: var(--brand);
       border-color: var(--brand);
       color: #fff;
     }
-
     .step-number.done {
       background: var(--ok);
       border-color: var(--ok);
       color: #fff;
     }
-
     .step-label {
       font-family: 'Cormorant SC', Georgia, serif;
       font-size: 0.72rem;
@@ -312,7 +353,6 @@
       color: var(--text-muted);
       text-transform: uppercase;
     }
-
     .step-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 1.5rem;
@@ -321,65 +361,13 @@
       line-height: 1;
     }
 
-    .panel {
-      background: var(--panel);
-      border: 1px solid var(--line);
-      border-radius: var(--r-xl);
-      box-shadow: var(--shadow-sm);
-      overflow: hidden;
-    }
-
-    .panel-inner { padding: 32px; }
-
-    .summary-strip {
-      display: flex;
-      gap: 0;
-      border: 1px solid var(--line);
-      border-radius: var(--r-lg);
-      overflow: hidden;
-      background: var(--panel);
-      box-shadow: var(--shadow-sm);
-    }
-
-    .summary-item {
-      flex: 1;
-      padding: 22px 24px;
-      display: grid;
-      gap: 6px;
-      border-right: 1px solid var(--line);
-      transition: background 0.2s;
-    }
-
-    .summary-item:last-child { border-right: none; }
-    .summary-item:hover { background: var(--bg-soft); }
-
-    .summary-label {
-      font-family: 'Cormorant SC', Georgia, serif;
-      font-size: 0.65rem;
-      letter-spacing: 0.22em;
-      color: var(--text-muted);
-      text-transform: uppercase;
-    }
-
-    .summary-value {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 2.2rem;
-      font-weight: 400;
-      line-height: 1;
-      color: var(--brand);
-    }
-
     .scanner-layout {
       display: grid;
       grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
       gap: 32px;
       align-items: start;
     }
-
-    .scanner-layout.camera-hidden {
-      grid-template-columns: 1fr;
-    }
-
+    .scanner-layout.camera-hidden { grid-template-columns: 1fr; }
     .video-wrap {
       position: relative;
       overflow: hidden;
@@ -390,9 +378,7 @@
       display: none;
       min-height: 340px;
     }
-
     .video-wrap.active { display: block; }
-
     video {
       width: 100%;
       height: 100%;
@@ -400,7 +386,6 @@
       display: block;
       background: #000;
     }
-
     .scan-box {
       position: absolute;
       left: 10%;
@@ -412,7 +397,6 @@
       pointer-events: none;
       display: none;
     }
-
     .scan-box::before,
     .scan-box::after {
       content: "";
@@ -422,21 +406,18 @@
       border-color: #fff;
       border-style: solid;
     }
-
     .scan-box::before {
       top: -1.5px;
       left: -1.5px;
       border-width: 2.5px 0 0 2.5px;
       border-top-left-radius: 8px;
     }
-
     .scan-box::after {
       right: -1.5px;
       bottom: -1.5px;
       border-width: 0 2.5px 2.5px 0;
       border-bottom-right-radius: 8px;
     }
-
     .scan-line {
       position: absolute;
       left: 2%;
@@ -447,12 +428,10 @@
       opacity: 0;
       display: none;
     }
-
     .scanning .scan-line {
       opacity: 1;
       display: block;
     }
-
     @keyframes scanline {
       0% { top: 35%; }
       50% { top: 63%; }
@@ -464,7 +443,6 @@
       gap: 20px;
       align-content: start;
     }
-
     .scanner-status-box {
       border: 1px solid var(--line);
       border-radius: var(--r-md);
@@ -473,7 +451,6 @@
       display: grid;
       gap: 6px;
     }
-
     .scanner-status-label {
       font-family: 'Cormorant SC', Georgia, serif;
       font-size: 0.65rem;
@@ -481,7 +458,6 @@
       color: var(--text-muted);
       text-transform: uppercase;
     }
-
     .scanner-code-display {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 3rem;
@@ -490,20 +466,14 @@
       color: var(--brand);
       letter-spacing: 0.15em;
     }
-
     .scanner-message {
       font-size: 0.88rem;
       color: var(--text-muted);
       line-height: 1.5;
     }
 
-    .btn-row {
-      display: grid;
-      gap: 10px;
-    }
-
+    .btn-row { display: grid; gap: 10px; }
     button, select, input, textarea { font: inherit; }
-
     button {
       border: none;
       border-radius: var(--r-md);
@@ -514,33 +484,27 @@
       letter-spacing: 0.04em;
       transition: transform 0.12s ease, opacity 0.12s ease, background 0.2s ease, box-shadow 0.2s ease;
     }
-
     button:active { transform: scale(0.985); }
     button[disabled] { opacity: 0.45; cursor: not-allowed; }
-
     .btn-primary {
       background: var(--brand);
       color: #fff;
       box-shadow: 0 2px 12px rgba(61, 79, 94, 0.28);
     }
-
     .btn-primary:hover:not([disabled]) {
       background: var(--text);
       box-shadow: 0 4px 20px rgba(61, 79, 94, 0.38);
     }
-
     .btn-secondary {
       background: transparent;
       color: var(--brand);
       border: 1px solid var(--line-mid);
       box-shadow: none;
     }
-
     .btn-secondary:hover:not([disabled]) {
       background: var(--bg-soft);
       border-color: var(--line-strong);
     }
-
     .btn-ghost {
       background: transparent;
       color: var(--text-muted);
@@ -548,29 +512,17 @@
       font-size: 0.84rem;
       box-shadow: none;
     }
-
     .btn-ghost:hover:not([disabled]) { background: var(--bg-soft); }
-
-    .btn-danger {
-      background: transparent;
-      color: var(--danger);
-      border: 1px solid rgba(160,69,69,0.22);
-      font-size: 0.84rem;
-      box-shadow: none;
-    }
 
     .editor-reveal {
       display: none;
       animation: slideDown 0.35s ease forwards;
     }
-
     .editor-reveal.visible { display: grid; gap: 24px; }
-
     @keyframes slideDown {
       from { opacity: 0; transform: translateY(-12px); }
       to { opacity: 1; transform: translateY(0); }
     }
-
     .editor-top {
       display: flex;
       align-items: center;
@@ -579,13 +531,11 @@
       flex-wrap: wrap;
       margin-bottom: 28px;
     }
-
     .editor-code-display {
       display: flex;
       align-items: baseline;
       gap: 12px;
     }
-
     .editor-code-eyebrow {
       font-family: 'Cormorant SC', Georgia, serif;
       font-size: 0.65rem;
@@ -593,7 +543,6 @@
       color: var(--text-muted);
       text-transform: uppercase;
     }
-
     .editor-code-big {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 2.4rem;
@@ -602,7 +551,6 @@
       color: var(--brand);
       letter-spacing: 0.12em;
     }
-
     .status-badge {
       display: inline-flex;
       align-items: center;
@@ -616,7 +564,6 @@
       text-transform: uppercase;
       border: 1px solid transparent;
     }
-
     .status-badge::before {
       content: "";
       width: 6px;
@@ -625,31 +572,19 @@
       background: currentColor;
       opacity: 0.7;
     }
-
     .estado-pendiente { background: rgba(176,124,50,0.08); color: var(--warn); border-color: rgba(176,124,50,0.2); }
     .estado-en-transito { background: rgba(61,95,140,0.08); color: var(--transit); border-color: rgba(61,95,140,0.2); }
     .estado-recibido { background: rgba(74,140,114,0.08); color: var(--ok); border-color: rgba(74,140,114,0.2); }
     .estado-incidencia { background: rgba(160,69,69,0.08); color: var(--danger); border-color: rgba(160,69,69,0.2); }
-
-    .divider {
-      height: 1px;
-      background: var(--line);
-      margin: 0;
-    }
+    .divider { height: 1px; background: var(--line); margin: 0; }
 
     .form-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 20px;
     }
-
-    .field {
-      display: grid;
-      gap: 8px;
-    }
-
+    .field { display: grid; gap: 8px; }
     .field-full { grid-column: 1 / -1; }
-
     .field label {
       font-family: 'Cormorant SC', Georgia, serif;
       font-size: 0.65rem;
@@ -657,7 +592,6 @@
       color: var(--text-muted);
       text-transform: uppercase;
     }
-
     .field input,
     .field select,
     .field textarea {
@@ -671,7 +605,6 @@
       transition: border-color 0.18s, box-shadow 0.18s, background 0.18s;
       font-size: 0.94rem;
     }
-
     .field input:focus,
     .field select:focus,
     .field textarea:focus {
@@ -679,18 +612,15 @@
       background: var(--panel);
       box-shadow: 0 0 0 3px rgba(61, 79, 94, 0.07);
     }
-
     .field input[readonly] {
       background: var(--bg-warm);
       color: var(--text-muted);
       cursor: default;
     }
-
     .field textarea {
       min-height: 100px;
       resize: vertical;
     }
-
     .field select {
       appearance: none;
       background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237a8a96' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
@@ -710,7 +640,6 @@
       margin-top: 4px;
       animation: slideDown 0.25s ease forwards;
     }
-
     .provider-box.visible { display: flex; }
 
     .form-actions {
@@ -721,142 +650,79 @@
       flex-wrap: wrap;
       padding-top: 4px;
     }
-
     .save-message {
       font-size: 0.84rem;
       color: var(--text-muted);
     }
-
     .form-actions-right {
       display: flex;
       align-items: center;
       gap: 10px;
     }
 
-    .records-reveal {
-      display: grid;
-      gap: 24px;
-    }
-
-    .records-pages {
-      display: grid;
-    }
-
-    .records-page { display: none; }
-    .records-page.active { display: grid; gap: 20px; }
-
-    .records-page-header {
+    .records-block { display: grid; gap: 22px; }
+    .records-block-head {
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
       gap: 16px;
       flex-wrap: wrap;
     }
-
-    .records-page-title {
+    .records-title {
       font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.4rem;
+      font-size: 1.45rem;
       font-weight: 400;
       color: var(--text);
     }
-
-    .records-page-note {
-      font-size: 0.84rem;
-      color: var(--text-muted);
-      line-height: 1.5;
-    }
-
-    .records-grid {
-      display: grid;
-      grid-template-columns: minmax(0, 1.18fr) minmax(320px, 0.82fr);
-      gap: 24px;
-      align-items: start;
-    }
-
-    .list-grid { display: grid; gap: 12px; }
-
-    .row-card {
-      border: 1px solid var(--line);
-      border-radius: var(--r-lg);
-      padding: 22px 24px;
-      background: var(--panel);
-      display: grid;
-      gap: 14px;
-      cursor: pointer;
-      transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
-    }
-
-    .row-card:hover,
-    .provider-record-card:hover {
-      border-color: var(--line-mid);
-      box-shadow: var(--shadow-sm);
-      transform: translateY(-1px);
-    }
-
-    .row-card.selected,
-    .provider-record-card.selected {
-      border-color: rgba(61, 79, 94, 0.28);
-      box-shadow: 0 0 0 1px rgba(61, 79, 94, 0.06), var(--shadow-sm);
-      background: linear-gradient(180deg, #fff, #fcfbf9);
-    }
-
-    .row-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .row-code {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.9rem;
-      font-weight: 300;
-      line-height: 1;
-      color: var(--brand);
-      letter-spacing: 0.1em;
-    }
-
-    .row-code-eyebrow {
-      font-family: 'Cormorant SC', Georgia, serif;
-      font-size: 0.63rem;
-      letter-spacing: 0.18em;
-      color: var(--text-faint);
-      margin-bottom: 4px;
-    }
-
-    .row-mini-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px 18px;
-    }
-
-    .row-mini-item {
-      display: inline-flex;
-      align-items: baseline;
-      gap: 6px;
-      font-size: 0.87rem;
-      color: var(--text-mid);
-    }
-
-    .row-mini-label {
-      font-family: 'Cormorant SC', Georgia, serif;
-      font-size: 0.6rem;
-      letter-spacing: 0.16em;
-      color: var(--text-faint);
-      text-transform: uppercase;
-    }
-
-    .row-desc {
+    .records-note {
       font-size: 0.88rem;
       color: var(--text-muted);
       line-height: 1.55;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
+      max-width: 44ch;
     }
 
+    .slider-tabs {
+      position: relative;
+      display: inline-grid;
+      grid-template-columns: 1fr 1fr;
+      padding: 4px;
+      background: var(--bg-soft);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      min-width: 250px;
+    }
+    .slider-thumb {
+      position: absolute;
+      top: 4px;
+      left: 4px;
+      width: calc(50% - 4px);
+      height: calc(100% - 8px);
+      border-radius: 999px;
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
+      transition: transform 0.22s ease;
+      pointer-events: none;
+    }
+    .slider-tabs[data-view="proveedores"] .slider-thumb {
+      transform: translateX(100%);
+    }
+    .slider-tab-btn {
+      position: relative;
+      z-index: 1;
+      background: transparent;
+      border: none;
+      box-shadow: none;
+      color: var(--text-muted);
+      padding: 10px 20px;
+      border-radius: 999px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .slider-tab-btn.active { color: var(--brand); }
+
+    .list-grid { display: grid; gap: 12px; }
+    .row-card,
     .provider-record-card {
       border: 1px solid var(--line);
       border-radius: var(--r-lg);
@@ -867,34 +733,72 @@
       cursor: pointer;
       transition: border-color 0.16s, box-shadow 0.16s, transform 0.16s;
     }
-
+    .row-card:hover,
+    .provider-record-card:hover {
+      border-color: var(--line-mid);
+      box-shadow: var(--shadow-sm);
+      transform: translateY(-1px);
+    }
+    .row-top,
     .provider-record-head {
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
       gap: 12px;
       flex-wrap: wrap;
     }
-
+    .row-code {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 1.9rem;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--brand);
+      letter-spacing: 0.1em;
+    }
+    .row-code-eyebrow {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.63rem;
+      letter-spacing: 0.18em;
+      color: var(--text-faint);
+      margin-bottom: 4px;
+    }
+    .pedido-resumen-line {
+      font-size: 0.88rem;
+      color: var(--text-mid);
+      line-height: 1.4;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .pedido-resumen-line strong {
+      font-weight: 500;
+      color: var(--brand);
+    }
+    .row-desc {
+      font-size: 0.88rem;
+      color: var(--text-muted);
+      line-height: 1.55;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
     .provider-record-name {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 1.4rem;
       font-weight: 400;
       color: var(--text);
     }
-
     .provider-record-desc {
       font-size: 0.9rem;
       color: var(--text-muted);
       line-height: 1.55;
     }
-
     .chips {
       display: flex;
       flex-wrap: wrap;
       gap: 8px;
     }
-
     .chip {
       padding: 5px 12px;
       border-radius: 999px;
@@ -908,116 +812,14 @@
       cursor: pointer;
       transition: background 0.15s, border-color 0.15s;
     }
-
     .chip:hover { background: var(--bg-warm); border-color: var(--brand-soft); }
-    .chip.no-link { cursor: default; color: var(--text-muted); }
-    .chip.no-link:hover { background: var(--bg-soft); border-color: var(--line-mid); }
-
-    .detail-panel {
-      border: 1px solid var(--line);
-      border-radius: var(--r-lg);
-      background: var(--panel);
-      box-shadow: var(--shadow-sm);
-      padding: 22px 24px;
-      display: grid;
-      gap: 18px;
-      position: sticky;
-      top: 88px;
-      min-height: 240px;
-    }
-
-    .detail-head {
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 12px;
-      flex-wrap: wrap;
-    }
-
-    .detail-eyebrow {
-      font-family: 'Cormorant SC', Georgia, serif;
-      font-size: 0.62rem;
-      letter-spacing: 0.18em;
-      color: var(--text-faint);
-      text-transform: uppercase;
-      margin-bottom: 6px;
-    }
-
-    .detail-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 2rem;
-      font-weight: 300;
-      line-height: 1;
-      color: var(--brand);
-      letter-spacing: 0.08em;
-    }
-
-    .detail-provider-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.5rem;
-      font-weight: 400;
-      line-height: 1.15;
-      color: var(--text);
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 14px 20px;
-    }
-
-    .detail-item {
-      display: grid;
-      gap: 5px;
-    }
-
-    .detail-label {
-      font-family: 'Cormorant SC', Georgia, serif;
-      font-size: 0.6rem;
-      letter-spacing: 0.18em;
-      color: var(--text-faint);
-      text-transform: uppercase;
-    }
-
-    .detail-value {
-      font-size: 0.92rem;
-      color: var(--text-mid);
-      line-height: 1.55;
-      word-break: break-word;
-    }
-
-    .detail-text {
-      font-size: 0.92rem;
+    .chip.no-link {
+      cursor: default;
       color: var(--text-muted);
-      line-height: 1.65;
-      white-space: pre-wrap;
     }
-
-    .detail-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      padding-top: 4px;
-    }
-
-    .detail-empty {
-      display: grid;
-      align-content: center;
-      gap: 10px;
-      min-height: 190px;
-    }
-
-    .detail-empty-title {
-      font-family: 'Cormorant Garamond', Georgia, serif;
-      font-size: 1.35rem;
-      color: var(--text);
-    }
-
-    .detail-empty p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-      line-height: 1.6;
-      max-width: 34ch;
+    .chip.no-link:hover {
+      background: var(--bg-soft);
+      border-color: var(--line-mid);
     }
 
     .empty-state {
@@ -1030,13 +832,11 @@
       border-radius: var(--r-lg);
       padding: 40px;
     }
-
     .empty-state p {
       font-size: 0.9rem;
       line-height: 1.6;
       max-width: 36ch;
     }
-
     .empty-state .empty-icon {
       font-family: 'Cormorant Garamond', Georgia, serif;
       font-size: 3rem;
@@ -1045,19 +845,125 @@
       margin-bottom: 12px;
     }
 
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(18, 25, 32, 0.52);
+      backdrop-filter: blur(4px);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.22s ease;
+      z-index: 180;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+    .modal-backdrop.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .modal-card {
+      width: min(760px, 100%);
+      max-height: min(88vh, 860px);
+      overflow: auto;
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      box-shadow: var(--shadow-lg);
+      padding: 28px;
+      display: grid;
+      gap: 22px;
+      transform: translateY(8px) scale(0.985);
+      transition: transform 0.22s ease;
+    }
+    .modal-backdrop.visible .modal-card {
+      transform: translateY(0) scale(1);
+    }
+    .modal-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+    }
+    .modal-eyebrow {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.62rem;
+      letter-spacing: 0.18em;
+      color: var(--text-faint);
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .modal-title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 2rem;
+      font-weight: 300;
+      line-height: 1;
+      color: var(--brand);
+      letter-spacing: 0.08em;
+    }
+    .modal-title.text-title {
+      font-size: 1.7rem;
+      font-weight: 400;
+      letter-spacing: 0;
+      color: var(--text);
+    }
+    .modal-close {
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      padding: 0;
+      background: transparent;
+      border: 1px solid var(--line);
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      box-shadow: none;
+      display: grid;
+      place-items: center;
+      flex-shrink: 0;
+    }
+    .modal-close:hover { background: var(--bg-soft); }
+    .modal-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px 20px;
+    }
+    .modal-item { display: grid; gap: 5px; }
+    .modal-label {
+      font-family: 'Cormorant SC', Georgia, serif;
+      font-size: 0.6rem;
+      letter-spacing: 0.18em;
+      color: var(--text-faint);
+      text-transform: uppercase;
+    }
+    .modal-value {
+      font-size: 0.92rem;
+      color: var(--text-mid);
+      line-height: 1.55;
+      word-break: break-word;
+    }
+    .modal-text {
+      font-size: 0.92rem;
+      color: var(--text-muted);
+      line-height: 1.65;
+      white-space: pre-wrap;
+    }
+    .modal-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
     .hidden-tools { display: none; }
 
     @media (max-width: 980px) {
-      .records-grid { grid-template-columns: 1fr; }
-      .detail-panel { position: static; }
       .scanner-layout,
       .scanner-layout.camera-hidden { grid-template-columns: 1fr; }
       .video-wrap { min-height: 280px; }
     }
 
     @media (max-width: 640px) {
-      .app-shell { padding: 24px 16px 48px; }
       .topbar-inner { padding: 0 16px; }
+      .screen-shell { padding: 24px 16px 48px; }
       .panel-inner { padding: 22px 18px; }
       .summary-strip { flex-direction: column; }
       .summary-item { border-right: none; border-bottom: 1px solid var(--line); }
@@ -1066,7 +972,6 @@
       .editor-top { flex-direction: column; align-items: flex-start; }
       .form-actions { flex-direction: column; align-items: stretch; }
       .form-actions-right { flex-direction: column; }
-      .detail-grid { grid-template-columns: 1fr; }
       .scanner-code-display { font-size: 2.4rem; }
       .topbar-logo { font-size: 1.7rem; }
       .sync-indicator span:last-child {
@@ -1075,6 +980,10 @@
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      .slider-tabs { min-width: 100%; }
+      .modal-backdrop { padding: 14px; }
+      .modal-card { padding: 22px 18px; }
+      .modal-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1085,13 +994,19 @@
   <aside class="app-drawer" id="appDrawer" aria-hidden="true">
     <div class="drawer-head">
       <div class="drawer-title">Arcas</div>
-      <div class="drawer-subtitle">Navegación interna</div>
+      <div class="drawer-subtitle">Ir a otra página</div>
     </div>
     <nav class="drawer-nav">
-      <button type="button" id="navPedidosBtn" class="active">Pedidos</button>
+      <button type="button" id="navPedidosBtn">Pedidos</button>
       <button type="button" id="navProveedoresBtn">Proveedores</button>
     </nav>
   </aside>
+
+  <div class="modal-backdrop" id="detailModal">
+    <div class="modal-card" id="detailModalCard" role="dialog" aria-modal="true" aria-labelledby="detailModalTitle">
+      <div id="detailModalBody"></div>
+    </div>
+  </div>
 
   <header class="topbar">
     <div class="topbar-inner">
@@ -1101,10 +1016,10 @@
             <span></span><span></span><span></span>
           </span>
         </button>
-        <div class="topbar-brand">
+        <button type="button" class="brand-btn" id="goHomeBtn" aria-label="Ir a inicio">
           <span class="topbar-logo">Arcas</span>
           <span class="topbar-subtitle">Gestión de pedidos</span>
-        </div>
+        </button>
       </div>
       <div class="topbar-right">
         <div class="sync-indicator">
@@ -1115,196 +1030,232 @@
     </div>
   </header>
 
-  <main class="app-shell">
+  <main>
 
-    <div class="summary-strip">
-      <div class="summary-item">
-        <div class="summary-label">Total pedidos</div>
-        <div class="summary-value" id="summaryPedidos">—</div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-label">Pendientes</div>
-        <div class="summary-value" id="summaryPendientes">—</div>
-      </div>
-      <div class="summary-item">
-        <div class="summary-label">Proveedores</div>
-        <div class="summary-value" id="summaryProveedores">—</div>
-      </div>
-    </div>
+    <section class="screen active" id="screenInicio">
+      <div class="screen-shell">
+        <div class="screen-grid">
 
-    <section class="step-section">
-      <div class="step-header">
-        <div class="step-number active" id="step1Num">1</div>
-        <div>
-          <div class="step-label">Primer paso</div>
-          <div class="step-title">Leer código del pedido</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-inner">
-          <div class="scanner-layout camera-hidden" id="scannerLayout">
-
-            <div class="video-wrap" id="videoWrap">
-              <video id="video" autoplay playsinline muted></video>
-              <div class="scan-box" id="scanBox"></div>
-              <div class="scan-line" id="scanLine"></div>
+          <div class="summary-strip">
+            <div class="summary-item">
+              <div class="summary-label">Total pedidos</div>
+              <div class="summary-value" id="summaryPedidos">—</div>
             </div>
-
-            <div class="scanner-controls">
-              <div class="scanner-status-box">
-                <div class="scanner-status-label">Código detectado</div>
-                <div class="scanner-code-display" id="currentCode">· · · · ·</div>
-                <div class="scanner-message" id="scanMessage">Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.</div>
-              </div>
-
-              <div class="btn-row">
-                <button id="startBtn" class="btn-primary">Activar cámara</button>
-                <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
-              </div>
-
-              <div class="btn-row" style="grid-template-columns: 1fr 1fr; display:grid; gap:10px;">
-                <button id="retryBtn" class="btn-ghost" disabled>Repetir lectura</button>
-                <button id="resetBtn" class="btn-ghost">Limpiar ficha</button>
-              </div>
+            <div class="summary-item">
+              <div class="summary-label">Pendientes</div>
+              <div class="summary-value" id="summaryPendientes">—</div>
             </div>
-
+            <div class="summary-item">
+              <div class="summary-label">Proveedores</div>
+              <div class="summary-value" id="summaryProveedores">—</div>
+            </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="step-section editor-reveal" id="editorSection">
-      <div class="step-header">
-        <div class="step-number" id="step2Num">2</div>
-        <div>
-          <div class="step-label">Segundo paso</div>
-          <div class="step-title">Ficha del pedido</div>
-        </div>
-      </div>
-
-      <div class="panel">
-        <div class="panel-inner">
-          <div class="editor-top">
-            <div class="editor-code-display">
+          <section class="step-section">
+            <div class="step-header">
+              <div class="step-number active" id="step1Num">1</div>
               <div>
-                <div class="editor-code-eyebrow">Pedido</div>
-                <div class="editor-code-big" id="editorCodeBig">—</div>
+                <div class="step-label">Primer paso</div>
+                <div class="step-title">Leer código del pedido</div>
               </div>
             </div>
-            <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
-          </div>
 
-          <div class="divider" style="margin-bottom:28px;"></div>
+            <div class="panel">
+              <div class="panel-inner">
+                <div class="scanner-layout camera-hidden" id="scannerLayout">
 
-          <form id="pedidoForm" autocomplete="off">
-            <div class="form-grid" style="margin-bottom:20px;">
-
-              <div class="field">
-                <label for="codigoInput">Referencia</label>
-                <input id="codigoInput" type="text" readonly placeholder="—" />
-              </div>
-
-              <div class="field">
-                <label for="estadoInput">Estado</label>
-                <select id="estadoInput">
-                  <option value="Pendiente">Pendiente</option>
-                  <option value="En tránsito">En tránsito</option>
-                  <option value="Recibido">Recibido</option>
-                  <option value="Incidencia">Incidencia</option>
-                </select>
-              </div>
-
-              <div class="field field-full">
-                <label>Proveedor</label>
-                <select id="proveedorSelect">
-                  <option value="">Selecciona un proveedor</option>
-                </select>
-                <button type="button" id="toggleNewProviderBtn" class="btn-ghost" style="margin-top:8px; text-align:left; padding:10px 14px;">
-                  + Añadir nuevo proveedor
-                </button>
-                <div id="newProviderBox" class="provider-box">
-                  <div class="field">
-                    <label for="nuevoProveedorNombre">Nombre del proveedor</label>
-                    <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
+                  <div class="video-wrap" id="videoWrap">
+                    <video id="video" autoplay playsinline muted></video>
+                    <div class="scan-box" id="scanBox"></div>
+                    <div class="scan-line" id="scanLine"></div>
                   </div>
-                  <div class="field">
-                    <label for="nuevoProveedorDescripcion">Notas internas</label>
-                    <textarea id="nuevoProveedorDescripcion" placeholder="Información interna sobre este proveedor" style="min-height:72px;"></textarea>
+
+                  <div class="scanner-controls">
+                    <div class="scanner-status-box">
+                      <div class="scanner-status-label">Código detectado</div>
+                      <div class="scanner-code-display" id="currentCode">· · · · ·</div>
+                      <div class="scanner-message" id="scanMessage">Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.</div>
+                    </div>
+
+                    <div class="btn-row">
+                      <button id="startBtn" class="btn-primary">Activar cámara</button>
+                      <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
+                    </div>
+
+                    <div class="btn-row" style="grid-template-columns: 1fr 1fr; display:grid; gap:10px;">
+                      <button id="retryBtn" class="btn-ghost" disabled>Repetir lectura</button>
+                      <button id="resetBtn" class="btn-ghost">Limpiar ficha</button>
+                    </div>
                   </div>
+
                 </div>
               </div>
+            </div>
+          </section>
 
-              <div class="field">
-                <label for="fechaEnvioInput">Fecha de envío</label>
-                <input id="fechaEnvioInput" type="date" />
+          <section class="step-section editor-reveal" id="editorSection">
+            <div class="step-header">
+              <div class="step-number" id="step2Num">2</div>
+              <div>
+                <div class="step-label">Segundo paso</div>
+                <div class="step-title">Ficha del pedido</div>
               </div>
-
-              <div class="field">
-                <label for="fechaReciboInput">Fecha de recibo</label>
-                <input id="fechaReciboInput" type="date" />
-              </div>
-
-              <div class="field field-full">
-                <label for="descripcionInput">Descripción del pedido</label>
-                <textarea id="descripcionInput" placeholder="Contenido, referencias, incidencias u observaciones del pedido"></textarea>
-              </div>
-
             </div>
 
-            <div class="divider" style="margin-bottom:20px;"></div>
+            <div class="panel">
+              <div class="panel-inner">
+                <div class="editor-top">
+                  <div class="editor-code-display">
+                    <div>
+                      <div class="editor-code-eyebrow">Pedido</div>
+                      <div class="editor-code-big" id="editorCodeBig">—</div>
+                    </div>
+                  </div>
+                  <div class="status-badge estado-pendiente" id="estadoBadge">Pendiente</div>
+                </div>
 
-            <div class="form-actions">
-              <span class="save-message" id="saveMessage">Los datos se sincronizarán con Firebase en tiempo real.</span>
-              <div class="form-actions-right">
-                <button type="button" class="btn-ghost" id="cancelEditBtn">Cancelar</button>
-                <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
+                <div class="divider" style="margin-bottom:28px;"></div>
+
+                <form id="pedidoForm" autocomplete="off">
+                  <div class="form-grid" style="margin-bottom:20px;">
+
+                    <div class="field">
+                      <label for="codigoInput">Referencia</label>
+                      <input id="codigoInput" type="text" readonly placeholder="—" />
+                    </div>
+
+                    <div class="field">
+                      <label for="estadoInput">Estado</label>
+                      <select id="estadoInput">
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="En tránsito">En tránsito</option>
+                        <option value="Recibido">Recibido</option>
+                        <option value="Incidencia">Incidencia</option>
+                      </select>
+                    </div>
+
+                    <div class="field field-full">
+                      <label>Proveedor</label>
+                      <select id="proveedorSelect">
+                        <option value="">Selecciona un proveedor</option>
+                      </select>
+                      <button type="button" id="toggleNewProviderBtn" class="btn-ghost" style="margin-top:8px; text-align:left; padding:10px 14px;">
+                        + Añadir nuevo proveedor
+                      </button>
+                      <div id="newProviderBox" class="provider-box">
+                        <div class="field">
+                          <label for="nuevoProveedorNombre">Nombre del proveedor</label>
+                          <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
+                        </div>
+                        <div class="field">
+                          <label for="nuevoProveedorDescripcion">Notas internas</label>
+                          <textarea id="nuevoProveedorDescripcion" placeholder="Información interna sobre este proveedor" style="min-height:72px;"></textarea>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="field">
+                      <label for="fechaEnvioInput">Fecha de envío</label>
+                      <input id="fechaEnvioInput" type="date" />
+                    </div>
+
+                    <div class="field">
+                      <label for="fechaReciboInput">Fecha de recibo</label>
+                      <input id="fechaReciboInput" type="date" />
+                    </div>
+
+                    <div class="field field-full">
+                      <label for="descripcionInput">Descripción del pedido</label>
+                      <textarea id="descripcionInput" placeholder="Contenido, referencias, incidencias u observaciones del pedido"></textarea>
+                    </div>
+
+                  </div>
+
+                  <div class="divider" style="margin-bottom:20px;"></div>
+
+                  <div class="form-actions">
+                    <span class="save-message" id="saveMessage">Los datos se sincronizarán con Firebase en tiempo real.</span>
+                    <div class="form-actions-right">
+                      <button type="button" class="btn-ghost" id="cancelEditBtn">Cancelar</button>
+                      <button type="submit" id="savePedidoBtn" class="btn-primary">Guardar pedido</button>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
-          </form>
+          </section>
+
+          <section class="step-section">
+            <div class="step-header">
+              <div class="step-number active" id="step3Num">3</div>
+              <div>
+                <div class="step-label">Base de datos</div>
+                <div class="step-title">Registros guardados</div>
+              </div>
+            </div>
+
+            <div class="panel">
+              <div class="panel-inner">
+                <div class="records-block">
+                  <div class="records-block-head">
+                    <div>
+                      <div class="records-title">Consulta rápida</div>
+                      <div class="records-note">Cambia entre pedidos y proveedores con el selector. Ningún registro aparece seleccionado por defecto; al pulsar uno se abre su información en un pop-up.</div>
+                    </div>
+
+                    <div class="slider-tabs" id="homeSliderTabs" data-view="pedidos">
+                      <div class="slider-thumb"></div>
+                      <button type="button" class="slider-tab-btn active" id="homeTabPedidos">Pedidos</button>
+                      <button type="button" class="slider-tab-btn" id="homeTabProveedores">Proveedores</button>
+                    </div>
+                  </div>
+
+                  <div id="homePedidosPanel" class="list-grid"></div>
+                  <div id="homeProveedoresPanel" class="list-grid" style="display:none;"></div>
+                </div>
+              </div>
+            </div>
+          </section>
+
         </div>
       </div>
     </section>
 
-    <section class="step-section records-reveal" id="recordsSection">
-      <div class="step-header">
-        <div class="step-number active" id="step3Num">3</div>
-        <div>
-          <div class="step-label">Base de datos</div>
-          <div class="step-title">Registros guardados</div>
+    <section class="screen" id="screenPedidos">
+      <div class="screen-shell">
+        <div class="screen-grid">
+          <div class="screen-head">
+            <div>
+              <div class="screen-eyebrow">Página</div>
+              <div class="screen-title">Pedidos</div>
+            </div>
+            <div class="screen-note">Listado completo de pedidos. Al pulsar cualquier registro se abre su ficha en una ventana emergente.</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-inner">
+              <div id="pagePedidosPanel" class="list-grid"></div>
+            </div>
+          </div>
         </div>
       </div>
+    </section>
 
-      <div class="panel">
-        <div class="panel-inner">
-          <div class="records-pages">
+    <section class="screen" id="screenProveedores">
+      <div class="screen-shell">
+        <div class="screen-grid">
+          <div class="screen-head">
+            <div>
+              <div class="screen-eyebrow">Página</div>
+              <div class="screen-title">Proveedores</div>
+            </div>
+            <div class="screen-note">Listado completo de proveedores. Al pulsar cualquiera se abre su información y desde ahí puedes entrar en sus pedidos.</div>
+          </div>
 
-            <section class="records-page active" id="pagePedidos">
-              <div class="records-page-header">
-                <div>
-                  <div class="records-page-title">Pedidos</div>
-                  <div class="records-page-note">Vista resumida de cada pedido. Al seleccionar uno, se abre su ficha detallada a la derecha.</div>
-                </div>
-              </div>
-              <div class="records-grid">
-                <div id="pedidosPanel" class="list-grid"></div>
-                <aside id="pedidoDetailPanel" class="detail-panel"></aside>
-              </div>
-            </section>
-
-            <section class="records-page" id="pageProveedores">
-              <div class="records-page-header">
-                <div>
-                  <div class="records-page-title">Proveedores</div>
-                  <div class="records-page-note">Listado completo de proveedores y acceso directo a sus pedidos asociados.</div>
-                </div>
-              </div>
-              <div class="records-grid">
-                <div id="proveedoresPanel" class="list-grid"></div>
-                <aside id="proveedorDetailPanel" class="detail-panel"></aside>
-              </div>
-            </section>
-
+          <div class="panel">
+            <div class="panel-inner">
+              <div id="pageProveedoresPanel" class="list-grid"></div>
+            </div>
           </div>
         </div>
       </div>
@@ -1338,10 +1289,18 @@
     };
 
     const menuToggleBtn = document.getElementById('menuToggleBtn');
+    const goHomeBtn = document.getElementById('goHomeBtn');
     const drawerBackdrop = document.getElementById('drawerBackdrop');
     const appDrawer = document.getElementById('appDrawer');
     const navPedidosBtn = document.getElementById('navPedidosBtn');
     const navProveedoresBtn = document.getElementById('navProveedoresBtn');
+    const detailModal = document.getElementById('detailModal');
+    const detailModalBody = document.getElementById('detailModalBody');
+
+    const screenInicio = document.getElementById('screenInicio');
+    const screenPedidos = document.getElementById('screenPedidos');
+    const screenProveedores = document.getElementById('screenProveedores');
+
     const scannerLayout = document.getElementById('scannerLayout');
     const video = document.getElementById('video');
     const videoWrap = document.getElementById('videoWrap');
@@ -1358,7 +1317,6 @@
     const estadoBadge = document.getElementById('estadoBadge');
     const saveMessage = document.getElementById('saveMessage');
     const editorSection = document.getElementById('editorSection');
-    const recordsSection = document.getElementById('recordsSection');
     const pedidoForm = document.getElementById('pedidoForm');
     const codigoInput = document.getElementById('codigoInput');
     const proveedorSelect = document.getElementById('proveedorSelect');
@@ -1375,12 +1333,13 @@
     const summaryPedidos = document.getElementById('summaryPedidos');
     const summaryPendientes = document.getElementById('summaryPendientes');
     const summaryProveedores = document.getElementById('summaryProveedores');
-    const pedidosPanel = document.getElementById('pedidosPanel');
-    const proveedoresPanel = document.getElementById('proveedoresPanel');
-    const pedidoDetailPanel = document.getElementById('pedidoDetailPanel');
-    const proveedorDetailPanel = document.getElementById('proveedorDetailPanel');
-    const pagePedidos = document.getElementById('pagePedidos');
-    const pageProveedores = document.getElementById('pageProveedores');
+    const homePedidosPanel = document.getElementById('homePedidosPanel');
+    const homeProveedoresPanel = document.getElementById('homeProveedoresPanel');
+    const pagePedidosPanel = document.getElementById('pagePedidosPanel');
+    const pageProveedoresPanel = document.getElementById('pageProveedoresPanel');
+    const homeSliderTabs = document.getElementById('homeSliderTabs');
+    const homeTabPedidos = document.getElementById('homeTabPedidos');
+    const homeTabProveedores = document.getElementById('homeTabProveedores');
     const editorCodeBig = document.getElementById('editorCodeBig');
     const cropCanvas = document.getElementById('cropCanvas');
     const processedCanvas = document.getElementById('processedCanvas');
@@ -1403,9 +1362,11 @@
       currentPedido: null,
       currentCode: '',
       providerMode: 'existing',
-      currentView: 'pedidos',
-      selectedPedidoCode: '',
-      selectedProveedorId: '',
+      currentRoute: 'inicio',
+      homeRecordsView: 'pedidos',
+      modalOpen: false,
+      modalType: null,
+      modalTargetId: '',
       unsubs: []
     };
 
@@ -1478,17 +1439,38 @@
       appDrawer.setAttribute('aria-hidden', 'true');
     }
 
-    function goToView(view, scroll = true) {
-      state.currentView = view === 'proveedores' ? 'proveedores' : 'pedidos';
-      const isPedidos = state.currentView === 'pedidos';
-      pagePedidos.classList.toggle('active', isPedidos);
-      pageProveedores.classList.toggle('active', !isPedidos);
-      navPedidosBtn.classList.toggle('active', isPedidos);
-      navProveedoresBtn.classList.toggle('active', !isPedidos);
-      closeDrawer();
-      if (scroll) {
-        setTimeout(() => recordsSection.scrollIntoView({ behavior: 'smooth', block: 'start' }), 60);
+    function setRoute(route, pushHash = true) {
+      const safeRoute = ['inicio', 'pedidos', 'proveedores'].includes(route) ? route : 'inicio';
+      state.currentRoute = safeRoute;
+
+      screenInicio.classList.toggle('active', safeRoute === 'inicio');
+      screenPedidos.classList.toggle('active', safeRoute === 'pedidos');
+      screenProveedores.classList.toggle('active', safeRoute === 'proveedores');
+      navPedidosBtn.classList.toggle('active', safeRoute === 'pedidos');
+      navProveedoresBtn.classList.toggle('active', safeRoute === 'proveedores');
+
+      if (pushHash) {
+        const hash = safeRoute === 'inicio' ? '#inicio' : `#${safeRoute}`;
+        if (location.hash !== hash) history.pushState(null, '', hash);
       }
+
+      closeDrawer();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function applyRouteFromHash() {
+      const route = (location.hash || '#inicio').replace('#', '');
+      setRoute(route, false);
+    }
+
+    function setHomeRecordsView(view) {
+      state.homeRecordsView = view === 'proveedores' ? 'proveedores' : 'pedidos';
+      const isPedidos = state.homeRecordsView === 'pedidos';
+      homeSliderTabs.dataset.view = state.homeRecordsView;
+      homeTabPedidos.classList.toggle('active', isPedidos);
+      homeTabProveedores.classList.toggle('active', !isPedidos);
+      homePedidosPanel.style.display = isPedidos ? 'grid' : 'none';
+      homeProveedoresPanel.style.display = isPedidos ? 'none' : 'grid';
     }
 
     function renderSummary() {
@@ -1502,181 +1484,93 @@
       const opts = ['<option value="">Selecciona un proveedor</option>'];
       [...state.proveedores]
         .sort((a,b) => a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}))
-        .forEach(p => {
-          opts.push(`<option value="${p.id}">${escapeHtml(p.nombre)}</option>`);
-        });
+        .forEach(p => opts.push(`<option value="${p.id}">${escapeHtml(p.nombre)}</option>`));
       proveedorSelect.innerHTML = opts.join('');
       if (state.proveedores.some(p => p.id === cur)) proveedorSelect.value = cur;
     }
 
-    function renderPedidoDetail() {
-      const pedido = state.selectedPedidoCode ? state.pedidosMap.get(state.selectedPedidoCode) : null;
-      if (!pedido) {
-        pedidoDetailPanel.innerHTML = `
-          <div class="detail-empty">
-            <div class="detail-empty-title">Selecciona un pedido</div>
-            <p>Aquí verás la información completa del pedido seleccionado y podrás abrir su ficha para editarlo.</p>
-          </div>`;
-        return;
-      }
-
-      pedidoDetailPanel.innerHTML = `
-        <div class="detail-head">
-          <div>
-            <div class="detail-eyebrow">Pedido</div>
-            <div class="detail-title">${escapeHtml(pedido.codigo)}</div>
-          </div>
-          <span class="status-badge ${getEstadoClass(pedido.estado)}">${escapeHtml(pedido.estado || 'Pendiente')}</span>
-        </div>
-        <div class="detail-grid">
-          <div class="detail-item">
-            <div class="detail-label">Proveedor</div>
-            <div class="detail-value">${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</div>
-          </div>
-          <div class="detail-item">
-            <div class="detail-label">Fecha de envío</div>
-            <div class="detail-value">${escapeHtml(formatDate(pedido.fechaEnvio))}</div>
-          </div>
-          ${pedido.fechaRecibo ? `
-            <div class="detail-item">
-              <div class="detail-label">Fecha de recibo</div>
-              <div class="detail-value">${escapeHtml(formatDate(pedido.fechaRecibo))}</div>
-            </div>` : ''}
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Descripción</div>
-          <div class="detail-text">${pedido.descripcion ? escapeHtml(pedido.descripcion) : 'Sin observaciones registradas.'}</div>
-        </div>
-        <div class="detail-actions">
-          <button type="button" class="btn-primary" id="detailEditPedidoBtn">Editar pedido</button>
-          ${pedido.proveedorId ? '<button type="button" class="btn-secondary" id="detailOpenProviderBtn">Ver proveedor</button>' : ''}
-        </div>`;
-
-      const editBtn = document.getElementById('detailEditPedidoBtn');
-      if (editBtn) editBtn.addEventListener('click', () => openPedidoByCode(pedido.codigo));
-
-      const providerBtn = document.getElementById('detailOpenProviderBtn');
-      if (providerBtn) providerBtn.addEventListener('click', () => showProveedorDetail(pedido.proveedorId));
+    function buildPedidoSummaryLine(p) {
+      const parts = [];
+      parts.push(`<strong>Proveedor:</strong> ${escapeHtml(p.proveedorNombre || 'Sin asignar')}`);
+      if (p.fechaEnvio) parts.push(`<strong>Envío:</strong> ${escapeHtml(formatDate(p.fechaEnvio))}`);
+      if (p.fechaRecibo) parts.push(`<strong>Recibo:</strong> ${escapeHtml(formatDate(p.fechaRecibo))}`);
+      return parts.join(' · ');
     }
 
-    function renderProveedorDetail() {
-      const proveedor = state.selectedProveedorId ? state.proveedoresMap.get(state.selectedProveedorId) : null;
-      if (!proveedor) {
-        proveedorDetailPanel.innerHTML = `
-          <div class="detail-empty">
-            <div class="detail-empty-title">Selecciona un proveedor</div>
-            <p>Desde aquí podrás ver su información interna y abrir cualquiera de sus pedidos asociados.</p>
-          </div>`;
-        return;
-      }
-
-      const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
-      proveedorDetailPanel.innerHTML = `
-        <div class="detail-head">
-          <div>
-            <div class="detail-eyebrow">Proveedor</div>
-            <div class="detail-provider-title">${escapeHtml(proveedor.nombre)}</div>
-          </div>
-          <span class="chip no-link">${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'}</span>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Notas internas</div>
-          <div class="detail-text">${proveedor.descripcion ? escapeHtml(proveedor.descripcion) : 'Sin notas registradas.'}</div>
-        </div>
-        <div class="detail-item">
-          <div class="detail-label">Pedidos asociados</div>
-          <div class="chips">
-            ${pedidos.length
-              ? pedidos.map(c => `<span class="chip" data-detail-open-pedido="${c}">${escapeHtml(c)}</span>`).join('')
-              : '<span class="chip no-link">Sin pedidos</span>'}
-          </div>
-        </div>`;
-
-      proveedorDetailPanel.querySelectorAll('[data-detail-open-pedido]').forEach(el => {
-        el.addEventListener('click', () => showPedidoDetailByCode(el.dataset.detailOpenPedido));
-      });
+    function getPedidosOrdered() {
+      return [...state.pedidos].sort((a,b) => toMillis(b.createdAt || b.updatedAt) - toMillis(a.createdAt || a.updatedAt));
     }
 
-    function renderPedidosList() {
+    function getProveedoresOrdered() {
+      return [...state.proveedores].sort((a,b) => a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
+    }
+
+    function renderPedidosInto(target) {
       if (!state.pedidos.length) {
-        pedidosPanel.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay pedidos guardados. Escanea un código para crear el primero.</p></div>';
-        renderPedidoDetail();
+        target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay pedidos guardados. Escanea un código para crear el primero.</p></div>';
         return;
       }
 
-      const ordered = [...state.pedidos].sort((a,b) => toMillis(b.createdAt || b.updatedAt) - toMillis(a.createdAt || a.updatedAt));
-      pedidosPanel.innerHTML = ordered.map(p => {
-        const selected = state.selectedPedidoCode === p.codigo ? ' selected' : '';
-        const meta = [
-          `<span class="row-mini-item"><span class="row-mini-label">Proveedor</span><span>${escapeHtml(p.proveedorNombre || 'Sin asignar')}</span></span>`,
-          p.fechaEnvio ? `<span class="row-mini-item"><span class="row-mini-label">Envío</span><span>${escapeHtml(formatDate(p.fechaEnvio))}</span></span>` : '',
-          p.fechaRecibo ? `<span class="row-mini-item"><span class="row-mini-label">Recibo</span><span>${escapeHtml(formatDate(p.fechaRecibo))}</span></span>` : ''
-        ].filter(Boolean).join('');
-
-        return `
-          <article class="row-card${selected}" data-open-pedido="${p.codigo}">
-            <div class="row-top">
-              <div>
-                <div class="row-code-eyebrow">Referencia</div>
-                <div class="row-code">${escapeHtml(p.codigo)}</div>
-              </div>
-              <span class="status-badge ${getEstadoClass(p.estado)}">${escapeHtml(p.estado || 'Pendiente')}</span>
+      const ordered = getPedidosOrdered();
+      target.innerHTML = ordered.map(p => `
+        <article class="row-card" data-open-pedido="${p.codigo}">
+          <div class="row-top">
+            <div>
+              <div class="row-code-eyebrow">Referencia</div>
+              <div class="row-code">${escapeHtml(p.codigo)}</div>
             </div>
-            <div class="row-mini-meta">${meta}</div>
-            ${p.descripcion ? `<div class="row-desc">${escapeHtml(p.descripcion)}</div>` : ''}
-          </article>`;
-      }).join('');
+            <span class="status-badge ${getEstadoClass(p.estado)}">${escapeHtml(p.estado || 'Pendiente')}</span>
+          </div>
+          <div class="pedido-resumen-line">${buildPedidoSummaryLine(p)}</div>
+          ${p.descripcion ? `<div class="row-desc">${escapeHtml(p.descripcion)}</div>` : ''}
+        </article>
+      `).join('');
 
-      pedidosPanel.querySelectorAll('[data-open-pedido]').forEach(el => {
-        el.addEventListener('click', () => showPedidoDetailByCode(el.dataset.openPedido, false));
+      target.querySelectorAll('[data-open-pedido]').forEach(el => {
+        el.addEventListener('click', () => openPedidoModal(el.dataset.openPedido));
       });
-
-      if (!state.selectedPedidoCode && ordered[0]) {
-        state.selectedPedidoCode = ordered[0].codigo;
-      }
-      renderPedidoDetail();
     }
 
-    function renderProveedoresList() {
+    function renderProveedoresInto(target) {
       if (!state.proveedores.length) {
-        proveedoresPanel.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay proveedores. Crea uno desde la ficha de pedido.</p></div>';
-        renderProveedorDetail();
+        target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay proveedores. Crea uno desde la ficha de pedido.</p></div>';
         return;
       }
 
-      const ordered = [...state.proveedores].sort((a,b) => a.nombre.localeCompare(b.nombre,'es',{sensitivity:'base'}));
-      proveedoresPanel.innerHTML = ordered.map(p => {
+      const ordered = getProveedoresOrdered();
+      target.innerHTML = ordered.map(p => {
         const pedidos = Array.isArray(p.pedidosAsignados) ? p.pedidosAsignados : [];
         const chips = pedidos.length
           ? pedidos.map(c => `<span class="chip" data-open-pedido="${c}">${escapeHtml(c)}</span>`).join('')
           : '<span class="chip no-link">Sin pedidos</span>';
-        const selected = state.selectedProveedorId === p.id ? ' selected' : '';
         return `
-          <article class="provider-record-card${selected}" data-open-proveedor="${p.id}">
+          <article class="provider-record-card" data-open-proveedor="${p.id}">
             <div class="provider-record-head">
               <h3 class="provider-record-name">${escapeHtml(p.nombre)}</h3>
               <span class="chip no-link">${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'}</span>
             </div>
             ${p.descripcion ? `<div class="provider-record-desc">${escapeHtml(p.descripcion)}</div>` : ''}
             <div class="chips">${chips}</div>
-          </article>`;
+          </article>
+        `;
       }).join('');
 
-      proveedoresPanel.querySelectorAll('[data-open-proveedor]').forEach(el => {
-        el.addEventListener('click', () => showProveedorDetail(el.dataset.openProveedor, false));
+      target.querySelectorAll('[data-open-proveedor]').forEach(el => {
+        el.addEventListener('click', () => openProveedorModal(el.dataset.openProveedor));
       });
-
-      proveedoresPanel.querySelectorAll('[data-open-pedido]').forEach(el => {
-        el.addEventListener('click', (event) => {
+      target.querySelectorAll('[data-open-pedido]').forEach(el => {
+        el.addEventListener('click', event => {
           event.stopPropagation();
-          showPedidoDetailByCode(el.dataset.openPedido);
+          openPedidoModal(el.dataset.openPedido);
         });
       });
+    }
 
-      if (!state.selectedProveedorId && ordered[0]) {
-        state.selectedProveedorId = ordered[0].id;
-      }
-      renderProveedorDetail();
+    function renderAllLists() {
+      renderPedidosInto(homePedidosPanel);
+      renderPedidosInto(pagePedidosPanel);
+      renderProveedoresInto(homeProveedoresPanel);
+      renderProveedoresInto(pageProveedoresPanel);
     }
 
     function setProviderMode(mode) {
@@ -1717,12 +1611,8 @@
       setEstadoBadge(pedido?.estado || 'Pendiente');
       setProviderMode('existing');
 
-      if (pedido?.codigo) {
-        state.selectedPedidoCode = pedido.codigo;
-        renderPedidosList();
-      }
-
       if (pedido) {
+        setRoute('inicio');
         showEditor();
         document.getElementById('step1Num').classList.add('done');
         document.getElementById('step1Num').classList.remove('active');
@@ -1788,6 +1678,122 @@
       setScanMessage('Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.');
     }
 
+    function closeModal() {
+      detailModal.classList.remove('visible');
+      detailModalBody.innerHTML = '';
+      state.modalOpen = false;
+      state.modalType = null;
+      state.modalTargetId = '';
+      document.body.classList.remove('no-scroll');
+    }
+
+    function openModal(html) {
+      detailModalBody.innerHTML = html;
+      detailModal.classList.add('visible');
+      state.modalOpen = true;
+      document.body.classList.add('no-scroll');
+      const closeBtn = detailModalBody.querySelector('[data-close-modal]');
+      if (closeBtn) closeBtn.addEventListener('click', closeModal);
+      bindModalActions();
+    }
+
+    function bindModalActions() {
+      detailModalBody.querySelectorAll('[data-open-pedido-modal]').forEach(el => {
+        el.addEventListener('click', () => openPedidoModal(el.dataset.openPedidoModal));
+      });
+      detailModalBody.querySelectorAll('[data-open-proveedor-modal]').forEach(el => {
+        el.addEventListener('click', () => openProveedorModal(el.dataset.openProveedorModal));
+      });
+      detailModalBody.querySelectorAll('[data-edit-pedido]').forEach(el => {
+        el.addEventListener('click', async () => {
+          await openPedidoByCode(el.dataset.editPedido);
+          closeModal();
+        });
+      });
+    }
+
+    function buildPedidoModalHtml(pedido) {
+      return `
+        <div class="modal-head">
+          <div>
+            <div class="modal-eyebrow">Pedido</div>
+            <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
+          </div>
+          <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="status-badge ${getEstadoClass(pedido.estado)}">${escapeHtml(pedido.estado || 'Pendiente')}</div>
+
+        <div class="modal-grid">
+          <div class="modal-item">
+            <div class="modal-label">Proveedor</div>
+            <div class="modal-value">${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</div>
+          </div>
+          <div class="modal-item">
+            <div class="modal-label">Fecha de envío</div>
+            <div class="modal-value">${escapeHtml(formatDate(pedido.fechaEnvio))}</div>
+          </div>
+          ${pedido.fechaRecibo ? `
+            <div class="modal-item">
+              <div class="modal-label">Fecha de recibo</div>
+              <div class="modal-value">${escapeHtml(formatDate(pedido.fechaRecibo))}</div>
+            </div>` : ''}
+        </div>
+
+        <div class="modal-item">
+          <div class="modal-label">Descripción</div>
+          <div class="modal-text">${pedido.descripcion ? escapeHtml(pedido.descripcion) : 'Sin observaciones registradas.'}</div>
+        </div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn-primary" data-edit-pedido="${pedido.codigo}">Editar pedido</button>
+          ${pedido.proveedorId ? `<button type="button" class="btn-secondary" data-open-proveedor-modal="${pedido.proveedorId}">Ver proveedor</button>` : ''}
+        </div>
+      `;
+    }
+
+    function buildProveedorModalHtml(proveedor) {
+      const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+      return `
+        <div class="modal-head">
+          <div>
+            <div class="modal-eyebrow">Proveedor</div>
+            <div class="modal-title text-title" id="detailModalTitle">${escapeHtml(proveedor.nombre)}</div>
+          </div>
+          <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+        </div>
+
+        <div class="modal-item">
+          <div class="modal-label">Notas internas</div>
+          <div class="modal-text">${proveedor.descripcion ? escapeHtml(proveedor.descripcion) : 'Sin notas registradas.'}</div>
+        </div>
+
+        <div class="modal-item">
+          <div class="modal-label">Pedidos asociados</div>
+          <div class="chips">
+            ${pedidos.length
+              ? pedidos.map(c => `<span class="chip" data-open-pedido-modal="${c}">${escapeHtml(c)}</span>`).join('')
+              : '<span class="chip no-link">Sin pedidos</span>'}
+          </div>
+        </div>
+      `;
+    }
+
+    async function openPedidoModal(code) {
+      const pedido = await loadPedidoByCode(code);
+      state.modalType = 'pedido';
+      state.modalTargetId = pedido.codigo;
+      openModal(buildPedidoModalHtml(pedido));
+    }
+
+    function openProveedorModal(proveedorId) {
+      const proveedor = state.proveedoresMap.get(proveedorId);
+      if (!proveedor) return;
+      state.modalType = 'proveedor';
+      state.modalTargetId = proveedor.id;
+      openModal(buildProveedorModalHtml(proveedor));
+    }
+
     function hasFirebasePlaceholders() {
       return Object.values(firebaseConfig).some(v => !v || String(v).includes('PON_AQUI_TU_'));
     }
@@ -1815,29 +1821,39 @@
       return firebaseInitPromise;
     }
 
+    function refreshModalIfNeeded() {
+      if (!state.modalOpen) return;
+      if (state.modalType === 'pedido' && state.modalTargetId) {
+        const pedido = state.pedidosMap.get(state.modalTargetId);
+        if (pedido) openModal(buildPedidoModalHtml(pedido));
+        else closeModal();
+      }
+      if (state.modalType === 'proveedor' && state.modalTargetId) {
+        const proveedor = state.proveedoresMap.get(state.modalTargetId);
+        if (proveedor) openModal(buildProveedorModalHtml(proveedor));
+        else closeModal();
+      }
+    }
+
     function subscribeToCollections() {
       state.unsubs.forEach(u => u());
       state.unsubs = [];
 
       state.unsubs.push(
-        onSnapshot(collection(state.db,'pedidos'), snap => {
+        onSnapshot(collection(state.db, 'pedidos'), snap => {
           state.pedidos = snap.docs.map(d => ({ id: d.id, ...d.data(), existsInDb: true }));
           state.pedidosMap = new Map(state.pedidos.map(p => [p.codigo, p]));
-          if (state.selectedPedidoCode && !state.pedidosMap.has(state.selectedPedidoCode)) {
-            state.selectedPedidoCode = state.pedidos[0]?.codigo || '';
-          }
-          renderPedidosList();
+          renderAllLists();
           renderSummary();
+          refreshModalIfNeeded();
         }),
-        onSnapshot(collection(state.db,'proveedores'), snap => {
+        onSnapshot(collection(state.db, 'proveedores'), snap => {
           state.proveedores = snap.docs.map(d => ({ id: d.id, ...d.data() }));
           state.proveedoresMap = new Map(state.proveedores.map(p => [p.id, p]));
-          if (state.selectedProveedorId && !state.proveedoresMap.has(state.selectedProveedorId)) {
-            state.selectedProveedorId = state.proveedores[0]?.id || '';
-          }
           renderProveedorSelect();
-          renderProveedoresList();
+          renderAllLists();
           renderSummary();
+          refreshModalIfNeeded();
         })
       );
     }
@@ -1965,21 +1981,6 @@
       return snap.exists() ? { id: snap.id, ...snap.data(), existsInDb: true } : buildNewPedido(safe);
     }
 
-    async function showPedidoDetailByCode(code, scroll = true) {
-      const pedido = await loadPedidoByCode(code);
-      state.selectedPedidoCode = pedido.codigo;
-      renderPedidosList();
-      goToView('pedidos', scroll);
-    }
-
-    function showProveedorDetail(proveedorId, scroll = true) {
-      const proveedor = state.proveedoresMap.get(proveedorId);
-      if (!proveedor) return;
-      state.selectedProveedorId = proveedor.id;
-      renderProveedoresList();
-      goToView('proveedores', scroll);
-    }
-
     async function readNumber(forceRetry = false) {
       if (state.busy || !state.stream) return;
       state.busy = true;
@@ -1988,6 +1989,7 @@
       videoWrap.classList.add('scanning');
       setSyncStatus('Escaneando', 'busy');
       setScanMessage(forceRetry ? 'Repitiendo lectura…' : 'Analizando el código del pedido…');
+
       try {
         await initFirebase();
         const size = captureRegion();
@@ -2138,8 +2140,6 @@
 
         const saved = await getDoc(ref);
         if (saved.exists()) fillFormFromPedido({ id: saved.id, ...saved.data(), existsInDb: true });
-        state.selectedPedidoCode = codigo;
-        state.selectedProveedorId = prov.id;
         setProviderMode('existing');
         proveedorSelect.value = prov.id;
         setSaveMessage(`Pedido ${codigo} guardado correctamente.`);
@@ -2167,14 +2167,27 @@
       if (appDrawer.classList.contains('open')) closeDrawer();
       else openDrawer();
     });
-
     drawerBackdrop.addEventListener('click', closeDrawer);
-    navPedidosBtn.addEventListener('click', () => goToView('pedidos'));
-    navProveedoresBtn.addEventListener('click', () => goToView('proveedores'));
+    navPedidosBtn.addEventListener('click', () => setRoute('pedidos'));
+    navProveedoresBtn.addEventListener('click', () => setRoute('proveedores'));
+    goHomeBtn.addEventListener('click', () => setRoute('inicio'));
 
-    window.addEventListener('keydown', (event) => {
-      if (event.key === 'Escape') closeDrawer();
+    homeTabPedidos.addEventListener('click', () => setHomeRecordsView('pedidos'));
+    homeTabProveedores.addEventListener('click', () => setHomeRecordsView('proveedores'));
+
+    detailModal.addEventListener('click', event => {
+      if (event.target === detailModal) closeModal();
     });
+
+    window.addEventListener('keydown', event => {
+      if (event.key === 'Escape') {
+        if (state.modalOpen) closeModal();
+        else closeDrawer();
+      }
+    });
+
+    window.addEventListener('popstate', applyRouteFromHash);
+    window.addEventListener('hashchange', applyRouteFromHash);
 
     window.addEventListener('beforeunload', () => {
       state.stream?.getTracks().forEach(t => t.stop());
@@ -2184,10 +2197,10 @@
 
     clearForm();
     updateScannerVisibility();
-    renderPedidosList();
-    renderProveedoresList();
+    renderAllLists();
     renderSummary();
-    goToView('pedidos', false);
+    setHomeRecordsView('pedidos');
+    applyRouteFromHash();
 
     initFirebase().catch(err => {
       console.error(err);
