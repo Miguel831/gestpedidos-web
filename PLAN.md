@@ -10,11 +10,6 @@ Las tecnologías ue voy a usar en mi proyecto son:
 - FrontEnd: React + TypeScript + Vite
 - BackEnd: firebase
 
-Dentro del frontend he usado las siguientes estrategias:
-- getUserMedia para abrir cámara.
-- Capturas un frame del vídeo
-- OpenCV.js para limpiar la imagen
-- Tesseract.js para leer texto
-- Validas con regex: ^\d{5}$
-- Guardas en IndexedDB
-- Lo empaquetas como PWA
+## Modo de uso
+
+Desde la apliacción. Tienes la opción de añadir un nuevo pedido. Cuando haces esto, se abre la cámara para escanear un nuevo código de pedido, una vez guardado el pedido y su información. Si más adelante vuelves a escanear el mismo código, te mostrará la información del pedidio y te dejará modificarla.

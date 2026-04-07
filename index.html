@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>MVP OCR 5 dígitos</title>
+  <title>MVP OCR 5 dígitos + Firebase</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -12,7 +12,6 @@
       --text: #e5e7eb;
       --accent: #22c55e;
       --accent-2: #38bdf8;
-      --danger: #ef4444;
       --border: rgba(255,255,255,0.08);
       --shadow: 0 10px 30px rgba(0,0,0,0.3);
       color-scheme: dark;
@@ -189,7 +188,7 @@
       border-radius: 14px;
       background: rgba(255,255,255,0.04);
       border: 1px solid var(--border);
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .record-grid {
@@ -246,8 +245,8 @@
   <main class="app">
     <section class="card">
       <h1>MVP: leer un número de 5 dígitos con la cámara</h1>
-      <p>Apunta el número dentro del recuadro verde y pulsa <strong>Capturar y leer</strong>. Si detecta exactamente 5 dígitos, podrás guardar información asociada a ese código.</p>
-      <p class="notice">Para que la cámara funcione bien, abre esta página desde <strong>https</strong> o <strong>localhost</strong>.</p>
+      <p>Apunta el número dentro del recuadro verde y pulsa <strong>Capturar y leer</strong>. Si detecta exactamente 5 dígitos, podrás guardar información asociada a ese código en Firebase.</p>
+      <p class="notice">Recuerda rellenar la configuración de Firebase antes de probar esta versión.</p>
     </section>
 
     <section class="card">
@@ -259,7 +258,7 @@
         <button id="startBtn" class="primary">Abrir cámara</button>
         <button id="captureBtn" class="secondary" disabled>Capturar y leer</button>
       </div>
-      <div id="status" class="status">Pulsa <strong>Abrir cámara</strong> para empezar.</div>
+      <div id="status" class="status">Cargando aplicación...</div>
     </section>
 
     <section class="card result">
@@ -297,8 +296,21 @@
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
-  <script>
-    const STORAGE_KEY = 'ocr-5-digit-mvp-records';
+
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
+    import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+    import { getFirestore, doc, getDoc, setDoc, serverTimestamp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAYxyWlrWc4d5mmW_3jZjRM5iOOO6wkU7E",
+      authDomain: "gestpedidos-web.firebaseapp.com",
+      projectId: "gestpedidos-web",
+      storageBucket: "gestpedidos-web.firebasestorage.app",
+      messagingSenderId: "298563599142",
+      appId: "1:298563599142:web:2f1c1675ec2bcc7b9d9fe7",
+      measurementId: "G-WGJ256MV0J"
+    };
 
     const video = document.getElementById('video');
     const startBtn = document.getElementById('startBtn');
@@ -324,34 +336,20 @@
       stream: null,
       worker: null,
       busy: false,
-      records: loadRecords(),
-      currentCode: null
+      currentCode: null,
+      currentRecordExists: false,
+      currentRecord: null,
+      firebaseReady: false,
+      app: null,
+      auth: null,
+      db: null,
+      user: null
     };
+
+    let firebaseInitPromise = null;
 
     function setStatus(message) {
       statusEl.innerHTML = message;
-    }
-
-    function loadRecords() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-      } catch {
-        return {};
-      }
-    }
-
-    function saveRecords() {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.records));
-    }
-
-    function formatDate(isoDate) {
-      if (!isoDate) return 'sin fecha';
-      const date = new Date(isoDate);
-      return date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES', {
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit'
-      });
     }
 
     function escapeHtml(value) {
@@ -363,6 +361,17 @@
         .replace(/'/g, '&#039;');
     }
 
+    function formatDate(value) {
+      if (!value) return 'sin fecha';
+      const date = typeof value.toDate === 'function' ? value.toDate() : new Date(value);
+      if (Number.isNaN(date.getTime())) return 'sin fecha';
+      return date.toLocaleDateString('es-ES') + ' ' + date.toLocaleTimeString('es-ES', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
     function showRecordCard() {
       recordCard.classList.add('visible');
     }
@@ -371,14 +380,45 @@
       recordCard.classList.remove('visible');
     }
 
-    function renderRecordView(code, editable) {
-      const record = state.records[code];
+    function hasFirebasePlaceholders() {
+      return Object.values(firebaseConfig).some((value) => !value || String(value).includes('PON_AQUI_TU_'));
+    }
+
+    async function initFirebase() {
+      if (firebaseInitPromise) return firebaseInitPromise;
+
+      firebaseInitPromise = (async () => {
+        if (hasFirebasePlaceholders()) {
+          throw new Error('Todavía no has rellenado la configuración de Firebase en el archivo.');
+        }
+
+        state.app = initializeApp(firebaseConfig);
+        state.auth = getAuth(state.app);
+        state.db = getFirestore(state.app);
+
+        const credential = await signInAnonymously(state.auth);
+        state.user = credential.user;
+        state.firebaseReady = true;
+
+        setStatus('Firebase conectado correctamente. Ya puedes abrir la cámara.');
+      })().catch((error) => {
+        state.firebaseReady = false;
+        firebaseInitPromise = null;
+        throw error;
+      });
+
+      return firebaseInitPromise;
+    }
+
+    function renderRecordView(code, record, editable) {
       state.currentCode = code;
+      state.currentRecord = record || null;
+      state.currentRecordExists = !!record;
       showRecordCard();
 
       if (!record) {
         recordTitle.textContent = 'Información del código ' + code;
-        recordSummary.innerHTML = 'Código nuevo detectado. Añade la información que quieras guardar.';
+        recordSummary.innerHTML = 'Código nuevo detectado. Añade la información que quieras guardar en Firebase.';
         recordFormWrap.style.display = 'grid';
         nameInput.value = '';
         notesInput.value = '';
@@ -399,7 +439,14 @@
       recordFormWrap.style.display = editable ? 'grid' : 'none';
     }
 
-    function saveCurrentRecord() {
+    async function fetchRecordByCode(code) {
+      await initFirebase();
+      const snapshot = await getDoc(doc(state.db, 'records', code));
+      if (!snapshot.exists()) return null;
+      return snapshot.data();
+    }
+
+    async function saveCurrentRecord() {
       const code = state.currentCode;
       if (!code) return;
 
@@ -411,31 +458,44 @@
         return;
       }
 
-      const existing = state.records[code];
-      const now = new Date().toISOString();
+      try {
+        await initFirebase();
 
-      state.records[code] = {
-        code: code,
-        name: name,
-        notes: notes,
-        createdAt: existing && existing.createdAt ? existing.createdAt : now,
-        updatedAt: now
-      };
+        const recordRef = doc(state.db, 'records', code);
+        const baseData = {
+          code,
+          name,
+          notes,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.user.uid
+        };
 
-      saveRecords();
-      renderRecordView(code, false);
-      setStatus('Información guardada correctamente para el código <strong>' + code + '</strong>.');
+        if (state.currentRecordExists) {
+          await setDoc(recordRef, baseData, { merge: true });
+        } else {
+          await setDoc(recordRef, {
+            ...baseData,
+            createdAt: serverTimestamp()
+          });
+        }
+
+        const freshRecord = await fetchRecordByCode(code);
+        renderRecordView(code, freshRecord, false);
+        setStatus('Información guardada correctamente en Firebase para el código <strong>' + code + '</strong>.');
+      } catch (error) {
+        console.error(error);
+        setStatus('No se pudo guardar en Firebase: ' + error.message);
+      }
     }
 
     async function ensureWorker() {
       if (state.worker) return state.worker;
 
-      const createWorker = Tesseract.createWorker;
-      const PSM = Tesseract.PSM;
+      const { createWorker, PSM } = Tesseract;
       setStatus('Cargando motor OCR...');
 
       state.worker = await createWorker('eng', 1, {
-        logger: function (m) {
+        logger: (m) => {
           if (!m || !m.status) return;
           const percent = typeof m.progress === 'number' ? ' ' + Math.round(m.progress * 100) + '%' : '';
           setStatus('OCR: ' + translateStatus(m.status) + percent);
@@ -476,7 +536,7 @@
 
       try {
         if (state.stream) {
-          state.stream.getTracks().forEach(function (track) { track.stop(); });
+          state.stream.getTracks().forEach((track) => track.stop());
         }
 
         let stream;
@@ -489,7 +549,7 @@
               height: { ideal: 720 }
             }
           });
-        } catch (e) {
+        } catch {
           stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         }
 
@@ -504,7 +564,7 @@
         setStatus('Cámara activa' + resolution + '. Coloca el número en el recuadro y pulsa <strong>Capturar y leer</strong>.');
       } catch (error) {
         console.error(error);
-        setStatus('No se pudo abrir la cámara. Revisa permisos, prueba en <strong>https</strong> o <strong>localhost</strong> y vuelve a intentarlo.');
+        setStatus('No se pudo abrir la cámara. Revisa permisos, prueba en HTTPS o localhost y vuelve a intentarlo.');
       }
     }
 
@@ -525,14 +585,11 @@
       cropCanvas.height = cropHeight;
       cropCtx.drawImage(video, sx, sy, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
 
-      return { cropWidth: cropWidth, cropHeight: cropHeight };
+      return { cropWidth, cropHeight };
     }
 
-    function preprocessImage(size) {
-      const cropWidth = size.cropWidth;
-      const cropHeight = size.cropHeight;
+    function preprocessImage({ cropWidth, cropHeight }) {
       const scale = 2;
-
       processedCanvas.width = cropWidth * scale;
       processedCanvas.height = cropHeight * scale;
       processedCtx.imageSmoothingEnabled = false;
@@ -584,6 +641,7 @@
       hideRecordCard();
 
       try {
+        await initFirebase();
         const size = captureRegion();
         preprocessImage(size);
         const worker = await ensureWorker();
@@ -611,12 +669,13 @@
           resultValueEl.textContent = value;
           resultValueEl.className = 'result-value ok';
 
-          if (state.records[value]) {
-            renderRecordView(value, false);
-            setStatus('El código <strong>' + value + '</strong> ya existía. Te muestro la información guardada.');
+          const record = await fetchRecordByCode(value);
+          if (record) {
+            renderRecordView(value, record, false);
+            setStatus('El código <strong>' + value + '</strong> ya existía en Firebase. Te muestro la información guardada.');
           } else {
-            renderRecordView(value, true);
-            setStatus('Código nuevo detectado: <strong>' + value + '</strong>. Añade ahora la información asociada y guárdala.');
+            renderRecordView(value, null, true);
+            setStatus('Código nuevo detectado: <strong>' + value + '</strong>. Añade ahora la información asociada y guárdala en Firebase.');
           }
         } else {
           resultValueEl.textContent = 'No válido';
@@ -638,19 +697,24 @@
     startBtn.addEventListener('click', startCamera);
     captureBtn.addEventListener('click', readNumber);
     saveInfoBtn.addEventListener('click', saveCurrentRecord);
-    editInfoBtn.addEventListener('click', function () {
+    editInfoBtn.addEventListener('click', () => {
       if (!state.currentCode) return;
-      renderRecordView(state.currentCode, true);
+      renderRecordView(state.currentCode, state.currentRecord, true);
       setStatus('Editando la información del código <strong>' + state.currentCode + '</strong>.');
     });
 
-    window.addEventListener('beforeunload', function () {
+    window.addEventListener('beforeunload', () => {
       if (state.stream) {
-        state.stream.getTracks().forEach(function (track) { track.stop(); });
+        state.stream.getTracks().forEach((track) => track.stop());
       }
       if (state.worker) {
         state.worker.terminate();
       }
+    });
+
+    initFirebase().catch((error) => {
+      console.error(error);
+      setStatus('Firebase no está listo todavía: ' + error.message + '. Rellena la configuración y vuelve a cargar la página.');
     });
   </script>
 </body>
