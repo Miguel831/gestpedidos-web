@@ -638,18 +638,6 @@
       display: none;
     }
 
-    .visually-hidden {
-      position: absolute;
-      width: 1px;
-      height: 1px;
-      padding: 0;
-      margin: -1px;
-      overflow: hidden;
-      clip: rect(0, 0, 0, 0);
-      white-space: nowrap;
-      border: 0;
-    }
-
     @media (max-width: 980px) {
       .top-grid {
         grid-template-columns: 1fr;
@@ -735,6 +723,11 @@
         <div class="controls">
           <button id="startBtn" class="btn-primary">Activar cámara</button>
           <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
+        </div>
+
+        <div class="controls">
+          <button id="retryBtn" class="btn-secondary" disabled>Probar otra vez</button>
+          <button id="resetBtn" class="btn-secondary">Limpiar ficha</button>
         </div>
 
         <div class="scan-footer">
@@ -869,6 +862,8 @@
     const video = document.getElementById('video');
     const startBtn = document.getElementById('startBtn');
     const captureBtn = document.getElementById('captureBtn');
+    const retryBtn = document.getElementById('retryBtn');
+    const resetBtn = document.getElementById('resetBtn');
     const syncStatus = document.getElementById('syncStatus');
     const scanMessage = document.getElementById('scanMessage');
     const currentCodeEl = document.getElementById('currentCode');
@@ -921,6 +916,8 @@
       providerMode: 'existing',
       unsubs: []
     };
+
+    let firebaseInitPromise = null;
 
     function setSyncStatus(text) {
       syncStatus.textContent = text;
@@ -1142,22 +1139,48 @@
       };
     }
 
+    function clearForm() {
+      fillFormFromPedido(null);
+      codigoInput.value = '';
+      currentCodeEl.textContent = '—';
+      proveedorSelect.value = '';
+      fechaEnvioInput.value = '';
+      fechaReciboInput.value = '';
+      descripcionInput.value = '';
+      estadoInput.value = 'Pendiente';
+      setEstadoBadge('Pendiente');
+      setProviderMode('existing');
+      setScanMessage('Escanea un código de 5 dígitos para abrir o crear un pedido.');
+      setSaveMessage('Los cambios se guardarán en Firebase, en las colecciones de pedidos y proveedores.');
+    }
+
     async function initFirebase() {
-      if (hasFirebasePlaceholders()) {
-        throw new Error('Rellena primero la configuración de Firebase en este archivo.');
-      }
+      if (firebaseInitPromise) return firebaseInitPromise;
 
-      state.app = initializeApp(firebaseConfig);
-      state.auth = getAuth(state.app);
-      state.db = getFirestore(state.app);
+      firebaseInitPromise = (async () => {
+        if (hasFirebasePlaceholders()) {
+          throw new Error('Rellena primero la configuración de Firebase en este archivo.');
+        }
 
-      const credential = await signInAnonymously(state.auth);
-      state.user = credential.user;
-      state.firebaseReady = true;
-      setSyncStatus('Conectado con Firebase');
-      setSaveMessage('Sistema listo para guardar pedidos y proveedores en tiempo real.');
+        state.app = initializeApp(firebaseConfig);
+        state.auth = getAuth(state.app);
+        state.db = getFirestore(state.app);
 
-      subscribeToCollections();
+        const credential = await signInAnonymously(state.auth);
+        state.user = credential.user;
+        state.firebaseReady = true;
+        setSyncStatus('Conectado con Firebase');
+        setSaveMessage('Sistema listo para guardar pedidos y proveedores en tiempo real.');
+
+        subscribeToCollections();
+        return true;
+      })().catch((error) => {
+        firebaseInitPromise = null;
+        state.firebaseReady = false;
+        throw error;
+      });
+
+      return firebaseInitPromise;
     }
 
     function subscribeToCollections() {
@@ -1212,6 +1235,7 @@
         video.srcObject = stream;
         await video.play();
         captureBtn.disabled = false;
+        retryBtn.disabled = false;
         setSyncStatus('Cámara activa');
         setScanMessage('Sitúa el código dentro del recuadro y pulsa “Escanear pedido”.');
       } catch (error) {
@@ -1270,9 +1294,9 @@
     }
 
     function preprocessImage({ cropWidth, cropHeight }) {
-      const scale = 2;
-      processedCanvas.width = cropWidth * scale;
-      processedCanvas.height = cropHeight * scale;
+      const scale = 1.35;
+      processedCanvas.width = Math.max(1, Math.floor(cropWidth * scale));
+      processedCanvas.height = Math.max(1, Math.floor(cropHeight * scale));
       processedCtx.imageSmoothingEnabled = false;
       processedCtx.drawImage(cropCanvas, 0, 0, processedCanvas.width, processedCanvas.height);
 
@@ -1287,15 +1311,14 @@
       }
 
       const avg = sum / totalPixels;
-      const threshold = Math.max(105, Math.min(185, avg * 0.98));
+      const threshold = Math.max(112, Math.min(176, avg * 0.96));
 
       for (let i = 0; i < data.length; i += 4) {
-        let gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
-        gray = (gray - avg) * 1.6 + 128;
-        gray = gray > threshold ? 255 : 0;
-        data[i] = gray;
-        data[i + 1] = gray;
-        data[i + 2] = gray;
+        const gray = 0.2126 * data[i] + 0.7152 * data[i + 1] + 0.0722 * data[i + 2];
+        const out = gray > threshold ? 255 : 0;
+        data[i] = out;
+        data[i + 1] = out;
+        data[i + 2] = out;
         data[i + 3] = 255;
       }
 
@@ -1312,36 +1335,58 @@
       return merged ? merged[0] : null;
     }
 
-    async function readNumber() {
+    function extractFastCandidate(text) {
+      const digits = String(text || '').replace(/\D/g, '');
+      if (!digits) return null;
+      if (digits.length === 5) return digits;
+      if (digits.length > 5) return digits.slice(0, 5);
+      if (digits.length === 4) return digits;
+      return null;
+    }
+
+    async function readNumber(forceRetry = false) {
       if (state.busy) return;
       state.busy = true;
       captureBtn.disabled = true;
+      retryBtn.disabled = true;
       setSyncStatus('Escaneando');
-      setScanMessage('Analizando el código del pedido...');
+      setScanMessage(forceRetry ? 'Repitiendo lectura...' : 'Analizando el código del pedido...');
 
       try {
+        await initFirebase();
+
         const size = captureRegion();
         preprocessImage(size);
         const worker = await ensureWorker();
 
-        let result = await worker.recognize(processedCanvas, {
+        let rawText = '';
+        let value = null;
+
+        const quickResult = await worker.recognize(cropCanvas, {
           tessedit_char_whitelist: '0123456789'
         });
+        rawText = quickResult?.data?.text || '';
+        value = extractFastCandidate(rawText);
 
-        let rawText = result?.data?.text || '';
-        let value = extractFiveDigits(rawText);
-
-        if (!value) {
-          result = await worker.recognize(cropCanvas, {
+        if (!value || value.length < 5) {
+          const processedResult = await worker.recognize(processedCanvas, {
             tessedit_char_whitelist: '0123456789'
           });
-          rawText = result?.data?.text || '';
-          value = extractFiveDigits(rawText);
+          rawText = processedResult?.data?.text || rawText || '';
+          value = extractFiveDigits(rawText) || extractFastCandidate(rawText);
         }
 
         if (!value) {
-          setSyncStatus('Código no válido');
-          setScanMessage('No se ha detectado un código válido de 5 dígitos.');
+          setSyncStatus('Código no detectado');
+          setScanMessage('No se ha podido leer el código. Pulsa “Probar otra vez”.');
+          return;
+        }
+
+        if (value.length !== 5) {
+          currentCodeEl.textContent = value;
+          codigoInput.value = value;
+          setSyncStatus('Lectura aproximada');
+          setScanMessage('Se ha leído un código aproximado. Repite la lectura si no coincide.');
           return;
         }
 
@@ -1355,10 +1400,13 @@
       } finally {
         state.busy = false;
         captureBtn.disabled = false;
+        retryBtn.disabled = false;
       }
     }
 
     async function openPedidoByCode(code) {
+      await initFirebase();
+
       const safeCode = String(code || '').trim();
       if (!/^\d{5}$/.test(safeCode)) {
         throw new Error('El código debe tener exactamente 5 dígitos.');
@@ -1449,6 +1497,7 @@
 
     async function savePedido(event) {
       event.preventDefault();
+      await initFirebase();
 
       if (!state.firebaseReady) {
         setSaveMessage('Firebase todavía no está listo.');
@@ -1530,7 +1579,9 @@
 
     estadoInput.addEventListener('change', () => setEstadoBadge(estadoInput.value));
     startBtn.addEventListener('click', startCamera);
-    captureBtn.addEventListener('click', readNumber);
+    captureBtn.addEventListener('click', () => readNumber(false));
+    retryBtn.addEventListener('click', () => readNumber(true));
+    resetBtn.addEventListener('click', clearForm);
     pedidoForm.addEventListener('submit', savePedido);
     toggleNewProviderBtn.addEventListener('click', () => {
       setProviderMode(state.providerMode === 'new' ? 'existing' : 'new');
@@ -1548,7 +1599,7 @@
       state.unsubs.forEach((unsub) => unsub());
     });
 
-    fillFormFromPedido(null);
+    clearForm();
     renderPedidosList();
     renderProveedoresList();
     renderSummary();
