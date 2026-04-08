@@ -438,16 +438,27 @@ export async function deleteProveedorById(proveedorId) {
     const snapshot = await getDoc(doc(state.db, 'proveedores', proveedorId));
     return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
   })();
+
   const resolvedProveedor = await proveedor;
   if (!resolvedProveedor) throw new Error('Proveedor no encontrado.');
 
-  const pedidos = Array.isArray(resolvedProveedor.pedidosAsignados) ? resolvedProveedor.pedidosAsignados : [];
+  // Usar los pedidos reales enlazados al proveedor, no pedidosAsignados
+  const linkedPedidos = state.pedidos.filter(pedido => pedido.proveedorId === proveedorId);
   const batch = writeBatch(state.db);
 
-  pedidos.forEach(codigo => {
-    batch.set(doc(state.db, 'pedidos', codigo), {
+  linkedPedidos.forEach(pedido => {
+    batch.set(doc(state.db, 'pedidos', pedido.codigo), {
+      codigo: pedido.codigo,
       proveedorId: '',
       proveedorNombre: '',
+      clienteId: pedido.clienteId || '',
+      clienteNombre: pedido.clienteNombre || '',
+      clienteCorreo: pedido.clienteCorreo || '',
+      clienteNumero: pedido.clienteNumero || '',
+      fechaEnvio: pedido.fechaEnvio || '',
+      fechaRecibo: pedido.fechaRecibo || '',
+      descripcion: pedido.descripcion || '',
+      estado: pedido.estado || 'Pendiente',
       updatedAt: serverTimestamp(),
       updatedBy: state.user.uid
     }, { merge: true });
@@ -456,7 +467,10 @@ export async function deleteProveedorById(proveedorId) {
   batch.delete(doc(state.db, 'proveedores', proveedorId));
   await batch.commit();
 
-  return { proveedor: resolvedProveedor, affectedPedidos: pedidos };
+  return {
+    proveedor: resolvedProveedor,
+    affectedPedidos: linkedPedidos.map(pedido => pedido.codigo)
+  };
 }
 
 export async function deleteClienteById(clienteId) {
