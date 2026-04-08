@@ -189,6 +189,12 @@ function getEstadoClass(estado) {
   return 'estado-pendiente';
 }
 
+function getProveedorPedidos(proveedor) {
+  return state.pedidos
+    .filter(pedido => pedido.proveedorId === proveedor.id)
+    .map(pedido => pedido.codigo);
+}
+
 export function setEstadoBadge(estado) {
   const value = estado || 'Pendiente';
   refs.estadoBadge.textContent = value;
@@ -347,7 +353,7 @@ export function renderProveedoresInto(target) {
 
   const ordered = getProveedoresOrdered();
   target.innerHTML = ordered.map(proveedor => {
-    const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+    const pedidos = getProveedorPedidos(proveedor);
     const chips = pedidos.length
       ? pedidos.map(codigo => `<span class="chip" data-open-pedido="${codigo}">${escapeHtml(codigo)}</span>`).join('')
       : '<span class="chip no-link">Sin pedidos</span>';
@@ -690,7 +696,7 @@ export function buildPedidoModalHtml(pedido) {
 }
 
 export function buildProveedorModalHtml(proveedor) {
-  const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+  const pedidos = getProveedorPedidos(proveedor);
   const note = pedidos.length
     ? `Se desvinculará de ${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'} si confirmas el borrado.`
     : 'No tiene pedidos asociados.';
@@ -887,7 +893,7 @@ export function buildDeletePedidoConfirmModalHtml(pedido) {
 }
 
 export function buildDeleteProveedorConfirmModalHtml(proveedor) {
-  const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+  const pedidos = getProveedorPedidos(proveedor);
   const text = pedidos.length
     ? `Este proveedor tiene ${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'} asociados. Si continúas, esos pedidos se conservarán pero quedarán sin proveedor asignado.`
     : 'No tiene pedidos asociados. Se eliminará únicamente la ficha del proveedor.';
