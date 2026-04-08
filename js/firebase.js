@@ -33,6 +33,18 @@ function hasFirebasePlaceholders() {
   return Object.values(firebaseConfig).some(value => !value || String(value).includes('PON_AQUI_TU_'));
 }
 
+function getNowIso() {
+  return new Date().toISOString();
+}
+
+function preserveDateTime(nextValue, previousValue = '') {
+  if (!nextValue) return '';
+  if (typeof previousValue === 'string' && previousValue.length > 10 && previousValue.slice(0, 10) === nextValue) {
+    return previousValue;
+  }
+  return nextValue;
+}
+
 export function buildNewPedido(code) {
   return {
     codigo: code,
@@ -42,7 +54,7 @@ export function buildNewPedido(code) {
     clienteNombre: '',
     clienteCorreo: '',
     clienteNumero: '',
-    fechaEnvio: '',
+    fechaEnvio: getNowIso(),
     fechaRecibo: '',
     descripcion: '',
     estado: 'Pendiente',
@@ -290,8 +302,8 @@ export async function savePedido(formData) {
     clienteNombre: cliente.nombre,
     clienteCorreo: cliente.correo,
     clienteNumero: cliente.numero,
-    fechaEnvio: formData.fechaEnvio || '',
-    fechaRecibo: formData.fechaRecibo || '',
+    fechaEnvio: preserveDateTime(formData.fechaEnvio || '', previousPedido?.fechaEnvio || ''),
+    fechaRecibo: preserveDateTime(formData.fechaRecibo || '', previousPedido?.fechaRecibo || ''),
     descripcion: formData.descripcion.trim(),
     estado: formData.estado,
     updatedAt: serverTimestamp(),
@@ -345,6 +357,33 @@ export async function savePedido(formData) {
   const savedPedido = saved.exists() ? { id: saved.id, ...saved.data(), existsInDb: true } : null;
 
   return { savedPedido, proveedor, cliente };
+}
+
+
+export async function markPedidoAsRecibido(codigo, { force = false } = {}) {
+  await initFirebase();
+
+  const safeCode = String(codigo || '').trim();
+  if (!/^\d{5}$/.test(safeCode)) {
+    throw new Error('El código debe tener exactamente 5 dígitos.');
+  }
+
+  const pedido = await loadPedidoByCode(safeCode);
+  if (!pedido.existsInDb) throw new Error('Ese pedido todavía no está guardado.');
+
+  const yaRecibido = pedido.estado === 'Recibido' || Boolean(pedido.fechaRecibo);
+  if (yaRecibido && !force) throw new Error('Este pedido ya estaba marcado como recibido.');
+
+  const ref = doc(state.db, 'pedidos', safeCode);
+  await setDoc(ref, {
+    estado: 'Recibido',
+    fechaRecibo: getNowIso(),
+    updatedAt: serverTimestamp(),
+    updatedBy: state.user.uid
+  }, { merge: true });
+
+  const saved = await getDoc(ref);
+  return saved.exists() ? { id: saved.id, ...saved.data(), existsInDb: true } : null;
 }
 
 export function cleanupFirebase() {

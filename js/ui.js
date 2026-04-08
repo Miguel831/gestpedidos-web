@@ -78,6 +78,7 @@ export function initUI() {
     summaryPedidos: document.getElementById('summaryPedidos'),
     summaryPendientes: document.getElementById('summaryPendientes'),
     summaryProveedores: document.getElementById('summaryProveedores'),
+    summaryClientes: document.getElementById('summaryClientes'),
     homePedidosPanel: document.getElementById('homePedidosPanel'),
     homeProveedoresPanel: document.getElementById('homeProveedoresPanel'),
     pagePedidosPanel: document.getElementById('pagePedidosPanel'),
@@ -136,6 +137,15 @@ export function toMillis(value) {
   return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
+export function toInputDate(value) {
+  if (!value) return '';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) return value.slice(0, 10);
+  const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().slice(0, 10);
+}
+
 export function formatDate(value) {
   if (!value) return '—';
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
@@ -144,6 +154,20 @@ export function formatDate(value) {
   }
   const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('es-ES');
+}
+
+export function formatDateTime(value) {
+  if (!value) return '—';
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return formatDate(value);
+  const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
+  if (Number.isNaN(date.getTime())) return formatDate(value);
+  return date.toLocaleString('es-ES', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
 }
 
 export function normalizeText(value) {
@@ -221,6 +245,7 @@ export function renderSummary() {
   refs.summaryPedidos.textContent = state.pedidos.length || '0';
   refs.summaryPendientes.textContent = state.pedidos.filter(item => item.estado !== 'Recibido').length || '0';
   refs.summaryProveedores.textContent = state.proveedores.length || '0';
+  if (refs.summaryClientes) refs.summaryClientes.textContent = state.clientes.length || '0';
 }
 
 export function renderProveedorSelect() {
@@ -430,14 +455,19 @@ export function setClientMode(mode) {
   }
 }
 
+function syncBodyLock() {
+  const shouldLock = refs.editorModal?.classList.contains('visible') || refs.detailModal?.classList.contains('visible');
+  document.body.classList.toggle('no-scroll', Boolean(shouldLock));
+}
+
 export function showEditor() {
   refs.editorModal.classList.add('visible');
-  document.body.classList.add('no-scroll');
+  syncBodyLock();
 }
 
 export function hideEditor() {
   refs.editorModal.classList.remove('visible');
-  document.body.classList.remove('no-scroll');
+  syncBodyLock();
   refs.editorCodeInput.style.display = 'none';
   refs.editorCodeBig.style.display = 'inline-block';
 }
@@ -450,8 +480,8 @@ export function fillFormFromPedido(pedido) {
   refs.editorCodeBig.textContent = pedido?.codigo || '—';
   refs.currentCodeEl.textContent = pedido?.codigo || '· · · · ·';
   refs.estadoInput.value = pedido?.estado || 'Pendiente';
-  refs.fechaEnvioInput.value = pedido?.fechaEnvio || '';
-  refs.fechaReciboInput.value = pedido?.fechaRecibo || '';
+  refs.fechaEnvioInput.value = toInputDate(pedido?.fechaEnvio);
+  refs.fechaReciboInput.value = toInputDate(pedido?.fechaRecibo);
   refs.descripcionInput.value = pedido?.descripcion || '';
   refs.proveedorSelect.value = pedido?.proveedorId || '';
   refs.clienteSelect.value = pedido?.clienteId || '';
@@ -508,14 +538,14 @@ export function closeModal() {
   state.modalOpen = false;
   state.modalType = null;
   state.modalTargetId = '';
-  document.body.classList.remove('no-scroll');
+  syncBodyLock();
 }
 
 export function openModal(html) {
   refs.detailModalBody.innerHTML = html;
   refs.detailModal.classList.add('visible');
   state.modalOpen = true;
-  document.body.classList.add('no-scroll');
+  syncBodyLock();
 
   const closeBtn = refs.detailModalBody.querySelector('[data-close-modal]');
   if (closeBtn) closeBtn.addEventListener('click', closeModal);
