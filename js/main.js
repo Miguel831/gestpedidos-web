@@ -10,7 +10,7 @@ import {
   markPedidoAsReceivedNow,
   savePedido
 } from './firebase.js';
-import { cleanupScanner, readNumber, setScannerActions, startCamera } from './scanner.js';
+import { cleanupScanner, startCamera, stopCamera, setScannerActions } from './scanner.js';
 import {
   applyRouteFromHash,
   bindUIEvents,
@@ -44,6 +44,23 @@ import {
 
 initUI();
 const refs = getRefs();
+
+function finishScannerFlow({
+  saveMessage = '',
+  scanMessage = '',
+  closeEditor = false,
+  closeTransientModal = false,
+  resetForm = false
+} = {}) {
+  stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: false });
+
+  if (closeTransientModal && state.modalOpen) closeModal();
+  if (closeEditor) clearForm();
+  else if (resetForm) clearForm();
+
+  if (saveMessage) setSaveMessage(saveMessage);
+  if (scanMessage) setScanMessage(scanMessage);
+}
 
 function isPedidoRecibido(pedido) {
   return pedido?.estado === 'Recibido' || Boolean(pedido?.fechaRecibo);
@@ -133,7 +150,11 @@ async function handleSavePedido(event) {
     setClientMode('existing');
     refs.proveedorSelect.value = proveedor.id;
     refs.clienteSelect.value = cliente.id;
-    setSaveMessage(`Pedido ${refs.codigoInput.value.trim()} guardado correctamente.`);
+    finishScannerFlow({
+      saveMessage: `Pedido ${refs.codigoInput.value.trim()} guardado correctamente.`,
+      scanMessage: `Pedido ${refs.codigoInput.value.trim()} guardado y cámara cerrada.`,
+      closeEditor: true
+    });
     setSyncStatus('Sincronizado', 'ready');
   } catch (error) {
     console.error(error);
@@ -153,7 +174,7 @@ async function handleScannedCode(code) {
       setSyncStatus('Creando pedido', 'busy');
       const createdPedido = await createPedidoFromScan(code);
       fillFormFromPedido(createdPedido);
-      setScanMessage(`Pedido ${code} creado automáticamente. Completa la ficha cuando quieras.`);
+      setScanMessage(`Pedido ${code} preparado. Completa la ficha y guarda para cerrar la sesión de escaneo.`);
       setSaveMessage(`Se ha creado el pedido ${code} con fecha de inicio de hoy y estado pendiente.`);
       setSyncStatus('Pedido preparado', 'ready');
       return createdPedido;
@@ -182,10 +203,10 @@ async function markPedidoRecibido(code) {
   try {
     setSyncStatus('Guardando recepción', 'busy');
     const updatedPedido = await markPedidoAsReceivedNow(code);
-    fillFormFromPedido(updatedPedido);
-    setSaveMessage(`Pedido ${code} marcado como recibido.`);
-    setScanMessage(`Pedido ${code} recibido correctamente.`);
+    closeModal();
     openModal(buildNotifyClientModalHtml(updatedPedido), { type: 'transient', targetId: '' });
+    setSaveMessage(`Pedido ${code} marcado como recibido.`);
+    setScanMessage(`Pedido ${code} recibido correctamente. Decide si quieres avisar al cliente.`);
     setSyncStatus('Sincronizado', 'ready');
   } catch (error) {
     console.error(error);
@@ -197,11 +218,13 @@ async function markPedidoRecibido(code) {
 async function updateFechaRecepcion(code) {
   try {
     setSyncStatus('Actualizando fecha', 'busy');
-    const updatedPedido = await markPedidoAsReceivedNow(code);
-    closeModal();
-    fillFormFromPedido(updatedPedido);
-    setSaveMessage(`Fecha de recepción de ${code} actualizada.`);
-    setScanMessage(`La fecha de recepción del pedido ${code} se ha actualizado.`);
+    await markPedidoAsReceivedNow(code);
+    finishScannerFlow({
+      saveMessage: `Fecha de recepción de ${code} actualizada.`,
+      scanMessage: `La fecha de recepción del pedido ${code} se ha actualizado y la cámara se ha cerrado.`,
+      closeTransientModal: true,
+      closeEditor: true
+    });
     setSyncStatus('Sincronizado', 'ready');
   } catch (error) {
     console.error(error);
@@ -211,6 +234,7 @@ async function updateFechaRecepcion(code) {
 }
 
 async function viewPedido(code) {
+  stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: false });
   closeModal();
   await openPedidoByCode(code);
 }
@@ -218,15 +242,22 @@ async function viewPedido(code) {
 function notifyClient(code) {
   const pedido = state.pedidosMap.get(code);
   if (!pedido?.clienteCorreo) {
-    setSaveMessage('Este pedido no tiene correo de cliente para enviar aviso.');
-    closeModal();
-    if (pedido) fillFormFromPedido(pedido);
+    finishScannerFlow({
+      saveMessage: 'Este pedido no tiene correo de cliente para enviar aviso.',
+      scanMessage: 'No se pudo preparar el aviso automático al cliente.',
+      closeTransientModal: true,
+      closeEditor: true
+    });
     return;
   }
 
   window.location.href = buildMailtoForPedido(pedido);
-  closeModal();
-  setSaveMessage(`Se ha preparado un correo para avisar al cliente del pedido ${code}.`);
+  finishScannerFlow({
+    saveMessage: `Se ha preparado un correo para avisar al cliente del pedido ${code}.`,
+    scanMessage: `Aviso del pedido ${code} preparado y cámara cerrada.`,
+    closeTransientModal: true,
+    closeEditor: true
+  });
 }
 
 function promptDeletePedido(code) {
@@ -331,13 +362,17 @@ setUIActions({
   viewPedido,
   notifyClient,
   onStartCamera: startCamera,
-  onCapture: () => readNumber(false),
-  onRetry: () => readNumber(true),
-  onReset: clearForm,
+  onReset: () => {
+    stopCamera();
+    clearForm();
+  },
   onSave: handleSavePedido,
   onToggleProviderMode: () => setProviderMode(state.providerMode === 'new' ? 'existing' : 'new'),
   onToggleClientMode: () => setClientMode(state.clientMode === 'new' ? 'existing' : 'new'),
-  onCloseEditor: clearForm
+  onCloseEditor: () => {
+    stopCamera();
+    clearForm();
+  }
 });
 
 setScannerActions({

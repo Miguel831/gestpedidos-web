@@ -462,6 +462,16 @@ video {
   line-height: 1.5;
 }
 
+.scanner-auto-note {
+  margin-top: -6px;
+  padding: 12px 14px;
+  border: 1px dashed var(--line-mid);
+  border-radius: var(--r-md);
+  background: rgba(145, 116, 86, 0.04);
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
 .btn-row { display: grid; gap: 10px; }
 .btn-row-split { grid-template-columns: 1fr 1fr; }
 button, select, input, textarea { font: inherit; }
