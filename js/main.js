@@ -1,5 +1,4 @@
 import { state } from './state.js';
-import { cleanupClientEmailPreview, showClientEmailPreview } from './client-email-preview.js';
 import {
   cleanupFirebase,
   createPedidoFromScan,
@@ -65,6 +64,18 @@ function finishScannerFlow({
 
 function isPedidoRecibido(pedido) {
   return pedido?.estado === 'Recibido' || Boolean(pedido?.fechaRecibo);
+}
+
+function buildMailtoForPedido(pedido) {
+  const subject = encodeURIComponent(`Tu pedido ${pedido.codigo} ya está disponible`);
+  const body = encodeURIComponent([
+    `Hola ${pedido.clienteNombre || ''},`,
+    '',
+    `Tu pedido ${pedido.codigo} ya ha sido recibido y está listo.`,
+    '',
+    'Gracias.'
+  ].join('\n'));
+  return `mailto:${encodeURIComponent(pedido.clienteCorreo)}?subject=${subject}&body=${body}`;
 }
 
 async function openPedidoByCode(code) {
@@ -240,14 +251,13 @@ function notifyClient(code) {
     return;
   }
 
+  window.location.href = buildMailtoForPedido(pedido);
   finishScannerFlow({
-    saveMessage: `Se ha generado la vista previa del correo para avisar al cliente del pedido ${code}.`,
-    scanMessage: `Vista previa del aviso del pedido ${code} preparada y cámara cerrada.`,
+    saveMessage: `Se ha preparado un correo para avisar al cliente del pedido ${code}.`,
+    scanMessage: `Aviso del pedido ${code} preparado y cámara cerrada.`,
     closeTransientModal: true,
     closeEditor: true
   });
-
-  showClientEmailPreview(pedido);
 }
 
 function promptDeletePedido(code) {
@@ -385,7 +395,6 @@ refs.editorCodeInput.addEventListener('keydown', async event => {
 });
 
 window.addEventListener('beforeunload', () => {
-  cleanupClientEmailPreview();
   cleanupScanner();
   cleanupFirebase();
 });
