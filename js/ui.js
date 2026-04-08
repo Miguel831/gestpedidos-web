@@ -26,14 +26,17 @@ export function initUI() {
     goHomeBtn: document.getElementById('goHomeBtn'),
     drawerBackdrop: document.getElementById('drawerBackdrop'),
     appDrawer: document.getElementById('appDrawer'),
+    navInicioBtn: document.getElementById('navInicioBtn'),
     navPedidosBtn: document.getElementById('navPedidosBtn'),
     navProveedoresBtn: document.getElementById('navProveedoresBtn'),
+    navClientesBtn: document.getElementById('navClientesBtn'),
     detailModal: document.getElementById('detailModal'),
     detailModalBody: document.getElementById('detailModalBody'),
 
     screenInicio: document.getElementById('screenInicio'),
     screenPedidos: document.getElementById('screenPedidos'),
     screenProveedores: document.getElementById('screenProveedores'),
+    screenClientes: document.getElementById('screenClientes'),
 
     scannerLayout: document.getElementById('scannerLayout'),
     video: document.getElementById('video'),
@@ -79,6 +82,7 @@ export function initUI() {
     homeProveedoresPanel: document.getElementById('homeProveedoresPanel'),
     pagePedidosPanel: document.getElementById('pagePedidosPanel'),
     pageProveedoresPanel: document.getElementById('pageProveedoresPanel'),
+    pageClientesPanel: document.getElementById('pageClientesPanel'),
     homeSliderTabs: document.getElementById('homeSliderTabs'),
     homeTabPedidos: document.getElementById('homeTabPedidos'),
     homeTabProveedores: document.getElementById('homeTabProveedores'),
@@ -183,8 +187,11 @@ export function setRoute(route, pushHash = true) {
   refs.screenInicio.classList.toggle('active', safeRoute === 'inicio');
   refs.screenPedidos.classList.toggle('active', safeRoute === 'pedidos');
   refs.screenProveedores.classList.toggle('active', safeRoute === 'proveedores');
+  refs.screenClientes.classList.toggle('active', safeRoute === 'clientes');
+  refs.navInicioBtn.classList.toggle('active', safeRoute === 'inicio');
   refs.navPedidosBtn.classList.toggle('active', safeRoute === 'pedidos');
   refs.navProveedoresBtn.classList.toggle('active', safeRoute === 'proveedores');
+  refs.navClientesBtn.classList.toggle('active', safeRoute === 'clientes');
 
   if (pushHash) {
     const hash = safeRoute === 'inicio' ? '#inicio' : `#${safeRoute}`;
@@ -265,6 +272,16 @@ function getProveedoresOrdered() {
   return [...state.proveedores].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
 }
 
+function getClientesOrdered() {
+  return [...state.clientes].sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }));
+}
+
+function getClientePedidos(cliente) {
+  if (Array.isArray(cliente.listaPedidos)) return cliente.listaPedidos;
+  if (Array.isArray(cliente.pedidosAsignados)) return cliente.pedidosAsignados;
+  return [];
+}
+
 export function renderPedidosInto(target) {
   if (!state.pedidos.length) {
     target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay pedidos guardados. Escanea un código para crear el primero.</p></div>';
@@ -327,19 +344,70 @@ export function renderProveedoresInto(target) {
   });
 }
 
+export function renderClientesInto(target) {
+  if (!state.clientes.length) {
+    target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay clientes. Puedes crear uno desde la ficha de pedido.</p></div>';
+    return;
+  }
+
+  const ordered = getClientesOrdered();
+  target.innerHTML = ordered.map(cliente => {
+    const pedidos = getClientePedidos(cliente);
+    const dineroGastado = Number.isFinite(Number(cliente.dineroGastado)) ? Number(cliente.dineroGastado) : 0;
+    const chips = pedidos.length
+      ? pedidos.map(codigo => `<span class="chip" data-open-pedido="${codigo}">${escapeHtml(codigo)}</span>`).join('')
+      : '<span class="chip no-link">Sin pedidos</span>';
+
+    return `
+      <article class="provider-record-card" data-open-cliente="${cliente.id}">
+        <div class="provider-record-head">
+          <h3 class="provider-record-name">${escapeHtml(cliente.nombre)}</h3>
+          <span class="chip no-link">${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'}</span>
+        </div>
+        <div class="client-record-meta">
+          <span>${escapeHtml(cliente.correo || 'Sin correo')}</span>
+          <span>${escapeHtml(cliente.numero || 'Sin número')}</span>
+          <span>${escapeHtml(dineroGastado.toFixed(2))} €</span>
+        </div>
+        <div class="chips">${chips}</div>
+      </article>
+    `;
+  }).join('');
+
+  target.querySelectorAll('[data-open-cliente]').forEach(element => {
+    element.addEventListener('click', () => actions.openClienteModal(element.dataset.openCliente));
+  });
+  target.querySelectorAll('[data-open-pedido]').forEach(element => {
+    element.addEventListener('click', event => {
+      event.stopPropagation();
+      actions.openPedidoModal(element.dataset.openPedido);
+    });
+  });
+}
+
 export function renderAllLists() {
   renderPedidosInto(refs.homePedidosPanel);
   renderPedidosInto(refs.pagePedidosPanel);
   renderProveedoresInto(refs.homeProveedoresPanel);
   renderProveedoresInto(refs.pageProveedoresPanel);
+  renderClientesInto(refs.pageClientesPanel);
+}
+
+function setEntityMode(box, toggleBtn, select, isNew, labels) {
+  box.classList.toggle('visible', isNew);
+  box.hidden = !isNew;
+  toggleBtn.textContent = isNew ? labels.existing : labels.new;
+  toggleBtn.setAttribute('aria-expanded', String(isNew));
+  select.disabled = isNew;
 }
 
 export function setProviderMode(mode) {
   state.providerMode = mode;
   const isNew = mode === 'new';
-  refs.newProviderBox.classList.toggle('visible', isNew);
-  refs.toggleNewProviderBtn.textContent = isNew ? '− Usar proveedor existente' : '+ Añadir nuevo proveedor';
-  refs.proveedorSelect.disabled = isNew;
+  setEntityMode(refs.newProviderBox, refs.toggleNewProviderBtn, refs.proveedorSelect, isNew, {
+    existing: '− Usar proveedor existente',
+    new: '+ Añadir nuevo proveedor'
+  });
 
   if (!isNew) {
     refs.nuevoProveedorNombre.value = '';
@@ -350,9 +418,10 @@ export function setProviderMode(mode) {
 export function setClientMode(mode) {
   state.clientMode = mode;
   const isNew = mode === 'new';
-  refs.newClientBox.classList.toggle('visible', isNew);
-  refs.toggleNewClientBtn.textContent = isNew ? '− Usar cliente existente' : '+ Añadir nuevo cliente';
-  refs.clienteSelect.disabled = isNew;
+  setEntityMode(refs.newClientBox, refs.toggleNewClientBtn, refs.clienteSelect, isNew, {
+    existing: '− Usar cliente existente',
+    new: '+ Añadir nuevo cliente'
+  });
 
   if (!isNew) {
     refs.nuevoClienteNombre.value = '';
@@ -617,8 +686,14 @@ export function bindUIEvents() {
   refs.resetBtn.addEventListener('click', actions.onReset);
   refs.cancelEditBtn.addEventListener('click', actions.onReset);
   refs.pedidoForm.addEventListener('submit', actions.onSave);
-  refs.toggleNewProviderBtn.addEventListener('click', actions.onToggleProviderMode);
-  refs.toggleNewClientBtn.addEventListener('click', actions.onToggleClientMode);
+  refs.toggleNewProviderBtn.addEventListener('click', event => {
+    event.preventDefault();
+    actions.onToggleProviderMode();
+  });
+  refs.toggleNewClientBtn.addEventListener('click', event => {
+    event.preventDefault();
+    actions.onToggleClientMode();
+  });
   refs.closeEditorModalBtn.addEventListener('click', actions.onCloseEditor);
 
   refs.menuToggleBtn.addEventListener('click', () => {
@@ -626,8 +701,10 @@ export function bindUIEvents() {
     else openDrawer();
   });
   refs.drawerBackdrop.addEventListener('click', closeDrawer);
+  refs.navInicioBtn.addEventListener('click', () => setRoute('inicio'));
   refs.navPedidosBtn.addEventListener('click', () => setRoute('pedidos'));
   refs.navProveedoresBtn.addEventListener('click', () => setRoute('proveedores'));
+  refs.navClientesBtn.addEventListener('click', () => setRoute('clientes'));
   refs.goHomeBtn.addEventListener('click', () => setRoute('inicio'));
 
   refs.homeTabPedidos.addEventListener('click', () => setHomeRecordsView('pedidos'));

@@ -19,8 +19,10 @@
       <div class="drawer-subtitle">Ir a otra página</div>
     </div>
     <nav class="drawer-nav">
+      <button type="button" id="navInicioBtn">Inicio</button>
       <button type="button" id="navPedidosBtn">Pedidos</button>
       <button type="button" id="navProveedoresBtn">Proveedores</button>
+      <button type="button" id="navClientesBtn">Clientes</button>
     </nav>
   </aside>
 
@@ -157,7 +159,7 @@
                     <button type="button" id="toggleNewProviderBtn" class="btn-ghost btn-left btn-compact mt-8">
                       + Añadir nuevo proveedor
                     </button>
-                    <div id="newProviderBox" class="provider-box">
+                    <div id="newProviderBox" class="provider-box" hidden>
                       <div class="field">
                         <label for="nuevoProveedorNombre">Nombre del proveedor</label>
                         <input id="nuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
@@ -177,7 +179,7 @@
                     <button type="button" id="toggleNewClientBtn" class="btn-ghost btn-left btn-compact mt-8">
                       + Añadir nuevo cliente
                     </button>
-                    <div id="newClientBox" class="provider-box">
+                    <div id="newClientBox" class="provider-box" hidden>
                       <div class="field">
                         <label for="nuevoClienteNombre">Nombre del cliente</label>
                         <input id="nuevoClienteNombre" type="text" placeholder="Ej. Marta Fernández" />
@@ -293,6 +295,26 @@
           <div class="panel">
             <div class="panel-inner">
               <div id="pageProveedoresPanel" class="list-grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screenClientes">
+      <div class="screen-shell">
+        <div class="screen-grid">
+          <div class="screen-head">
+            <div>
+              <div class="screen-eyebrow">Página</div>
+              <div class="screen-title">Clientes</div>
+            </div>
+            <div class="screen-note">Listado completo de clientes. Al pulsar cualquiera se abre su ficha y desde ahí puedes entrar en sus pedidos.</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-inner">
+              <div id="pageClientesPanel" class="list-grid"></div>
             </div>
           </div>
         </div>

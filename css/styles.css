@@ -810,6 +810,22 @@ button[disabled] { opacity: 0.45; cursor: not-allowed; }
   color: var(--text-muted);
   line-height: 1.55;
 }
+.client-record-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.client-record-meta span {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: var(--bg-soft);
+  border: 1px solid var(--line-mid);
+  color: var(--text-mid);
+  font-size: 0.82rem;
+}
 .chips {
   display: flex;
   flex-wrap: wrap;
