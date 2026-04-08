@@ -1,0 +1,23 @@
+export const state = {
+  app: null,
+  auth: null,
+  db: null,
+  user: null,
+  stream: null,
+  worker: null,
+  busy: false,
+  firebaseReady: false,
+  pedidos: [],
+  proveedores: [],
+  pedidosMap: new Map(),
+  proveedoresMap: new Map(),
+  currentPedido: null,
+  currentCode: '',
+  providerMode: 'existing',
+  currentRoute: 'inicio',
+  homeRecordsView: 'pedidos',
+  modalOpen: false,
+  modalType: null,
+  modalTargetId: '',
+  unsubs: []
+};
