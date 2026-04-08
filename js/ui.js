@@ -18,8 +18,6 @@ const actions = {
   viewPedido: async () => {},
   notifyClient: () => {},
   onStartCamera: async () => {},
-  onCapture: async () => {},
-  onRetry: async () => {},
   onReset: () => {},
   onSave: async () => {},
   onToggleProviderMode: () => {},
@@ -51,9 +49,6 @@ export function initUI() {
     scanBox: document.getElementById('scanBox'),
     scanLine: document.getElementById('scanLine'),
     startBtn: document.getElementById('startBtn'),
-    captureBtn: document.getElementById('captureBtn'),
-    retryBtn: document.getElementById('retryBtn'),
-    resetBtn: document.getElementById('resetBtn'),
     syncDot: document.getElementById('syncDot'),
     syncStatus: document.getElementById('syncStatus'),
     scanMessage: document.getElementById('scanMessage'),
@@ -521,7 +516,7 @@ export function clearForm() {
   setEstadoBadge('Pendiente');
   setProviderMode('existing');
   setClientMode('existing');
-  setScanMessage('Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.');
+  setScanMessage('Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.');
   setSaveMessage('Los datos se sincronizarán con Firebase en tiempo real.');
   hideEditor();
   refs.step1Num?.classList.remove('done');
@@ -535,8 +530,7 @@ export function updateScannerVisibility() {
   refs.video.style.display = active ? 'block' : 'none';
   refs.scanBox.style.display = active ? 'block' : 'none';
   refs.scanLine.style.display = active ? 'block' : 'none';
-  refs.captureBtn.disabled = !active || state.busy;
-  refs.retryBtn.disabled = !active || state.busy;
+  refs.startBtn.disabled = Boolean(state.busy && active);
   refs.startBtn.textContent = active ? 'Cerrar cámara' : 'Activar cámara';
 }
 
@@ -971,9 +965,6 @@ export function refreshModalIfNeeded() {
 export function bindUIEvents() {
   refs.estadoInput.addEventListener('change', () => setEstadoBadge(refs.estadoInput.value));
   refs.startBtn.addEventListener('click', actions.onStartCamera);
-  refs.captureBtn.addEventListener('click', () => actions.onCapture(false));
-  refs.retryBtn.addEventListener('click', () => actions.onRetry(true));
-  refs.resetBtn.addEventListener('click', actions.onReset);
   refs.cancelEditBtn.addEventListener('click', actions.onReset);
   refs.pedidoForm.addEventListener('submit', actions.onSave);
   refs.toggleNewProviderBtn.addEventListener('click', event => {

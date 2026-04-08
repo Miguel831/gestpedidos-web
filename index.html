@@ -98,18 +98,14 @@
                     <div class="scanner-status-box">
                       <div class="scanner-status-label">Código detectado</div>
                       <div class="scanner-code-display" id="currentCode">· · · · ·</div>
-                      <div class="scanner-message" id="scanMessage">Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.</div>
+                      <div class="scanner-message" id="scanMessage">Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.</div>
                     </div>
 
                     <div class="btn-row">
                       <button id="startBtn" class="btn-primary">Activar cámara</button>
-                      <button id="captureBtn" class="btn-secondary" disabled>Escanear pedido</button>
                     </div>
 
-                    <div class="btn-row btn-row-split">
-                      <button id="retryBtn" class="btn-ghost" disabled>Repetir lectura</button>
-                      <button id="resetBtn" class="btn-ghost">Limpiar ficha</button>
-                    </div>
+                    <div class="scanner-auto-note">La lectura es continua y se valida automáticamente cuando el mismo código coincide en 2 de las últimas 3 lecturas.</div>
                   </div>
 
                 </div>

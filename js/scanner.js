@@ -6,12 +6,122 @@ const actions = {
   onCodeDetected: async () => {}
 };
 
+const SCAN_INTERVAL_MS = 300;
+const STABLE_WINDOW_SIZE = 3;
+const REQUIRED_MATCHES = 2;
+
 export function setScannerActions(nextActions) {
   Object.assign(actions, nextActions);
 }
 
-export function stopCamera() {
+function clearScanTimer() {
+  if (state.scannerTimer) {
+    clearTimeout(state.scannerTimer);
+    state.scannerTimer = null;
+  }
+}
+
+function resetScannerValidation() {
+  state.scannerSamples = [];
+  state.lastStableCode = '';
+}
+
+function getFullCodeCandidate(text) {
+  const value = extractFiveDigits(text) || extractFastCandidate(text);
+  return value && value.length === 5 ? value : null;
+}
+
+function registerSample(code) {
+  state.scannerSamples.push(code || '');
+  if (state.scannerSamples.length > STABLE_WINDOW_SIZE) state.scannerSamples.shift();
+
+  if (!code) return null;
+
+  const matches = state.scannerSamples.filter(sample => sample === code).length;
+  if (matches >= REQUIRED_MATCHES) {
+    state.lastStableCode = code;
+    return code;
+  }
+
+  return null;
+}
+
+function scheduleNextScan(delay = SCAN_INTERVAL_MS) {
+  clearScanTimer();
+
+  if (!state.scannerLoopActive || !state.stream) return;
+
+  state.scannerTimer = window.setTimeout(() => {
+    void scanLoop();
+  }, delay);
+}
+
+async function scanLoop() {
   const refs = getRefs();
+
+  if (!state.scannerLoopActive || !state.stream) return;
+
+  if (state.busy) {
+    scheduleNextScan();
+    return;
+  }
+
+  state.busy = true;
+  refs.videoWrap.classList.add('scanning');
+  setSyncStatus('Escaneando', 'busy');
+
+  try {
+    await initFirebase();
+    const region = captureRegion();
+    preprocessImage(region);
+    const worker = await ensureWorker();
+    const result = await worker.recognize(refs.processedCanvas);
+    const raw = result?.data?.text || '';
+    const stableCode = registerSample(getFullCodeCandidate(raw));
+
+    if (stableCode) {
+      refs.currentCodeEl.textContent = stableCode;
+      setScanMessage(`Código ${stableCode} validado. Preparando la siguiente acción…`);
+      setSyncStatus('Código validado', 'ready');
+      stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: true });
+      await actions.onCodeDetected(stableCode);
+      return;
+    }
+
+    const latestCode = state.scannerSamples[state.scannerSamples.length - 1];
+    if (latestCode) {
+      refs.currentCodeEl.textContent = latestCode;
+      const matches = state.scannerSamples.filter(sample => sample === latestCode).length;
+      setScanMessage(matches === 1
+        ? `Detectado ${latestCode}. Mantén el código estable para confirmarlo automáticamente.`
+        : `Confirmando ${latestCode}. Falta una lectura estable más.`);
+    } else {
+      refs.currentCodeEl.textContent = '· · · · ·';
+      setScanMessage('Buscando un código de 5 dígitos. Mantén la etiqueta centrada y estable.');
+    }
+  } catch (error) {
+    console.error(error);
+    setSyncStatus('Error', 'error');
+    setScanMessage(error.message || 'Error durante el escaneo automático.');
+  } finally {
+    state.busy = false;
+    refs.videoWrap.classList.remove('scanning');
+    updateScannerVisibility();
+    if (state.scannerLoopActive && state.stream) scheduleNextScan();
+  }
+}
+
+export function stopCamera(options = {}) {
+  const {
+    preserveMessage = false,
+    preserveStatus = false,
+    preserveCode = false,
+    resetValidation = true
+  } = options;
+  const refs = getRefs();
+
+  state.scannerLoopActive = false;
+  clearScanTimer();
 
   if (state.stream) {
     state.stream.getTracks().forEach(track => track.stop());
@@ -21,12 +131,20 @@ export function stopCamera() {
   refs.video.pause();
   refs.video.srcObject = null;
   refs.videoWrap.classList.remove('scanning');
+
+  if (resetValidation) resetScannerValidation();
+  if (!preserveCode) refs.currentCodeEl.textContent = '· · · · ·';
+
   updateScannerVisibility();
 
-  if (state.firebaseReady) setSyncStatus('Conectado con Firebase', 'ready');
-  else setSyncStatus('Sistema listo');
+  if (!preserveStatus) {
+    if (state.firebaseReady) setSyncStatus('Conectado con Firebase', 'ready');
+    else setSyncStatus('Sistema listo');
+  }
 
-  setScanMessage('Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.');
+  if (!preserveMessage) {
+    setScanMessage('Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.');
+  }
 }
 
 export async function startCamera() {
@@ -59,11 +177,15 @@ export async function startCamera() {
     }
 
     state.stream = stream;
+    state.scannerLoopActive = true;
+    resetScannerValidation();
+    refs.currentCodeEl.textContent = '· · · · ·';
     refs.video.srcObject = stream;
     updateScannerVisibility();
     await refs.video.play();
     setSyncStatus('Cámara activa', 'busy');
-    setScanMessage('Sitúa el código dentro del recuadro y pulsa "Escanear pedido".');
+    setScanMessage('Lectura continua activada. Mantén el código quieto; se validará solo cuando coincida en 2 de las últimas 3 lecturas.');
+    scheduleNextScan(150);
   } catch (error) {
     console.error(error);
     stopCamera();
@@ -163,53 +285,10 @@ export function extractFastCandidate(text) {
   return null;
 }
 
-export async function readNumber(forceRetry = false) {
-  const refs = getRefs();
-
-  if (state.busy || !state.stream) return;
-
-  state.busy = true;
-  refs.captureBtn.disabled = true;
-  refs.retryBtn.disabled = true;
-  refs.videoWrap.classList.add('scanning');
-  setSyncStatus('Escaneando', 'busy');
-  setScanMessage(forceRetry ? 'Repitiendo lectura…' : 'Analizando el código del pedido…');
-
-  try {
-    await initFirebase();
-    captureRegion();
-    const worker = await ensureWorker();
-    const result = await worker.recognize(refs.cropCanvas);
-    const raw = result?.data?.text || '';
-    const value = extractFiveDigits(raw) || extractFastCandidate(raw);
-
-    if (!value) {
-      setSyncStatus('No detectado', 'error');
-      setScanMessage('No se pudo leer el código. Pulsa "Repetir lectura".');
-      return;
-    }
-
-    if (value.length !== 5) {
-      refs.currentCodeEl.textContent = value;
-      refs.codigoInput.value = value;
-      setSyncStatus('Lectura parcial', 'busy');
-      setScanMessage('Código aproximado. Repite si no coincide.');
-      return;
-    }
-
-    await actions.onCodeDetected(value);
-  } catch (error) {
-    console.error(error);
-    setSyncStatus('Error', 'error');
-    setScanMessage(error.message || 'Error durante el escaneo.');
-  } finally {
-    state.busy = false;
-    refs.videoWrap.classList.remove('scanning');
-    updateScannerVisibility();
-  }
-}
-
 export function cleanupScanner() {
-  state.stream?.getTracks().forEach(track => track.stop());
-  state.worker?.terminate();
+  stopCamera({ preserveMessage: true, preserveStatus: true });
+  if (state.worker) {
+    state.worker.terminate();
+    state.worker = null;
+  }
 }

@@ -22,5 +22,9 @@ export const state = {
   modalOpen: false,
   modalType: null,
   modalTargetId: '',
+  scannerLoopActive: false,
+  scannerTimer: null,
+  scannerSamples: [],
+  lastStableCode: '',
   unsubs: []
 };
