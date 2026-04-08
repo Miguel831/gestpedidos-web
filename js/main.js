@@ -1,18 +1,31 @@
 import { state } from './state.js';
-import { cleanupFirebase, initFirebase, loadPedidoByCode, markPedidoAsRecibido, savePedido } from './firebase.js';
+import {
+  cleanupFirebase,
+  createPedidoFromScan,
+  deleteClienteById,
+  deletePedidoByCode,
+  deleteProveedorById,
+  initFirebase,
+  loadPedidoByCode,
+  markPedidoAsReceivedNow,
+  savePedido
+} from './firebase.js';
 import { cleanupScanner, readNumber, setScannerActions, startCamera } from './scanner.js';
 import {
   applyRouteFromHash,
   bindUIEvents,
   buildClienteModalHtml,
+  buildDeleteClienteConfirmModalHtml,
+  buildDeletePedidoConfirmModalHtml,
+  buildDeleteProveedorConfirmModalHtml,
+  buildNotifyClientModalHtml,
   buildPedidoModalHtml,
   buildProveedorModalHtml,
+  buildScanAlreadyReceivedModalHtml,
+  buildScanPendingConfirmModalHtml,
   clearForm,
   closeModal,
-  escapeHtml,
   fillFormFromPedido,
-  formatDate,
-  formatDateTime,
   getRefs,
   initUI,
   openModal,
@@ -32,7 +45,23 @@ import {
 initUI();
 const refs = getRefs();
 
-async function loadPedidoIntoEditor(code) {
+function isPedidoRecibido(pedido) {
+  return pedido?.estado === 'Recibido' || Boolean(pedido?.fechaRecibo);
+}
+
+function buildMailtoForPedido(pedido) {
+  const subject = encodeURIComponent(`Tu pedido ${pedido.codigo} ya está disponible`);
+  const body = encodeURIComponent([
+    `Hola ${pedido.clienteNombre || ''},`,
+    '',
+    `Tu pedido ${pedido.codigo} ya ha sido recibido y está listo.`,
+    '',
+    'Gracias.'
+  ].join('\n'));
+  return `mailto:${encodeURIComponent(pedido.clienteCorreo)}?subject=${subject}&body=${body}`;
+}
+
+async function openPedidoByCode(code) {
   const pedido = await loadPedidoByCode(code);
   refs.currentCodeEl.textContent = pedido.codigo;
   fillFormFromPedido(pedido);
@@ -41,206 +70,19 @@ async function loadPedidoIntoEditor(code) {
 
 async function openPedidoModal(code) {
   const pedido = await loadPedidoByCode(code);
-  state.modalType = 'pedido';
-  state.modalTargetId = pedido.codigo;
-  openModal(buildPedidoModalHtml(pedido));
+  openModal(buildPedidoModalHtml(pedido), { type: 'pedido', targetId: pedido.codigo });
 }
 
 function openProveedorModal(proveedorId) {
   const proveedor = state.proveedoresMap.get(proveedorId);
   if (!proveedor) return;
-
-  state.modalType = 'proveedor';
-  state.modalTargetId = proveedor.id;
-  openModal(buildProveedorModalHtml(proveedor));
+  openModal(buildProveedorModalHtml(proveedor), { type: 'proveedor', targetId: proveedor.id });
 }
 
 function openClienteModal(clienteId) {
   const cliente = state.clientesMap.get(clienteId);
   if (!cliente) return;
-
-  state.modalType = 'cliente';
-  state.modalTargetId = cliente.id;
-  openModal(buildClienteModalHtml(cliente));
-}
-
-function buildMailtoUrl(pedido) {
-  const destinatario = encodeURIComponent(pedido.clienteCorreo || '');
-  const asunto = encodeURIComponent(`Tu pedido ${pedido.codigo} ya está disponible`);
-  const saludo = pedido.clienteNombre ? `Hola ${pedido.clienteNombre},` : 'Hola,';
-  const cuerpo = encodeURIComponent(`${saludo}
-
-Te confirmamos que tu pedido ${pedido.codigo} ya ha sido recibido y está disponible.
-
-Gracias.`);
-  return `mailto:${destinatario}?subject=${asunto}&body=${cuerpo}`;
-}
-
-function bindModalAction(selector, handler) {
-  const element = refs.detailModalBody.querySelector(selector);
-  if (element) element.addEventListener('click', handler);
-}
-
-function showNotifyClientModal(pedido, notice = 'Pedido recibido.') {
-  state.modalType = null;
-  state.modalTargetId = '';
-
-  const hasEmail = Boolean(String(pedido.clienteCorreo || '').trim());
-  openModal(`
-    <div class="modal-head">
-      <div>
-        <div class="modal-eyebrow">Confirmación</div>
-        <div class="modal-title text-title" id="detailModalTitle">Pedido recibido</div>
-      </div>
-      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
-    </div>
-
-    <div class="scan-flow-stack">
-      <div class="scan-flow-note">${escapeHtml(notice)}</div>
-      <div class="scan-flow-note">${hasEmail
-        ? `¿Avisar ahora a ${escapeHtml(pedido.clienteNombre || 'este cliente')} por correo?`
-        : `${escapeHtml(pedido.clienteNombre || 'Este cliente')} no tiene correo guardado.`}</div>
-    </div>
-
-    <div class="modal-actions">
-      ${hasEmail ? '<button type="button" class="btn-primary" id="notifyClientNowBtn">Sí</button>' : '<button type="button" class="btn-secondary" id="viewClienteAfterReceiveBtn">Ver cliente</button>'}
-      <button type="button" class="btn-ghost" id="notifyClientLaterBtn">Más tarde</button>
-    </div>
-  `);
-
-  bindModalAction('#notifyClientNowBtn', () => {
-    window.location.href = buildMailtoUrl(pedido);
-    closeModal();
-  });
-  bindModalAction('#viewClienteAfterReceiveBtn', () => {
-    closeModal();
-    if (pedido.clienteId) openClienteModal(pedido.clienteId);
-  });
-  bindModalAction('#notifyClientLaterBtn', closeModal);
-}
-
-async function handleReceiveAction(code, { force = false, notice } = {}) {
-  try {
-    setSyncStatus('Actualizando pedido', 'busy');
-    const updatedPedido = await markPedidoAsRecibido(code, { force });
-    if (updatedPedido) {
-      fillFormFromPedido(updatedPedido);
-      setSaveMessage(notice || `Pedido ${code} marcado como recibido.`);
-      setScanMessage(`Pedido ${code} recibido correctamente.`);
-      setSyncStatus('Sincronizado', 'ready');
-      showNotifyClientModal(updatedPedido, notice || 'Pedido recibido correctamente.');
-    }
-  } catch (error) {
-    console.error(error);
-    setSaveMessage(error.message || 'No se pudo actualizar el pedido.');
-    setSyncStatus('Error', 'error');
-  }
-}
-
-function showPendingReceiptModal(pedido) {
-  state.modalType = null;
-  state.modalTargetId = '';
-
-  openModal(`
-    <div class="modal-head">
-      <div>
-        <div class="modal-eyebrow">Pedido encontrado</div>
-        <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
-      </div>
-      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
-    </div>
-
-    <div class="scan-flow-stack">
-      <div class="scan-flow-card">
-        <div><strong>Proveedor:</strong> ${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</div>
-        <div><strong>Cliente:</strong> ${escapeHtml(pedido.clienteNombre || 'Sin asignar')}</div>
-        <div><strong>Fecha de alta:</strong> ${escapeHtml(formatDate(pedido.fechaEnvio || pedido.createdAt))}</div>
-      </div>
-      <div class="scan-flow-question">¿Marcar como recibido ahora?</div>
-    </div>
-
-    <div class="modal-actions">
-      <button type="button" class="btn-primary" id="confirmReceiveBtn">Marcar como recibido</button>
-      <button type="button" class="btn-ghost" id="cancelReceiveBtn">Cancelar</button>
-    </div>
-  `);
-
-  bindModalAction('#confirmReceiveBtn', async () => {
-    closeModal();
-    await handleReceiveAction(pedido.codigo, {
-      notice: `Pedido ${pedido.codigo} marcado como recibido.`
-    });
-  });
-  bindModalAction('#cancelReceiveBtn', closeModal);
-}
-
-function showAlreadyReceivedModal(pedido) {
-  state.modalType = null;
-  state.modalTargetId = '';
-
-  openModal(`
-    <div class="modal-head">
-      <div>
-        <div class="modal-eyebrow">Pedido ya recibido</div>
-        <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
-      </div>
-      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
-    </div>
-
-    <div class="scan-flow-stack">
-      <div class="scan-flow-note">
-        Este pedido ya figura como recibido el ${escapeHtml(formatDateTime(pedido.fechaRecibo || pedido.updatedAt))}.
-      </div>
-    </div>
-
-    <div class="modal-actions">
-      <button type="button" class="btn-secondary" id="viewPedidoBtn">Ver pedido</button>
-      <button type="button" class="btn-primary" id="forceReceiveBtn">Actualizar fecha de recepción</button>
-      <button type="button" class="btn-ghost" id="cancelAlreadyReceivedBtn">Cancelar</button>
-    </div>
-  `);
-
-  bindModalAction('#viewPedidoBtn', async () => {
-    closeModal();
-    await openPedidoModal(pedido.codigo);
-  });
-  bindModalAction('#forceReceiveBtn', async () => {
-    closeModal();
-    await handleReceiveAction(pedido.codigo, {
-      force: true,
-      notice: `Fecha de recepción actualizada para el pedido ${pedido.codigo}.`
-    });
-  });
-  bindModalAction('#cancelAlreadyReceivedBtn', closeModal);
-}
-
-async function handleScannedCode(code) {
-  const pedido = await loadPedidoByCode(code);
-  refs.currentCodeEl.textContent = pedido.codigo;
-
-  if (!pedido.existsInDb) {
-    const draftPedido = {
-      ...pedido,
-      fechaEnvio: pedido.fechaEnvio || new Date().toISOString(),
-      fechaRecibo: '',
-      estado: 'Pendiente'
-    };
-    fillFormFromPedido(draftPedido);
-    setSaveMessage('Nuevo pedido preparado. Completa proveedor y cliente para guardarlo.');
-    setScanMessage(`Pedido ${code} preparado. Completa la ficha y guárdalo.`);
-    setSyncStatus('Nuevo pedido', 'ready');
-    return draftPedido;
-  }
-
-  if (pedido.estado === 'Recibido' || pedido.fechaRecibo) {
-    setScanMessage(`El pedido ${code} ya figuraba como recibido.`);
-    showAlreadyReceivedModal(pedido);
-    return pedido;
-  }
-
-  setScanMessage(`Pedido ${code} encontrado. Confirma si ha sido recibido.`);
-  showPendingReceiptModal(pedido);
-  return pedido;
+  openModal(buildClienteModalHtml(cliente), { type: 'cliente', targetId: cliente.id });
 }
 
 async function applyCodeChange() {
@@ -254,7 +96,7 @@ async function applyCodeChange() {
     refs.currentCodeEl.textContent = nuevoCodigo;
 
     setSaveMessage('Cargando datos del nuevo código...');
-    const pedidoActualizado = await loadPedidoIntoEditor(nuevoCodigo);
+    const pedidoActualizado = await loadPedidoByCode(nuevoCodigo);
     fillFormFromPedido(pedidoActualizado);
     setSaveMessage('Los datos se sincronizarán con Firebase en tiempo real.');
     return;
@@ -303,11 +145,191 @@ async function handleSavePedido(event) {
   }
 }
 
+async function handleScannedCode(code) {
+  try {
+    const pedido = await loadPedidoByCode(code);
+
+    if (!pedido.existsInDb) {
+      setSyncStatus('Creando pedido', 'busy');
+      const createdPedido = await createPedidoFromScan(code);
+      fillFormFromPedido(createdPedido);
+      setScanMessage(`Pedido ${code} creado automáticamente. Completa la ficha cuando quieras.`);
+      setSaveMessage(`Se ha creado el pedido ${code} con fecha de inicio de hoy y estado pendiente.`);
+      setSyncStatus('Pedido preparado', 'ready');
+      return createdPedido;
+    }
+
+    if (isPedidoRecibido(pedido)) {
+      openModal(buildScanAlreadyReceivedModalHtml(pedido), { type: 'transient', targetId: '' });
+      setScanMessage(`El pedido ${code} ya constaba como recibido.`);
+      setSyncStatus('Pedido ya recibido', 'busy');
+      return pedido;
+    }
+
+    openModal(buildScanPendingConfirmModalHtml(pedido), { type: 'transient', targetId: '' });
+    setScanMessage(`El pedido ${code} ya existía. Confirma si quieres marcarlo como recibido.`);
+    setSyncStatus('Confirmación requerida', 'busy');
+    return pedido;
+  } catch (error) {
+    console.error(error);
+    setSyncStatus('Error', 'error');
+    setScanMessage(error.message || 'No se pudo procesar el escaneo.');
+    throw error;
+  }
+}
+
+async function markPedidoRecibido(code) {
+  try {
+    setSyncStatus('Guardando recepción', 'busy');
+    const updatedPedido = await markPedidoAsReceivedNow(code);
+    fillFormFromPedido(updatedPedido);
+    setSaveMessage(`Pedido ${code} marcado como recibido.`);
+    setScanMessage(`Pedido ${code} recibido correctamente.`);
+    openModal(buildNotifyClientModalHtml(updatedPedido), { type: 'transient', targetId: '' });
+    setSyncStatus('Sincronizado', 'ready');
+  } catch (error) {
+    console.error(error);
+    setSaveMessage(error.message || 'No se pudo marcar como recibido.');
+    setSyncStatus('Error', 'error');
+  }
+}
+
+async function updateFechaRecepcion(code) {
+  try {
+    setSyncStatus('Actualizando fecha', 'busy');
+    const updatedPedido = await markPedidoAsReceivedNow(code);
+    closeModal();
+    fillFormFromPedido(updatedPedido);
+    setSaveMessage(`Fecha de recepción de ${code} actualizada.`);
+    setScanMessage(`La fecha de recepción del pedido ${code} se ha actualizado.`);
+    setSyncStatus('Sincronizado', 'ready');
+  } catch (error) {
+    console.error(error);
+    setSaveMessage(error.message || 'No se pudo actualizar la fecha de recepción.');
+    setSyncStatus('Error', 'error');
+  }
+}
+
+async function viewPedido(code) {
+  closeModal();
+  await openPedidoByCode(code);
+}
+
+function notifyClient(code) {
+  const pedido = state.pedidosMap.get(code);
+  if (!pedido?.clienteCorreo) {
+    setSaveMessage('Este pedido no tiene correo de cliente para enviar aviso.');
+    closeModal();
+    if (pedido) fillFormFromPedido(pedido);
+    return;
+  }
+
+  window.location.href = buildMailtoForPedido(pedido);
+  closeModal();
+  setSaveMessage(`Se ha preparado un correo para avisar al cliente del pedido ${code}.`);
+}
+
+function promptDeletePedido(code) {
+  const pedido = state.pedidosMap.get(code);
+  if (!pedido) return;
+  openModal(buildDeletePedidoConfirmModalHtml(pedido), { type: 'transient', targetId: '' });
+}
+
+function promptDeleteProveedor(proveedorId) {
+  const proveedor = state.proveedoresMap.get(proveedorId);
+  if (!proveedor) return;
+  openModal(buildDeleteProveedorConfirmModalHtml(proveedor), { type: 'transient', targetId: '' });
+}
+
+function promptDeleteCliente(clienteId) {
+  const cliente = state.clientesMap.get(clienteId);
+  if (!cliente) return;
+  openModal(buildDeleteClienteConfirmModalHtml(cliente), { type: 'transient', targetId: '' });
+}
+
+async function confirmDeletePedido(code) {
+  try {
+    setSyncStatus('Eliminando pedido', 'busy');
+    await deletePedidoByCode(code);
+    if (state.currentCode === code) clearForm();
+    closeModal();
+    setSaveMessage(`Pedido ${code} eliminado correctamente.`);
+    setScanMessage('El pedido se ha eliminado de la base de datos.');
+    setSyncStatus('Sincronizado', 'ready');
+  } catch (error) {
+    console.error(error);
+    setSaveMessage(error.message || 'No se pudo eliminar el pedido.');
+    setSyncStatus('Error', 'error');
+  }
+}
+
+async function confirmDeleteProveedor(proveedorId) {
+  try {
+    setSyncStatus('Eliminando proveedor', 'busy');
+    const { proveedor, affectedPedidos } = await deleteProveedorById(proveedorId);
+
+    if (state.currentPedido?.proveedorId === proveedorId) {
+      refs.proveedorSelect.value = '';
+      if (state.currentPedido) {
+        state.currentPedido.proveedorId = '';
+        state.currentPedido.proveedorNombre = '';
+      }
+    }
+
+    closeModal();
+    setSaveMessage(affectedPedidos.length
+      ? `Proveedor eliminado. ${affectedPedidos.length} pedido${affectedPedidos.length === 1 ? '' : 's'} han quedado sin proveedor asignado.`
+      : `Proveedor ${proveedor.nombre} eliminado correctamente.`);
+    setSyncStatus('Sincronizado', 'ready');
+  } catch (error) {
+    console.error(error);
+    setSaveMessage(error.message || 'No se pudo eliminar el proveedor.');
+    setSyncStatus('Error', 'error');
+  }
+}
+
+async function confirmDeleteCliente(clienteId) {
+  try {
+    setSyncStatus('Eliminando cliente', 'busy');
+    const { cliente, affectedPedidos } = await deleteClienteById(clienteId);
+
+    if (state.currentPedido?.clienteId === clienteId) {
+      refs.clienteSelect.value = '';
+      if (state.currentPedido) {
+        state.currentPedido.clienteId = '';
+        state.currentPedido.clienteNombre = '';
+        state.currentPedido.clienteCorreo = '';
+        state.currentPedido.clienteNumero = '';
+      }
+    }
+
+    closeModal();
+    setSaveMessage(affectedPedidos.length
+      ? `Cliente eliminado. ${affectedPedidos.length} pedido${affectedPedidos.length === 1 ? '' : 's'} han quedado sin cliente asignado.`
+      : `Cliente ${cliente.nombre} eliminado correctamente.`);
+    setSyncStatus('Sincronizado', 'ready');
+  } catch (error) {
+    console.error(error);
+    setSaveMessage(error.message || 'No se pudo eliminar el cliente.');
+    setSyncStatus('Error', 'error');
+  }
+}
+
 setUIActions({
   openPedidoModal,
   openProveedorModal,
   openClienteModal,
-  editPedido: loadPedidoIntoEditor,
+  editPedido: openPedidoByCode,
+  promptDeletePedido,
+  promptDeleteProveedor,
+  promptDeleteCliente,
+  confirmDeletePedido,
+  confirmDeleteProveedor,
+  confirmDeleteCliente,
+  markPedidoRecibido,
+  updateFechaRecepcion,
+  viewPedido,
+  notifyClient,
   onStartCamera: startCamera,
   onCapture: () => readNumber(false),
   onRetry: () => readNumber(true),

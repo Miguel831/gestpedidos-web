@@ -7,7 +7,16 @@ const actions = {
   openProveedorModal: () => {},
   openClienteModal: () => {},
   editPedido: async () => {},
-  onApplyRouteFromHash: () => {},
+  promptDeletePedido: () => {},
+  promptDeleteProveedor: () => {},
+  promptDeleteCliente: () => {},
+  confirmDeletePedido: async () => {},
+  confirmDeleteProveedor: async () => {},
+  confirmDeleteCliente: async () => {},
+  markPedidoRecibido: async () => {},
+  updateFechaRecepcion: async () => {},
+  viewPedido: async () => {},
+  notifyClient: () => {},
   onStartCamera: async () => {},
   onCapture: async () => {},
   onRetry: async () => {},
@@ -15,9 +24,7 @@ const actions = {
   onSave: async () => {},
   onToggleProviderMode: () => {},
   onToggleClientMode: () => {},
-  onCloseEditor: () => {},
-  onOpenDrawer: () => {},
-  onCloseDrawer: () => {}
+  onCloseEditor: () => {}
 };
 
 export function initUI() {
@@ -78,7 +85,6 @@ export function initUI() {
     summaryPedidos: document.getElementById('summaryPedidos'),
     summaryPendientes: document.getElementById('summaryPendientes'),
     summaryProveedores: document.getElementById('summaryProveedores'),
-    summaryClientes: document.getElementById('summaryClientes'),
     homePedidosPanel: document.getElementById('homePedidosPanel'),
     homeProveedoresPanel: document.getElementById('homeProveedoresPanel'),
     pagePedidosPanel: document.getElementById('pagePedidosPanel'),
@@ -110,7 +116,7 @@ export function setUIActions(nextActions) {
 
 export function setSyncStatus(text, dotState = '') {
   refs.syncStatus.textContent = text;
-  refs.syncDot.className = 'sync-dot' + (dotState ? ` ${dotState}` : '');
+  refs.syncDot.className = `sync-dot${dotState ? ` ${dotState}` : ''}`;
 }
 
 export function setScanMessage(text) {
@@ -122,7 +128,7 @@ export function setSaveMessage(text) {
 }
 
 export function escapeHtml(value) {
-  return String(value || '')
+  return String(value ?? '')
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
@@ -130,35 +136,33 @@ export function escapeHtml(value) {
     .replace(/'/g, '&#039;');
 }
 
-export function toMillis(value) {
-  if (!value) return 0;
-  if (typeof value.toMillis === 'function') return value.toMillis();
-  const date = new Date(value);
-  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
+export function normalizeText(value) {
+  return String(value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
 }
 
-export function toInputDate(value) {
-  if (!value) return '';
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return value;
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T/.test(value)) return value.slice(0, 10);
+export function toMillis(value) {
+  if (!value) return 0;
+  if (typeof value?.toMillis === 'function') return value.toMillis();
   const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().slice(0, 10);
+  return Number.isNaN(date.getTime()) ? 0 : date.getTime();
 }
 
 export function formatDate(value) {
   if (!value) return '—';
   if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    const [y, m, d] = value.split('-');
-    return `${d}/${m}/${y}`;
+    const [year, month, day] = value.split('-');
+    return `${day}/${month}/${year}`;
   }
   const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleDateString('es-ES');
 }
 
 export function formatDateTime(value) {
-  if (!value) return '—';
-  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)) return formatDate(value);
+  if (!value) return formatDate(value);
   const date = typeof value?.toDate === 'function' ? value.toDate() : new Date(value);
   if (Number.isNaN(date.getTime())) return formatDate(value);
   return date.toLocaleString('es-ES', {
@@ -170,17 +174,17 @@ export function formatDateTime(value) {
   });
 }
 
-export function normalizeText(value) {
-  return String(value || '')
-    .normalize('NFD')
-    .replace(/[\u0300-\u036f]/g, '')
-    .trim()
-    .toLowerCase();
+export function todayISO() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
-export function getEstadoClass(estado) {
+function getEstadoClass(estado) {
   if (estado === 'Recibido') return 'estado-recibido';
-  if (estado === 'En tránsito') return 'estado-en-transito';
+  if (estado === 'En tránsito') return 'estado-transito';
   if (estado === 'Incidencia') return 'estado-incidencia';
   return 'estado-pendiente';
 }
@@ -212,13 +216,14 @@ export function setRoute(route, pushHash = true) {
   refs.screenPedidos.classList.toggle('active', safeRoute === 'pedidos');
   refs.screenProveedores.classList.toggle('active', safeRoute === 'proveedores');
   refs.screenClientes.classList.toggle('active', safeRoute === 'clientes');
-  refs.navInicioBtn.classList.toggle('active', safeRoute === 'inicio');
-  refs.navPedidosBtn.classList.toggle('active', safeRoute === 'pedidos');
-  refs.navProveedoresBtn.classList.toggle('active', safeRoute === 'proveedores');
-  refs.navClientesBtn.classList.toggle('active', safeRoute === 'clientes');
+
+  refs.navInicioBtn?.classList.toggle('active', safeRoute === 'inicio');
+  refs.navPedidosBtn?.classList.toggle('active', safeRoute === 'pedidos');
+  refs.navProveedoresBtn?.classList.toggle('active', safeRoute === 'proveedores');
+  refs.navClientesBtn?.classList.toggle('active', safeRoute === 'clientes');
 
   if (pushHash) {
-    const hash = safeRoute === 'inicio' ? '#inicio' : `#${safeRoute}`;
+    const hash = `#${safeRoute}`;
     if (location.hash !== hash) history.pushState(null, '', hash);
   }
 
@@ -242,10 +247,9 @@ export function setHomeRecordsView(view) {
 }
 
 export function renderSummary() {
-  refs.summaryPedidos.textContent = state.pedidos.length || '0';
-  refs.summaryPendientes.textContent = state.pedidos.filter(item => item.estado !== 'Recibido').length || '0';
-  refs.summaryProveedores.textContent = state.proveedores.length || '0';
-  if (refs.summaryClientes) refs.summaryClientes.textContent = state.clientes.length || '0';
+  refs.summaryPedidos.textContent = String(state.pedidos.length || 0);
+  refs.summaryPendientes.textContent = String(state.pedidos.filter(item => item.estado !== 'Recibido').length || 0);
+  refs.summaryProveedores.textContent = String(state.proveedores.length || 0);
 }
 
 export function renderProveedorSelect() {
@@ -308,6 +312,7 @@ function getClientePedidos(cliente) {
 }
 
 export function renderPedidosInto(target) {
+  if (!target) return;
   if (!state.pedidos.length) {
     target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay pedidos guardados. Escanea un código para crear el primero.</p></div>';
     return;
@@ -334,6 +339,7 @@ export function renderPedidosInto(target) {
 }
 
 export function renderProveedoresInto(target) {
+  if (!target) return;
   if (!state.proveedores.length) {
     target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay proveedores. Crea uno desde la ficha de pedido.</p></div>';
     return;
@@ -370,6 +376,7 @@ export function renderProveedoresInto(target) {
 }
 
 export function renderClientesInto(target) {
+  if (!target) return;
   if (!state.clientes.length) {
     target.innerHTML = '<div class="empty-state"><div class="empty-icon">◇</div><p>Todavía no hay clientes. Puedes crear uno desde la ficha de pedido.</p></div>';
     return;
@@ -455,19 +462,14 @@ export function setClientMode(mode) {
   }
 }
 
-function syncBodyLock() {
-  const shouldLock = refs.editorModal?.classList.contains('visible') || refs.detailModal?.classList.contains('visible');
-  document.body.classList.toggle('no-scroll', Boolean(shouldLock));
-}
-
 export function showEditor() {
   refs.editorModal.classList.add('visible');
-  syncBodyLock();
+  document.body.classList.add('no-scroll');
 }
 
 export function hideEditor() {
   refs.editorModal.classList.remove('visible');
-  syncBodyLock();
+  document.body.classList.remove('no-scroll');
   refs.editorCodeInput.style.display = 'none';
   refs.editorCodeBig.style.display = 'inline-block';
 }
@@ -480,8 +482,8 @@ export function fillFormFromPedido(pedido) {
   refs.editorCodeBig.textContent = pedido?.codigo || '—';
   refs.currentCodeEl.textContent = pedido?.codigo || '· · · · ·';
   refs.estadoInput.value = pedido?.estado || 'Pendiente';
-  refs.fechaEnvioInput.value = toInputDate(pedido?.fechaEnvio);
-  refs.fechaReciboInput.value = toInputDate(pedido?.fechaRecibo);
+  refs.fechaEnvioInput.value = pedido?.fechaEnvio || '';
+  refs.fechaReciboInput.value = pedido?.fechaRecibo || '';
   refs.descripcionInput.value = pedido?.descripcion || '';
   refs.proveedorSelect.value = pedido?.proveedorId || '';
   refs.clienteSelect.value = pedido?.clienteId || '';
@@ -538,21 +540,27 @@ export function closeModal() {
   state.modalOpen = false;
   state.modalType = null;
   state.modalTargetId = '';
-  syncBodyLock();
+  document.body.classList.remove('no-scroll');
 }
 
-export function openModal(html) {
+export function openModal(html, modalContext = null) {
+  if (modalContext) {
+    state.modalType = modalContext.type || null;
+    state.modalTargetId = modalContext.targetId || '';
+  }
+
   refs.detailModalBody.innerHTML = html;
   refs.detailModal.classList.add('visible');
   state.modalOpen = true;
-  syncBodyLock();
-
-  const closeBtn = refs.detailModalBody.querySelector('[data-close-modal]');
-  if (closeBtn) closeBtn.addEventListener('click', closeModal);
+  document.body.classList.add('no-scroll');
   bindModalActions();
 }
 
 function bindModalActions() {
+  refs.detailModalBody.querySelectorAll('[data-close-modal],[data-dismiss-modal]').forEach(element => {
+    element.addEventListener('click', closeModal);
+  });
+
   refs.detailModalBody.querySelectorAll('[data-open-pedido-modal]').forEach(element => {
     element.addEventListener('click', () => actions.openPedidoModal(element.dataset.openPedidoModal));
   });
@@ -571,6 +579,62 @@ function bindModalActions() {
       closeModal();
     });
   });
+
+  refs.detailModalBody.querySelectorAll('[data-view-pedido]').forEach(element => {
+    element.addEventListener('click', async () => {
+      await actions.viewPedido(element.dataset.viewPedido);
+    });
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-prompt-delete-pedido]').forEach(element => {
+    element.addEventListener('click', () => actions.promptDeletePedido(element.dataset.promptDeletePedido));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-prompt-delete-proveedor]').forEach(element => {
+    element.addEventListener('click', () => actions.promptDeleteProveedor(element.dataset.promptDeleteProveedor));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-prompt-delete-cliente]').forEach(element => {
+    element.addEventListener('click', () => actions.promptDeleteCliente(element.dataset.promptDeleteCliente));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-confirm-delete-pedido]').forEach(element => {
+    element.addEventListener('click', () => actions.confirmDeletePedido(element.dataset.confirmDeletePedido));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-confirm-delete-proveedor]').forEach(element => {
+    element.addEventListener('click', () => actions.confirmDeleteProveedor(element.dataset.confirmDeleteProveedor));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-confirm-delete-cliente]').forEach(element => {
+    element.addEventListener('click', () => actions.confirmDeleteCliente(element.dataset.confirmDeleteCliente));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-mark-received]').forEach(element => {
+    element.addEventListener('click', () => actions.markPedidoRecibido(element.dataset.markReceived));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-update-received]').forEach(element => {
+    element.addEventListener('click', () => actions.updateFechaRecepcion(element.dataset.updateReceived));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-notify-client]').forEach(element => {
+    element.addEventListener('click', () => actions.notifyClient(element.dataset.notifyClient));
+  });
+}
+
+function buildDangerZoneHtml({ title, note, triggerAttr, triggerValue }) {
+  return `
+    <div class="danger-zone">
+      <div>
+        <div class="danger-zone-title">${escapeHtml(title)}</div>
+        <div class="danger-zone-note">${escapeHtml(note)}</div>
+      </div>
+      <button type="button" class="danger-icon-btn" ${triggerAttr}="${escapeHtml(triggerValue)}" aria-label="${escapeHtml(title)}">
+        <span aria-hidden="true">🗑</span>
+      </button>
+    </div>
+  `;
 }
 
 export function buildPedidoModalHtml(pedido) {
@@ -615,11 +679,22 @@ export function buildPedidoModalHtml(pedido) {
       ${pedido.proveedorId ? `<button type="button" class="btn-secondary" data-open-proveedor-modal="${pedido.proveedorId}">Ver proveedor</button>` : ''}
       ${pedido.clienteId ? `<button type="button" class="btn-secondary" data-open-cliente-modal="${pedido.clienteId}">Ver cliente</button>` : ''}
     </div>
+
+    ${buildDangerZoneHtml({
+      title: 'Eliminar pedido',
+      note: 'Acción irreversible. La papelera está separada del resto para evitar pulsaciones accidentales.',
+      triggerAttr: 'data-prompt-delete-pedido',
+      triggerValue: pedido.codigo
+    })}
   `;
 }
 
 export function buildProveedorModalHtml(proveedor) {
   const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+  const note = pedidos.length
+    ? `Se desvinculará de ${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'} si confirmas el borrado.`
+    : 'No tiene pedidos asociados.';
+
   return `
     <div class="modal-head">
       <div>
@@ -642,14 +717,22 @@ export function buildProveedorModalHtml(proveedor) {
           : '<span class="chip no-link">Sin pedidos</span>'}
       </div>
     </div>
+
+    ${buildDangerZoneHtml({
+      title: 'Eliminar proveedor',
+      note,
+      triggerAttr: 'data-prompt-delete-proveedor',
+      triggerValue: proveedor.id
+    })}
   `;
 }
 
 export function buildClienteModalHtml(cliente) {
-  const pedidos = Array.isArray(cliente.listaPedidos)
-    ? cliente.listaPedidos
-    : (Array.isArray(cliente.pedidosAsignados) ? cliente.pedidosAsignados : []);
+  const pedidos = getClientePedidos(cliente);
   const dineroGastado = Number.isFinite(Number(cliente.dineroGastado)) ? Number(cliente.dineroGastado) : 0;
+  const note = pedidos.length
+    ? `Se desvinculará de ${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'} si confirmas el borrado.`
+    : 'No tiene pedidos asociados.';
 
   return `
     <div class="modal-head">
@@ -683,6 +766,177 @@ export function buildClienteModalHtml(cliente) {
           : '<span class="chip no-link">Sin pedidos</span>'}
       </div>
     </div>
+
+    ${buildDangerZoneHtml({
+      title: 'Eliminar cliente',
+      note,
+      triggerAttr: 'data-prompt-delete-cliente',
+      triggerValue: cliente.id
+    })}
+  `;
+}
+
+export function buildScanPendingConfirmModalHtml(pedido) {
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Pedido encontrado</div>
+        <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="modal-item">
+        <div class="modal-label">Proveedor</div>
+        <div class="modal-value">${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-label">Cliente</div>
+        <div class="modal-value">${escapeHtml(pedido.clienteNombre || 'Sin asignar')}</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-label">Fecha de alta</div>
+        <div class="modal-value">${escapeHtml(formatDate(pedido.fechaEnvio || pedido.createdAt))}</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-label">Estado actual</div>
+        <div class="modal-value">${escapeHtml(pedido.estado || 'Pendiente')}</div>
+      </div>
+    </div>
+
+    <div class="modal-callout">
+      <div class="modal-callout-title">¿Marcar como recibido ahora?</div>
+      <div class="modal-callout-text">Se guardará la fecha de llegada con la fecha actual sin pedirla manualmente.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" data-mark-received="${pedido.codigo}">Marcar como recibido</button>
+      <button type="button" class="btn-ghost" data-dismiss-modal>Cancelar</button>
+    </div>
+  `;
+}
+
+export function buildScanAlreadyReceivedModalHtml(pedido) {
+  const when = pedido.updatedAt ? formatDateTime(pedido.updatedAt) : formatDate(pedido.fechaRecibo);
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Pedido ya recibido</div>
+        <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout warning">
+      <div class="modal-callout-title">Este pedido ya figura como recibido ${when && when !== '—' ? `el ${escapeHtml(when)}` : ''}.</div>
+      <div class="modal-callout-text">Por seguridad no se actualiza automáticamente en un segundo reescaneo.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" data-view-pedido="${pedido.codigo}">Ver pedido</button>
+      <button type="button" class="btn-secondary" data-update-received="${pedido.codigo}">Actualizar fecha de recepción</button>
+      <button type="button" class="btn-ghost" data-dismiss-modal>Cancelar</button>
+    </div>
+  `;
+}
+
+export function buildNotifyClientModalHtml(pedido) {
+  const hasEmail = Boolean(pedido.clienteCorreo);
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Pedido recibido</div>
+        <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout success">
+      <div class="modal-callout-title">El pedido ya está marcado como recibido.</div>
+      <div class="modal-callout-text">${hasEmail ? '¿Quieres avisar ahora al cliente por correo?' : 'No hay correo guardado para avisar automáticamente al cliente.'}</div>
+    </div>
+
+    <div class="modal-actions">
+      ${hasEmail ? `<button type="button" class="btn-primary" data-notify-client="${pedido.codigo}">Sí, avisar</button>` : `<button type="button" class="btn-secondary" data-view-pedido="${pedido.codigo}">Ver pedido</button>`}
+      <button type="button" class="btn-ghost" data-dismiss-modal>${hasEmail ? 'Más tarde' : 'Cerrar'}</button>
+    </div>
+  `;
+}
+
+export function buildDeletePedidoConfirmModalHtml(pedido) {
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Eliminar pedido</div>
+        <div class="modal-title" id="detailModalTitle">${escapeHtml(pedido.codigo)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout danger">
+      <div class="modal-callout-title">¿Eliminar este pedido de la base de datos?</div>
+      <div class="modal-callout-text">También se quitará de las listas asociadas del proveedor y del cliente.</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-danger" data-confirm-delete-pedido="${pedido.codigo}">Eliminar</button>
+      <button type="button" class="btn-ghost" data-dismiss-modal>Cancelar</button>
+    </div>
+  `;
+}
+
+export function buildDeleteProveedorConfirmModalHtml(proveedor) {
+  const pedidos = Array.isArray(proveedor.pedidosAsignados) ? proveedor.pedidosAsignados : [];
+  const text = pedidos.length
+    ? `Este proveedor tiene ${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'} asociados. Si continúas, esos pedidos se conservarán pero quedarán sin proveedor asignado.`
+    : 'No tiene pedidos asociados. Se eliminará únicamente la ficha del proveedor.';
+
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Eliminar proveedor</div>
+        <div class="modal-title text-title" id="detailModalTitle">${escapeHtml(proveedor.nombre)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout danger">
+      <div class="modal-callout-title">${pedidos.length ? 'Este borrado afectará a pedidos vinculados.' : '¿Eliminar este proveedor?'} </div>
+      <div class="modal-callout-text">${escapeHtml(text)}</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-danger" data-confirm-delete-proveedor="${proveedor.id}">Eliminar proveedor</button>
+      <button type="button" class="btn-ghost" data-dismiss-modal>Cancelar</button>
+    </div>
+  `;
+}
+
+export function buildDeleteClienteConfirmModalHtml(cliente) {
+  const pedidos = getClientePedidos(cliente);
+  const text = pedidos.length
+    ? `Este cliente tiene ${pedidos.length} pedido${pedidos.length === 1 ? '' : 's'} asociados. Si continúas, esos pedidos se conservarán pero quedarán sin cliente asignado.`
+    : 'No tiene pedidos asociados. Se eliminará únicamente la ficha del cliente.';
+
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Eliminar cliente</div>
+        <div class="modal-title text-title" id="detailModalTitle">${escapeHtml(cliente.nombre)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout danger">
+      <div class="modal-callout-title">${pedidos.length ? 'Este borrado afectará a pedidos vinculados.' : '¿Eliminar este cliente?'}</div>
+      <div class="modal-callout-text">${escapeHtml(text)}</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-danger" data-confirm-delete-cliente="${cliente.id}">Eliminar cliente</button>
+      <button type="button" class="btn-ghost" data-dismiss-modal>Cancelar</button>
+    </div>
   `;
 }
 
@@ -691,19 +945,19 @@ export function refreshModalIfNeeded() {
 
   if (state.modalType === 'pedido' && state.modalTargetId) {
     const pedido = state.pedidosMap.get(state.modalTargetId);
-    if (pedido) openModal(buildPedidoModalHtml(pedido));
+    if (pedido) openModal(buildPedidoModalHtml(pedido), { type: 'pedido', targetId: pedido.codigo });
     else closeModal();
   }
 
   if (state.modalType === 'proveedor' && state.modalTargetId) {
     const proveedor = state.proveedoresMap.get(state.modalTargetId);
-    if (proveedor) openModal(buildProveedorModalHtml(proveedor));
+    if (proveedor) openModal(buildProveedorModalHtml(proveedor), { type: 'proveedor', targetId: proveedor.id });
     else closeModal();
   }
 
   if (state.modalType === 'cliente' && state.modalTargetId) {
     const cliente = state.clientesMap.get(state.modalTargetId);
-    if (cliente) openModal(buildClienteModalHtml(cliente));
+    if (cliente) openModal(buildClienteModalHtml(cliente), { type: 'cliente', targetId: cliente.id });
     else closeModal();
   }
 }
@@ -731,14 +985,14 @@ export function bindUIEvents() {
     else openDrawer();
   });
   refs.drawerBackdrop.addEventListener('click', closeDrawer);
-  refs.navInicioBtn.addEventListener('click', () => setRoute('inicio'));
-  refs.navPedidosBtn.addEventListener('click', () => setRoute('pedidos'));
-  refs.navProveedoresBtn.addEventListener('click', () => setRoute('proveedores'));
-  refs.navClientesBtn.addEventListener('click', () => setRoute('clientes'));
-  refs.goHomeBtn.addEventListener('click', () => setRoute('inicio'));
+  refs.navInicioBtn?.addEventListener('click', () => setRoute('inicio'));
+  refs.navPedidosBtn?.addEventListener('click', () => setRoute('pedidos'));
+  refs.navProveedoresBtn?.addEventListener('click', () => setRoute('proveedores'));
+  refs.navClientesBtn?.addEventListener('click', () => setRoute('clientes'));
+  refs.goHomeBtn?.addEventListener('click', () => setRoute('inicio'));
 
-  refs.homeTabPedidos.addEventListener('click', () => setHomeRecordsView('pedidos'));
-  refs.homeTabProveedores.addEventListener('click', () => setHomeRecordsView('proveedores'));
+  refs.homeTabPedidos?.addEventListener('click', () => setHomeRecordsView('pedidos'));
+  refs.homeTabProveedores?.addEventListener('click', () => setHomeRecordsView('proveedores'));
 
   refs.detailModal.addEventListener('click', event => {
     if (event.target === refs.detailModal) closeModal();

@@ -198,8 +198,6 @@ export async function readNumber(forceRetry = false) {
     }
 
     await actions.onCodeDetected(value);
-    setSyncStatus('Pedido cargado', 'ready');
-    setScanMessage(`Pedido ${value} listo para consulta o edición.`);
   } catch (error) {
     console.error(error);
     setSyncStatus('Error', 'error');

@@ -11,7 +11,8 @@ import {
   onSnapshot,
   serverTimestamp,
   arrayUnion,
-  arrayRemove
+  arrayRemove,
+  writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
 import { firebaseConfig } from './config.js';
@@ -24,25 +25,14 @@ import {
   renderSummary,
   refreshModalIfNeeded,
   setSaveMessage,
-  setSyncStatus
+  setSyncStatus,
+  todayISO
 } from './ui.js';
 
 let firebaseInitPromise = null;
 
 function hasFirebasePlaceholders() {
   return Object.values(firebaseConfig).some(value => !value || String(value).includes('PON_AQUI_TU_'));
-}
-
-function getNowIso() {
-  return new Date().toISOString();
-}
-
-function preserveDateTime(nextValue, previousValue = '') {
-  if (!nextValue) return '';
-  if (typeof previousValue === 'string' && previousValue.length > 10 && previousValue.slice(0, 10) === nextValue) {
-    return previousValue;
-  }
-  return nextValue;
 }
 
 export function buildNewPedido(code) {
@@ -54,7 +44,7 @@ export function buildNewPedido(code) {
     clienteNombre: '',
     clienteCorreo: '',
     clienteNumero: '',
-    fechaEnvio: getNowIso(),
+    fechaEnvio: '',
     fechaRecibo: '',
     descripcion: '',
     estado: 'Pendiente',
@@ -121,6 +111,11 @@ export function subscribeToCollections() {
   );
 }
 
+async function getFreshPedido(codigo) {
+  const snapshot = await getDoc(doc(state.db, 'pedidos', codigo));
+  return snapshot.exists() ? { id: snapshot.id, ...snapshot.data(), existsInDb: true } : null;
+}
+
 export async function loadPedidoByCode(code) {
   await initFirebase();
   const safeCode = String(code || '').trim();
@@ -146,6 +141,55 @@ function findProveedorByName(name) {
 function findClienteByName(name) {
   const normalized = normalizeText(name);
   return state.clientes.find(cliente => normalizeText(cliente.nombre) === normalized) || null;
+}
+
+export async function createPedidoFromScan(codigo) {
+  await initFirebase();
+
+  const safeCode = String(codigo || '').trim();
+  if (!/^\d{5}$/.test(safeCode)) throw new Error('El código debe tener exactamente 5 dígitos.');
+
+  const existing = await loadPedidoByCode(safeCode);
+  if (existing?.existsInDb) return existing;
+
+  const ref = doc(state.db, 'pedidos', safeCode);
+  await setDoc(ref, {
+    codigo: safeCode,
+    proveedorId: '',
+    proveedorNombre: '',
+    clienteId: '',
+    clienteNombre: '',
+    clienteCorreo: '',
+    clienteNumero: '',
+    fechaEnvio: todayISO(),
+    fechaRecibo: '',
+    descripcion: '',
+    estado: 'Pendiente',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    updatedBy: state.user.uid
+  });
+
+  return getFreshPedido(safeCode);
+}
+
+export async function markPedidoAsReceivedNow(codigo) {
+  await initFirebase();
+
+  const safeCode = String(codigo || '').trim();
+  if (!/^\d{5}$/.test(safeCode)) throw new Error('El código debe tener exactamente 5 dígitos.');
+
+  const pedido = await loadPedidoByCode(safeCode);
+  if (!pedido?.existsInDb) throw new Error('No se puede marcar como recibido un pedido inexistente.');
+
+  await setDoc(doc(state.db, 'pedidos', safeCode), {
+    fechaRecibo: todayISO(),
+    estado: 'Recibido',
+    updatedAt: serverTimestamp(),
+    updatedBy: state.user.uid
+  }, { merge: true });
+
+  return getFreshPedido(safeCode);
 }
 
 export async function resolveProveedorForSave({ codigo, providerMode, proveedorId, nuevoProveedorNombre, nuevoProveedorDescripcion }) {
@@ -302,8 +346,8 @@ export async function savePedido(formData) {
     clienteNombre: cliente.nombre,
     clienteCorreo: cliente.correo,
     clienteNumero: cliente.numero,
-    fechaEnvio: preserveDateTime(formData.fechaEnvio || '', previousPedido?.fechaEnvio || ''),
-    fechaRecibo: preserveDateTime(formData.fechaRecibo || '', previousPedido?.fechaRecibo || ''),
+    fechaEnvio: formData.fechaEnvio || '',
+    fechaRecibo: formData.fechaRecibo || '',
     descripcion: formData.descripcion.trim(),
     estado: formData.estado,
     updatedAt: serverTimestamp(),
@@ -353,37 +397,98 @@ export async function savePedido(formData) {
     });
   }
 
-  const saved = await getDoc(ref);
-  const savedPedido = saved.exists() ? { id: saved.id, ...saved.data(), existsInDb: true } : null;
-
+  const savedPedido = await getFreshPedido(codigo);
   return { savedPedido, proveedor, cliente };
 }
 
-
-export async function markPedidoAsRecibido(codigo, { force = false } = {}) {
+export async function deletePedidoByCode(codigo) {
   await initFirebase();
 
-  const safeCode = String(codigo || '').trim();
-  if (!/^\d{5}$/.test(safeCode)) {
-    throw new Error('El código debe tener exactamente 5 dígitos.');
+  const pedido = await loadPedidoByCode(codigo);
+  if (!pedido?.existsInDb) throw new Error('Pedido no encontrado.');
+
+  const batch = writeBatch(state.db);
+
+  if (pedido.proveedorId) {
+    batch.set(doc(state.db, 'proveedores', pedido.proveedorId), {
+      pedidosAsignados: arrayRemove(codigo),
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid
+    }, { merge: true });
   }
 
-  const pedido = await loadPedidoByCode(safeCode);
-  if (!pedido.existsInDb) throw new Error('Ese pedido todavía no está guardado.');
+  if (pedido.clienteId) {
+    batch.set(doc(state.db, 'clientes', pedido.clienteId), {
+      listaPedidos: arrayRemove(codigo),
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid
+    }, { merge: true });
+  }
 
-  const yaRecibido = pedido.estado === 'Recibido' || Boolean(pedido.fechaRecibo);
-  if (yaRecibido && !force) throw new Error('Este pedido ya estaba marcado como recibido.');
+  batch.delete(doc(state.db, 'pedidos', codigo));
+  await batch.commit();
 
-  const ref = doc(state.db, 'pedidos', safeCode);
-  await setDoc(ref, {
-    estado: 'Recibido',
-    fechaRecibo: getNowIso(),
-    updatedAt: serverTimestamp(),
-    updatedBy: state.user.uid
-  }, { merge: true });
+  return pedido;
+}
 
-  const saved = await getDoc(ref);
-  return saved.exists() ? { id: saved.id, ...saved.data(), existsInDb: true } : null;
+export async function deleteProveedorById(proveedorId) {
+  await initFirebase();
+
+  const proveedor = state.proveedoresMap.get(proveedorId) || (async () => {
+    const snapshot = await getDoc(doc(state.db, 'proveedores', proveedorId));
+    return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+  })();
+  const resolvedProveedor = await proveedor;
+  if (!resolvedProveedor) throw new Error('Proveedor no encontrado.');
+
+  const pedidos = Array.isArray(resolvedProveedor.pedidosAsignados) ? resolvedProveedor.pedidosAsignados : [];
+  const batch = writeBatch(state.db);
+
+  pedidos.forEach(codigo => {
+    batch.set(doc(state.db, 'pedidos', codigo), {
+      proveedorId: '',
+      proveedorNombre: '',
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid
+    }, { merge: true });
+  });
+
+  batch.delete(doc(state.db, 'proveedores', proveedorId));
+  await batch.commit();
+
+  return { proveedor: resolvedProveedor, affectedPedidos: pedidos };
+}
+
+export async function deleteClienteById(clienteId) {
+  await initFirebase();
+
+  const cliente = state.clientesMap.get(clienteId) || (async () => {
+    const snapshot = await getDoc(doc(state.db, 'clientes', clienteId));
+    return snapshot.exists() ? { id: snapshot.id, ...snapshot.data() } : null;
+  })();
+  const resolvedCliente = await cliente;
+  if (!resolvedCliente) throw new Error('Cliente no encontrado.');
+
+  const pedidos = Array.isArray(resolvedCliente.listaPedidos)
+    ? resolvedCliente.listaPedidos
+    : (Array.isArray(resolvedCliente.pedidosAsignados) ? resolvedCliente.pedidosAsignados : []);
+  const batch = writeBatch(state.db);
+
+  pedidos.forEach(codigo => {
+    batch.set(doc(state.db, 'pedidos', codigo), {
+      clienteId: '',
+      clienteNombre: '',
+      clienteCorreo: '',
+      clienteNumero: '',
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid
+    }, { merge: true });
+  });
+
+  batch.delete(doc(state.db, 'clientes', clienteId));
+  await batch.commit();
+
+  return { cliente: resolvedCliente, affectedPedidos: pedidos };
 }
 
 export function cleanupFirebase() {
