@@ -11,6 +11,7 @@ import {
   savePedido
 } from './firebase.js';
 import { cleanupScanner, startCamera, stopCamera, setScannerActions } from './scanner.js';
+import { initEmailPreview, openPedidoReceivedEmailPreview } from './email-preview.js';
 import {
   applyRouteFromHash,
   bindUIEvents,
@@ -44,6 +45,7 @@ import {
 
 initUI();
 const refs = getRefs();
+initEmailPreview({ setRoute });
 
 function finishScannerFlow({
   saveMessage = '',
@@ -64,18 +66,6 @@ function finishScannerFlow({
 
 function isPedidoRecibido(pedido) {
   return pedido?.estado === 'Recibido' || Boolean(pedido?.fechaRecibo);
-}
-
-function buildMailtoForPedido(pedido) {
-  const subject = encodeURIComponent(`Tu pedido ${pedido.codigo} ya está disponible`);
-  const body = encodeURIComponent([
-    `Hola ${pedido.clienteNombre || ''},`,
-    '',
-    `Tu pedido ${pedido.codigo} ya ha sido recibido y está listo.`,
-    '',
-    'Gracias.'
-  ].join('\n'));
-  return `mailto:${encodeURIComponent(pedido.clienteCorreo)}?subject=${subject}&body=${body}`;
 }
 
 async function openPedidoByCode(code) {
@@ -251,13 +241,14 @@ function notifyClient(code) {
     return;
   }
 
-  window.location.href = buildMailtoForPedido(pedido);
   finishScannerFlow({
-    saveMessage: `Se ha preparado un correo para avisar al cliente del pedido ${code}.`,
-    scanMessage: `Aviso del pedido ${code} preparado y cámara cerrada.`,
+    saveMessage: `Vista previa del correo del pedido ${code} preparada.`,
+    scanMessage: `Se ha generado la vista previa del aviso del pedido ${code}.`,
     closeTransientModal: true,
     closeEditor: true
   });
+
+  openPedidoReceivedEmailPreview(pedido, { backRoute: state.currentRoute || 'inicio' });
 }
 
 function promptDeletePedido(code) {

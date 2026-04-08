@@ -8,6 +8,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Cormorant+SC:wght@300;400;500&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="./css/styles.css" />
+  <link rel="stylesheet" href="./css/email-preview.css" />
 </head>
 <body>
 
@@ -311,6 +312,46 @@
           <div class="panel">
             <div class="panel-inner">
               <div id="pageClientesPanel" class="list-grid"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="screenCorreoPreview">
+      <div class="screen-shell">
+        <div class="screen-grid">
+          <div class="screen-head">
+            <div>
+              <div class="screen-eyebrow">Prueba</div>
+              <div class="screen-title">Vista previa del correo al cliente</div>
+            </div>
+            <div class="screen-note">En esta pantalla se genera el correo rellenado con los datos del pedido, sin abrir Gmail ni enviar nada todavía.</div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-inner email-preview-toolbar">
+              <div>
+                <div class="email-preview-meta" id="emailPreviewMeta">Todavía no hay una vista previa generada.</div>
+                <div class="email-preview-feedback" id="emailPreviewFeedback"></div>
+              </div>
+              <div class="email-preview-toolbar-actions">
+                <button type="button" id="emailPreviewBackBtn" class="btn-ghost">Volver</button>
+                <button type="button" id="emailPreviewCopyBtn" class="btn-secondary">Copiar HTML</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-inner email-preview-frame-wrap">
+              <iframe id="emailPreviewFrame" class="email-preview-frame" title="Vista previa del correo"></iframe>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-inner email-preview-html-wrap">
+              <div class="email-preview-html-title">HTML generado</div>
+              <textarea id="emailPreviewHtml" class="email-preview-html" readonly></textarea>
             </div>
           </div>
         </div>

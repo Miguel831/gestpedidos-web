@@ -18,6 +18,14 @@ export const state = {
   providerMode: 'existing',
   clientMode: 'existing',
   currentRoute: 'inicio',
+  emailPreview: {
+    pedidoCodigo: '',
+    recipient: '',
+    subject: '',
+    backRoute: 'inicio',
+    html: '',
+    feedback: ''
+  },
   homeRecordsView: 'pedidos',
   modalOpen: false,
   modalType: null,

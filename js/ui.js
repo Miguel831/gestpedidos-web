@@ -42,6 +42,7 @@ export function initUI() {
     screenPedidos: document.getElementById('screenPedidos'),
     screenProveedores: document.getElementById('screenProveedores'),
     screenClientes: document.getElementById('screenClientes'),
+    screenCorreoPreview: document.getElementById('screenCorreoPreview'),
 
     scannerLayout: document.getElementById('scannerLayout'),
     video: document.getElementById('video'),
@@ -217,6 +218,7 @@ export function setRoute(route, pushHash = true) {
   refs.screenPedidos.classList.toggle('active', safeRoute === 'pedidos');
   refs.screenProveedores.classList.toggle('active', safeRoute === 'proveedores');
   refs.screenClientes.classList.toggle('active', safeRoute === 'clientes');
+  refs.screenCorreoPreview.classList.toggle('active', safeRoute === 'correo-preview');
 
   refs.navInicioBtn?.classList.toggle('active', safeRoute === 'inicio');
   refs.navPedidosBtn?.classList.toggle('active', safeRoute === 'pedidos');

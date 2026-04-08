@@ -1,0 +1,74 @@
+
+.email-preview-toolbar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.email-preview-toolbar-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.email-preview-meta {
+  color: rgba(39, 51, 64, 0.72);
+  font-size: 0.96rem;
+  line-height: 1.5;
+}
+
+.email-preview-frame-wrap {
+  padding: 8px;
+  background: linear-gradient(180deg, rgba(250, 249, 247, 0.96), rgba(239, 236, 231, 0.92));
+  border-radius: 28px;
+}
+
+.email-preview-frame {
+  width: 100%;
+  min-height: 820px;
+  border: 1px solid rgba(61, 79, 94, 0.14);
+  border-radius: 22px;
+  background: #ffffff;
+}
+
+.email-preview-html-wrap {
+  display: grid;
+  gap: 14px;
+}
+
+.email-preview-html-title {
+  font-size: 0.92rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(61, 79, 94, 0.75);
+}
+
+.email-preview-html {
+  width: 100%;
+  min-height: 260px;
+  resize: vertical;
+  border-radius: 20px;
+  border: 1px solid rgba(61, 79, 94, 0.14);
+  background: rgba(248, 246, 243, 0.96);
+  padding: 18px;
+  font: 400 13px/1.6 ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  color: #1e2a35;
+}
+
+.email-preview-feedback {
+  min-height: 1.4em;
+  color: rgba(61, 79, 94, 0.75);
+  font-size: 0.94rem;
+}
+
+@media (max-width: 720px) {
+  .email-preview-toolbar {
+    align-items: flex-start;
+  }
+
+  .email-preview-frame {
+    min-height: 640px;
+  }
+}
