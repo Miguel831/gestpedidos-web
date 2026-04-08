@@ -36,6 +36,7 @@ import {
   setClientMode,
   setHomeRecordsView,
   setProviderMode,
+  setRoute,
   setSaveMessage,
   setScanMessage,
   setSyncStatus,
