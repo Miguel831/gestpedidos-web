@@ -169,6 +169,30 @@
                     </div>
                   </div>
 
+                  <div class="field field-full">
+                    <label>Cliente</label>
+                    <select id="clienteSelect">
+                      <option value="">Selecciona un cliente</option>
+                    </select>
+                    <button type="button" id="toggleNewClientBtn" class="btn-ghost btn-left btn-compact mt-8">
+                      + Añadir nuevo cliente
+                    </button>
+                    <div id="newClientBox" class="provider-box">
+                      <div class="field">
+                        <label for="nuevoClienteNombre">Nombre del cliente</label>
+                        <input id="nuevoClienteNombre" type="text" placeholder="Ej. Marta Fernández" />
+                      </div>
+                      <div class="field">
+                        <label for="nuevoClienteCorreo">Correo del cliente</label>
+                        <input id="nuevoClienteCorreo" type="email" placeholder="cliente@email.com" />
+                      </div>
+                      <div class="field">
+                        <label for="nuevoClienteNumero">Número del cliente</label>
+                        <input id="nuevoClienteNumero" type="tel" placeholder="+34 600 000 000" />
+                      </div>
+                    </div>
+                  </div>
+
                   <div class="field">
                     <label for="fechaEnvioInput">Fecha de envío</label>
                     <input id="fechaEnvioInput" type="date" />

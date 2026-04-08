@@ -16,7 +16,16 @@ import {
 
 import { firebaseConfig } from './config.js';
 import { state } from './state.js';
-import { normalizeText, renderAllLists, renderProveedorSelect, renderSummary, refreshModalIfNeeded, setSaveMessage, setSyncStatus } from './ui.js';
+import {
+  normalizeText,
+  renderAllLists,
+  renderClienteSelect,
+  renderProveedorSelect,
+  renderSummary,
+  refreshModalIfNeeded,
+  setSaveMessage,
+  setSyncStatus
+} from './ui.js';
 
 let firebaseInitPromise = null;
 
@@ -29,6 +38,10 @@ export function buildNewPedido(code) {
     codigo: code,
     proveedorId: '',
     proveedorNombre: '',
+    clienteId: '',
+    clienteNombre: '',
+    clienteCorreo: '',
+    clienteNumero: '',
     fechaEnvio: '',
     fechaRecibo: '',
     descripcion: '',
@@ -84,6 +97,14 @@ export function subscribeToCollections() {
       renderAllLists();
       renderSummary();
       refreshModalIfNeeded();
+    }),
+    onSnapshot(collection(state.db, 'clientes'), snapshot => {
+      state.clientes = snapshot.docs.map(documento => ({ id: documento.id, ...documento.data() }));
+      state.clientesMap = new Map(state.clientes.map(cliente => [cliente.id, cliente]));
+      renderClienteSelect();
+      renderAllLists();
+      renderSummary();
+      refreshModalIfNeeded();
     })
   );
 }
@@ -108,6 +129,11 @@ export async function loadPedidoByCode(code) {
 function findProveedorByName(name) {
   const normalized = normalizeText(name);
   return state.proveedores.find(proveedor => normalizeText(proveedor.nombre) === normalized) || null;
+}
+
+function findClienteByName(name) {
+  const normalized = normalizeText(name);
+  return state.clientes.find(cliente => normalizeText(cliente.nombre) === normalized) || null;
 }
 
 export async function resolveProveedorForSave({ codigo, providerMode, proveedorId, nuevoProveedorNombre, nuevoProveedorDescripcion }) {
@@ -159,6 +185,71 @@ export async function resolveProveedorForSave({ codigo, providerMode, proveedorI
   };
 }
 
+export async function resolveClienteForSave({
+  codigo,
+  clientMode,
+  clienteId,
+  nuevoClienteNombre,
+  nuevoClienteCorreo,
+  nuevoClienteNumero
+}) {
+  if (clientMode === 'new') {
+    const nombre = nuevoClienteNombre.trim();
+    const correo = nuevoClienteCorreo.trim();
+    const numero = nuevoClienteNumero.trim();
+
+    if (!nombre) throw new Error('Indica el nombre del cliente.');
+
+    const existing = findClienteByName(nombre);
+    if (existing) {
+      if ((correo && correo !== (existing.correo || '')) || (numero && numero !== (existing.numero || ''))) {
+        await updateDoc(doc(state.db, 'clientes', existing.id), {
+          correo: correo || existing.correo || '',
+          numero: numero || existing.numero || '',
+          updatedAt: serverTimestamp(),
+          updatedBy: state.user.uid
+        });
+      }
+
+      return {
+        id: existing.id,
+        nombre: existing.nombre,
+        correo: correo || existing.correo || '',
+        numero: numero || existing.numero || '',
+        dineroGastado: Number(existing.dineroGastado) || 0,
+        created: false
+      };
+    }
+
+    const ref = await addDoc(collection(state.db, 'clientes'), {
+      nombre,
+      correo,
+      numero,
+      listaPedidos: [codigo],
+      dineroGastado: 0,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdBy: state.user.uid,
+      updatedBy: state.user.uid
+    });
+
+    return { id: ref.id, nombre, correo, numero, dineroGastado: 0, created: true };
+  }
+
+  if (!clienteId) throw new Error('Selecciona un cliente o crea uno nuevo.');
+  const cliente = state.clientesMap.get(clienteId);
+  if (!cliente) throw new Error('Cliente no encontrado.');
+
+  return {
+    id: cliente.id,
+    nombre: cliente.nombre,
+    correo: cliente.correo || '',
+    numero: cliente.numero || '',
+    dineroGastado: Number(cliente.dineroGastado) || 0,
+    created: false
+  };
+}
+
 export async function savePedido(formData) {
   await initFirebase();
 
@@ -178,6 +269,14 @@ export async function savePedido(formData) {
     nuevoProveedorNombre: formData.nuevoProveedorNombre,
     nuevoProveedorDescripcion: formData.nuevoProveedorDescripcion
   });
+  const cliente = await resolveClienteForSave({
+    codigo,
+    clientMode: formData.clientMode,
+    clienteId: formData.clienteId,
+    nuevoClienteNombre: formData.nuevoClienteNombre,
+    nuevoClienteCorreo: formData.nuevoClienteCorreo,
+    nuevoClienteNumero: formData.nuevoClienteNumero
+  });
 
   const previousPedido = state.currentPedido || null;
   const ref = doc(state.db, 'pedidos', codigo);
@@ -187,6 +286,10 @@ export async function savePedido(formData) {
     codigo,
     proveedorId: proveedor.id,
     proveedorNombre: proveedor.nombre,
+    clienteId: cliente.id,
+    clienteNombre: cliente.nombre,
+    clienteCorreo: cliente.correo,
+    clienteNumero: cliente.numero,
     fechaEnvio: formData.fechaEnvio || '',
     fechaRecibo: formData.fechaRecibo || '',
     descripcion: formData.descripcion.trim(),
@@ -208,6 +311,18 @@ export async function savePedido(formData) {
     }, { merge: true });
   }
 
+  if (!cliente.created) {
+    await setDoc(doc(state.db, 'clientes', cliente.id), {
+      nombre: cliente.nombre,
+      correo: cliente.correo || '',
+      numero: cliente.numero || '',
+      dineroGastado: Number(cliente.dineroGastado) || 0,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid,
+      listaPedidos: arrayUnion(codigo)
+    }, { merge: true });
+  }
+
   const oldProveedorId = previousPedido?.proveedorId || '';
   if (oldProveedorId && oldProveedorId !== proveedor.id) {
     await updateDoc(doc(state.db, 'proveedores', oldProveedorId), {
@@ -217,10 +332,19 @@ export async function savePedido(formData) {
     });
   }
 
+  const oldClienteId = previousPedido?.clienteId || '';
+  if (oldClienteId && oldClienteId !== cliente.id) {
+    await updateDoc(doc(state.db, 'clientes', oldClienteId), {
+      listaPedidos: arrayRemove(codigo),
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid
+    });
+  }
+
   const saved = await getDoc(ref);
   const savedPedido = saved.exists() ? { id: saved.id, ...saved.data(), existsInDb: true } : null;
 
-  return { savedPedido, proveedor };
+  return { savedPedido, proveedor, cliente };
 }
 
 export function cleanupFirebase() {

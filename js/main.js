@@ -4,6 +4,7 @@ import { cleanupScanner, readNumber, setScannerActions, startCamera } from './sc
 import {
   applyRouteFromHash,
   bindUIEvents,
+  buildClienteModalHtml,
   buildPedidoModalHtml,
   buildProveedorModalHtml,
   clearForm,
@@ -15,6 +16,7 @@ import {
   refreshModalIfNeeded,
   renderAllLists,
   renderSummary,
+  setClientMode,
   setHomeRecordsView,
   setProviderMode,
   setSaveMessage,
@@ -50,6 +52,15 @@ function openProveedorModal(proveedorId) {
   openModal(buildProveedorModalHtml(proveedor));
 }
 
+function openClienteModal(clienteId) {
+  const cliente = state.clientesMap.get(clienteId);
+  if (!cliente) return;
+
+  state.modalType = 'cliente';
+  state.modalTargetId = cliente.id;
+  openModal(buildClienteModalHtml(cliente));
+}
+
 async function applyCodeChange() {
   const nuevoCodigo = refs.editorCodeInput.value.trim();
   refs.editorCodeInput.style.display = 'none';
@@ -76,13 +87,18 @@ async function handleSavePedido(event) {
   setSaveMessage('Guardando…');
 
   try {
-    const { savedPedido, proveedor } = await savePedido({
+    const { savedPedido, proveedor, cliente } = await savePedido({
       codigo: refs.codigoInput.value,
       estado: refs.estadoInput.value,
       proveedorId: refs.proveedorSelect.value,
       providerMode: state.providerMode,
       nuevoProveedorNombre: refs.nuevoProveedorNombre.value,
       nuevoProveedorDescripcion: refs.nuevoProveedorDescripcion.value,
+      clienteId: refs.clienteSelect.value,
+      clientMode: state.clientMode,
+      nuevoClienteNombre: refs.nuevoClienteNombre.value,
+      nuevoClienteCorreo: refs.nuevoClienteCorreo.value,
+      nuevoClienteNumero: refs.nuevoClienteNumero.value,
       fechaEnvio: refs.fechaEnvioInput.value,
       fechaRecibo: refs.fechaReciboInput.value,
       descripcion: refs.descripcionInput.value
@@ -90,7 +106,9 @@ async function handleSavePedido(event) {
 
     if (savedPedido) fillFormFromPedido(savedPedido);
     setProviderMode('existing');
+    setClientMode('existing');
     refs.proveedorSelect.value = proveedor.id;
+    refs.clienteSelect.value = cliente.id;
     setSaveMessage(`Pedido ${refs.codigoInput.value.trim()} guardado correctamente.`);
     setSyncStatus('Sincronizado', 'ready');
   } catch (error) {
@@ -106,6 +124,7 @@ async function handleSavePedido(event) {
 setUIActions({
   openPedidoModal,
   openProveedorModal,
+  openClienteModal,
   editPedido: openPedidoByCode,
   onStartCamera: startCamera,
   onCapture: () => readNumber(false),
@@ -113,6 +132,7 @@ setUIActions({
   onReset: clearForm,
   onSave: handleSavePedido,
   onToggleProviderMode: () => setProviderMode(state.providerMode === 'new' ? 'existing' : 'new'),
+  onToggleClientMode: () => setClientMode(state.clientMode === 'new' ? 'existing' : 'new'),
   onCloseEditor: clearForm
 });
 

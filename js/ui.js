@@ -5,6 +5,7 @@ const refs = {};
 const actions = {
   openPedidoModal: async () => {},
   openProveedorModal: () => {},
+  openClienteModal: () => {},
   editPedido: async () => {},
   onApplyRouteFromHash: () => {},
   onStartCamera: async () => {},
@@ -13,6 +14,7 @@ const actions = {
   onReset: () => {},
   onSave: async () => {},
   onToggleProviderMode: () => {},
+  onToggleClientMode: () => {},
   onCloseEditor: () => {},
   onOpenDrawer: () => {},
   onCloseDrawer: () => {}
@@ -58,6 +60,12 @@ export function initUI() {
     newProviderBox: document.getElementById('newProviderBox'),
     nuevoProveedorNombre: document.getElementById('nuevoProveedorNombre'),
     nuevoProveedorDescripcion: document.getElementById('nuevoProveedorDescripcion'),
+    clienteSelect: document.getElementById('clienteSelect'),
+    toggleNewClientBtn: document.getElementById('toggleNewClientBtn'),
+    newClientBox: document.getElementById('newClientBox'),
+    nuevoClienteNombre: document.getElementById('nuevoClienteNombre'),
+    nuevoClienteCorreo: document.getElementById('nuevoClienteCorreo'),
+    nuevoClienteNumero: document.getElementById('nuevoClienteNumero'),
     fechaEnvioInput: document.getElementById('fechaEnvioInput'),
     fechaReciboInput: document.getElementById('fechaReciboInput'),
     descripcionInput: document.getElementById('descripcionInput'),
@@ -224,9 +232,26 @@ export function renderProveedorSelect() {
   }
 }
 
+export function renderClienteSelect() {
+  const currentValue = refs.clienteSelect.value;
+  const options = ['<option value="">Selecciona un cliente</option>'];
+
+  [...state.clientes]
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }))
+    .forEach(cliente => {
+      options.push(`<option value="${cliente.id}">${escapeHtml(cliente.nombre)}</option>`);
+    });
+
+  refs.clienteSelect.innerHTML = options.join('');
+  if (state.clientes.some(cliente => cliente.id === currentValue)) {
+    refs.clienteSelect.value = currentValue;
+  }
+}
+
 function buildPedidoSummaryLine(pedido) {
   const parts = [];
   parts.push(`<strong>Proveedor:</strong> ${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}`);
+  parts.push(`<strong>Cliente:</strong> ${escapeHtml(pedido.clienteNombre || 'Sin asignar')}`);
   if (pedido.fechaEnvio) parts.push(`<strong>Envío:</strong> ${escapeHtml(formatDate(pedido.fechaEnvio))}`);
   if (pedido.fechaRecibo) parts.push(`<strong>Recibo:</strong> ${escapeHtml(formatDate(pedido.fechaRecibo))}`);
   return parts.join(' · ');
@@ -322,6 +347,20 @@ export function setProviderMode(mode) {
   }
 }
 
+export function setClientMode(mode) {
+  state.clientMode = mode;
+  const isNew = mode === 'new';
+  refs.newClientBox.classList.toggle('visible', isNew);
+  refs.toggleNewClientBtn.textContent = isNew ? '− Usar cliente existente' : '+ Añadir nuevo cliente';
+  refs.clienteSelect.disabled = isNew;
+
+  if (!isNew) {
+    refs.nuevoClienteNombre.value = '';
+    refs.nuevoClienteCorreo.value = '';
+    refs.nuevoClienteNumero.value = '';
+  }
+}
+
 export function showEditor() {
   refs.editorModal.classList.add('visible');
   document.body.classList.add('no-scroll');
@@ -346,8 +385,10 @@ export function fillFormFromPedido(pedido) {
   refs.fechaReciboInput.value = pedido?.fechaRecibo || '';
   refs.descripcionInput.value = pedido?.descripcion || '';
   refs.proveedorSelect.value = pedido?.proveedorId || '';
+  refs.clienteSelect.value = pedido?.clienteId || '';
   setEstadoBadge(pedido?.estado || 'Pendiente');
   setProviderMode('existing');
+  setClientMode('existing');
 
   if (pedido) {
     setRoute('inicio');
@@ -365,12 +406,14 @@ export function clearForm() {
   refs.editorCodeBig.textContent = '—';
   refs.currentCodeEl.textContent = '· · · · ·';
   refs.proveedorSelect.value = '';
+  refs.clienteSelect.value = '';
   refs.fechaEnvioInput.value = '';
   refs.fechaReciboInput.value = '';
   refs.descripcionInput.value = '';
   refs.estadoInput.value = 'Pendiente';
   setEstadoBadge('Pendiente');
   setProviderMode('existing');
+  setClientMode('existing');
   setScanMessage('Activa la cámara solo cuando vayas a leer un código. El visor aparecerá únicamente mientras esté en uso.');
   setSaveMessage('Los datos se sincronizarán con Firebase en tiempo real.');
   hideEditor();
@@ -419,6 +462,10 @@ function bindModalActions() {
     element.addEventListener('click', () => actions.openProveedorModal(element.dataset.openProveedorModal));
   });
 
+  refs.detailModalBody.querySelectorAll('[data-open-cliente-modal]').forEach(element => {
+    element.addEventListener('click', () => actions.openClienteModal(element.dataset.openClienteModal));
+  });
+
   refs.detailModalBody.querySelectorAll('[data-edit-pedido]').forEach(element => {
     element.addEventListener('click', async () => {
       await actions.editPedido(element.dataset.editPedido);
@@ -445,6 +492,10 @@ export function buildPedidoModalHtml(pedido) {
         <div class="modal-value">${escapeHtml(pedido.proveedorNombre || 'Sin asignar')}</div>
       </div>
       <div class="modal-item">
+        <div class="modal-label">Cliente</div>
+        <div class="modal-value">${escapeHtml(pedido.clienteNombre || 'Sin asignar')}</div>
+      </div>
+      <div class="modal-item">
         <div class="modal-label">Fecha de envío</div>
         <div class="modal-value">${escapeHtml(formatDate(pedido.fechaEnvio))}</div>
       </div>
@@ -463,6 +514,7 @@ export function buildPedidoModalHtml(pedido) {
     <div class="modal-actions">
       <button type="button" class="btn-primary" data-edit-pedido="${pedido.codigo}">Editar pedido</button>
       ${pedido.proveedorId ? `<button type="button" class="btn-secondary" data-open-proveedor-modal="${pedido.proveedorId}">Ver proveedor</button>` : ''}
+      ${pedido.clienteId ? `<button type="button" class="btn-secondary" data-open-cliente-modal="${pedido.clienteId}">Ver cliente</button>` : ''}
     </div>
   `;
 }
@@ -494,6 +546,47 @@ export function buildProveedorModalHtml(proveedor) {
   `;
 }
 
+export function buildClienteModalHtml(cliente) {
+  const pedidos = Array.isArray(cliente.listaPedidos)
+    ? cliente.listaPedidos
+    : (Array.isArray(cliente.pedidosAsignados) ? cliente.pedidosAsignados : []);
+  const dineroGastado = Number.isFinite(Number(cliente.dineroGastado)) ? Number(cliente.dineroGastado) : 0;
+
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Cliente</div>
+        <div class="modal-title text-title" id="detailModalTitle">${escapeHtml(cliente.nombre)}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-grid">
+      <div class="modal-item">
+        <div class="modal-label">Correo</div>
+        <div class="modal-value">${escapeHtml(cliente.correo || 'Sin correo')}</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-label">Número</div>
+        <div class="modal-value">${escapeHtml(cliente.numero || 'Sin número')}</div>
+      </div>
+      <div class="modal-item">
+        <div class="modal-label">Dinero gastado</div>
+        <div class="modal-value">${escapeHtml(dineroGastado.toFixed(2))} €</div>
+      </div>
+    </div>
+
+    <div class="modal-item">
+      <div class="modal-label">Pedidos asociados</div>
+      <div class="chips">
+        ${pedidos.length
+          ? pedidos.map(codigo => `<span class="chip" data-open-pedido-modal="${codigo}">${escapeHtml(codigo)}</span>`).join('')
+          : '<span class="chip no-link">Sin pedidos</span>'}
+      </div>
+    </div>
+  `;
+}
+
 export function refreshModalIfNeeded() {
   if (!state.modalOpen) return;
 
@@ -508,6 +601,12 @@ export function refreshModalIfNeeded() {
     if (proveedor) openModal(buildProveedorModalHtml(proveedor));
     else closeModal();
   }
+
+  if (state.modalType === 'cliente' && state.modalTargetId) {
+    const cliente = state.clientesMap.get(state.modalTargetId);
+    if (cliente) openModal(buildClienteModalHtml(cliente));
+    else closeModal();
+  }
 }
 
 export function bindUIEvents() {
@@ -519,6 +618,7 @@ export function bindUIEvents() {
   refs.cancelEditBtn.addEventListener('click', actions.onReset);
   refs.pedidoForm.addEventListener('submit', actions.onSave);
   refs.toggleNewProviderBtn.addEventListener('click', actions.onToggleProviderMode);
+  refs.toggleNewClientBtn.addEventListener('click', actions.onToggleClientMode);
   refs.closeEditorModalBtn.addEventListener('click', actions.onCloseEditor);
 
   refs.menuToggleBtn.addEventListener('click', () => {
