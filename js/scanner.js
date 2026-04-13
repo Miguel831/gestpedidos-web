@@ -248,16 +248,20 @@ export function preprocessImage({ cropWidth, cropHeight }) {
   let sum = 0;
   const total = data.length / 4;
 
+  // 1. Calculamos el promedio usando solo Verde y Azul
   for (let index = 0; index < data.length; index += 4) {
-    sum += 0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2];
+    sum += (data[index + 1] + data[index + 2]) / 2;
   }
 
   const average = sum / total;
   const threshold = Math.max(112, Math.min(176, average * 0.96));
 
+  // 2. Aplicamos el contraste descartando el canal rojo
   for (let index = 0; index < data.length; index += 4) {
-    const gray = 0.2126 * data[index] + 0.7152 * data[index + 1] + 0.0722 * data[index + 2];
+    // Al no usar el canal rojo, el texto rojo puro dará un gris cercano a 0 (negro total)
+    const gray = (data[index + 1] + data[index + 2]) / 2;
     const output = gray > threshold ? 255 : 0;
+    
     data[index] = output;
     data[index + 1] = output;
     data[index + 2] = output;
