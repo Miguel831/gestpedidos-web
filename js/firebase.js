@@ -120,8 +120,8 @@ export async function loadPedidoByCode(code) {
   await initFirebase();
   const safeCode = String(code || '').trim();
 
-  if (!/^\d{5}$/.test(safeCode)) {
-    throw new Error('El código debe tener exactamente 5 dígitos.');
+  if (!/^\d{6}$/.test(safeCode)) {
+    throw new Error('El código debe tener exactamente 6 dígitos.');
   }
 
   const local = state.pedidosMap.get(safeCode);
@@ -147,7 +147,7 @@ export async function createPedidoFromScan(codigo) {
   await initFirebase();
 
   const safeCode = String(codigo || '').trim();
-  if (!/^\d{5}$/.test(safeCode)) throw new Error('El código debe tener exactamente 5 dígitos.');
+  if (!/^\d{6}$/.test(safeCode)) throw new Error('El código debe tener exactamente 6 dígitos.');
 
   const existing = await loadPedidoByCode(safeCode);
   if (existing?.existsInDb) return existing;
@@ -314,8 +314,8 @@ export async function savePedido(formData) {
   }
 
   const codigo = formData.codigo.trim();
-  if (!/^\d{5}$/.test(codigo)) {
-    throw new Error('Escanea primero un código válido de 5 dígitos.');
+  if (!/^\d{6}$/.test(codigo)) {
+    throw new Error('Escanea primero un código válido de 6 dígitos.');
   }
 
   const proveedor = await resolveProveedorForSave({

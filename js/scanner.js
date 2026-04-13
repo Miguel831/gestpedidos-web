@@ -28,7 +28,7 @@ function resetScannerValidation() {
 
 function getFullCodeCandidate(text) {
   const value = extractFiveDigits(text) || extractFastCandidate(text);
-  return value && value.length === 5 ? value : null;
+  return value && value.length === 6 ? value : null;
 }
 
 function registerSample(code) {
@@ -96,8 +96,8 @@ async function scanLoop() {
         ? `Detectado ${latestCode}. Mantén el código estable para confirmarlo automáticamente.`
         : `Confirmando ${latestCode}. Falta una lectura estable más.`);
     } else {
-      refs.currentCodeEl.textContent = '· · · · ·';
-      setScanMessage('Buscando un código de 5 dígitos. Mantén la etiqueta centrada y estable.');
+      refs.currentCodeEl.textContent = '· · · · · ·';
+      setScanMessage('Buscando un código de 6 dígitos. Mantén la etiqueta centrada y estable.');
     }
   } catch (error) {
     console.error(error);
@@ -133,7 +133,7 @@ export function stopCamera(options = {}) {
   refs.videoWrap.classList.remove('scanning');
 
   if (resetValidation) resetScannerValidation();
-  if (!preserveCode) refs.currentCodeEl.textContent = '· · · · ·';
+  if (!preserveCode) refs.currentCodeEl.textContent = '· · · · · ·';
 
   updateScannerVisibility();
 
@@ -179,7 +179,7 @@ export async function startCamera() {
     state.stream = stream;
     state.scannerLoopActive = true;
     resetScannerValidation();
-    refs.currentCodeEl.textContent = '· · · · ·';
+    refs.currentCodeEl.textContent = '· · · · · ·';
     refs.video.srcObject = stream;
     updateScannerVisibility();
     await refs.video.play();
@@ -269,19 +269,19 @@ export function preprocessImage({ cropWidth, cropHeight }) {
 
 export function extractFiveDigits(text) {
   const clean = String(text || '').replace(/\s+/g, ' ').trim();
-  const direct = clean.match(/\b\d{5}\b/);
+  const direct = clean.match(/\b\d{6}\b/);
   if (direct) return direct[0];
 
-  const compact = clean.replace(/\D/g, '').match(/\d{5}/);
+  const compact = clean.replace(/\D/g, '').match(/\d{6}/);
   return compact ? compact[0] : null;
 }
 
 export function extractFastCandidate(text) {
   const digits = String(text || '').replace(/\D/g, '');
   if (!digits) return null;
+  if (digits.length === 6) return digits;
+  if (digits.length > 6) return digits.slice(0, 5);
   if (digits.length === 5) return digits;
-  if (digits.length > 5) return digits.slice(0, 5);
-  if (digits.length === 4) return digits;
   return null;
 }
 

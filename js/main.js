@@ -98,7 +98,7 @@ async function applyCodeChange() {
   refs.editorCodeInput.style.display = 'none';
   refs.editorCodeBig.style.display = 'inline-block';
 
-  if (/^\d{5}$/.test(nuevoCodigo) && nuevoCodigo !== state.currentCode) {
+  if (/^\d{6}$/.test(nuevoCodigo) && nuevoCodigo !== state.currentCode) {
     refs.editorCodeBig.textContent = nuevoCodigo;
     refs.codigoInput.value = nuevoCodigo;
     refs.currentCodeEl.textContent = nuevoCodigo;

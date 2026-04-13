@@ -483,7 +483,7 @@ export function fillFormFromPedido(pedido) {
 
   refs.codigoInput.value = pedido?.codigo || '';
   refs.editorCodeBig.textContent = pedido?.codigo || '—';
-  refs.currentCodeEl.textContent = pedido?.codigo || '· · · · ·';
+  refs.currentCodeEl.textContent = pedido?.codigo || '· · · · · ·';
   refs.estadoInput.value = pedido?.estado || 'Pendiente';
   refs.fechaEnvioInput.value = pedido?.fechaEnvio || '';
   refs.fechaReciboInput.value = pedido?.fechaRecibo || '';
@@ -508,7 +508,7 @@ export function clearForm() {
 
   refs.codigoInput.value = '';
   refs.editorCodeBig.textContent = '—';
-  refs.currentCodeEl.textContent = '· · · · ·';
+  refs.currentCodeEl.textContent = '· · · · · ·';
   refs.proveedorSelect.value = '';
   refs.clienteSelect.value = '';
   refs.fechaEnvioInput.value = '';
