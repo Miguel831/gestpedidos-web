@@ -7,6 +7,7 @@ export const state = {
   worker: null,
   busy: false,
   firebaseReady: false,
+  functions: null,
   pedidos: [],
   proveedores: [],
   clientes: [],
@@ -34,5 +35,5 @@ export const state = {
   scannerTimer: null,
   scannerSamples: [],
   lastStableCode: '',
-  unsubs: []
+  unsubs: [],
 };

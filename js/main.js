@@ -8,7 +8,8 @@ import {
   initFirebase,
   loadPedidoByCode,
   markPedidoAsReceivedNow,
-  savePedido
+  savePedido,
+  sendWhatsAppToPedido
 } from './firebase.js';
 import { cleanupScanner, startCamera, stopCamera, setScannerActions } from './scanner.js';
 import { initEmailPreview, openPedidoReceivedEmailPreview } from './email-preview.js';
@@ -111,6 +112,38 @@ async function applyCodeChange() {
   }
 
   refs.editorCodeBig.textContent = state.currentCode || '—';
+}
+
+async function handleSendWhatsApp() {
+  const pedido = state.currentPedido;
+
+  if (!pedido?.codigo) {
+    setSaveMessage('Abre un pedido antes de enviar el WhatsApp.');
+    return;
+  }
+
+  if (!pedido?.clienteNumero) {
+    setSaveMessage('Este pedido no tiene número de cliente.');
+    return;
+  }
+
+  try {
+    setSyncStatus('Enviando WhatsApp', 'busy');
+
+    const result = await sendWhatsAppToPedido({
+      codigo: pedido.codigo,
+      telefono: pedido.clienteNumero,
+      clienteNombre: pedido.clienteNombre,
+      estado: pedido.estado
+    });
+
+    setSaveMessage(`WhatsApp enviado correctamente (${result.sid}).`);
+    setSyncStatus('Sincronizado', 'ready');
+  } catch (error) {
+    console.error(error);
+    setSaveMessage(error.message || 'No se pudo enviar el WhatsApp.');
+    setSyncStatus('Error', 'error');
+  }
 }
 
 async function handleSavePedido(event) {
@@ -372,6 +405,8 @@ setScannerActions({
 });
 
 bindUIEvents();
+
+refs.sendWhatsappBtn?.addEventListener('click', handleSendWhatsApp);
 
 refs.editorCodeInput.addEventListener('blur', applyCodeChange);
 refs.editorCodeInput.addEventListener('keydown', async event => {

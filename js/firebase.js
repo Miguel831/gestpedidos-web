@@ -1,5 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 import {
   getFirestore,
   collection,
@@ -66,6 +67,8 @@ export async function initFirebase() {
     state.user = credential.user;
     state.firebaseReady = true;
 
+    state.functions = getFunctions(state.app, 'europe-west1');
+
     setSyncStatus('Conectado con Firebase', 'ready');
     setSaveMessage('Sistema listo. Los cambios se guardan en tiempo real.');
     subscribeToCollections();
@@ -78,6 +81,20 @@ export async function initFirebase() {
   });
 
   return firebaseInitPromise;
+}
+
+export async function sendWhatsAppToPedido({ codigo, telefono, clienteNombre, estado }) {
+  await initFirebase();
+
+  const callable = httpsCallable(state.functions, 'sendWhatsAppMessage');
+  const result = await callable({
+    codigo,
+    telefono,
+    clienteNombre,
+    estado
+  });
+
+  return result.data;
 }
 
 export function subscribeToCollections() {

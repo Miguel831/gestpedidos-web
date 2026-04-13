@@ -44,6 +44,8 @@ export function initUI() {
     screenClientes: document.getElementById('screenClientes'),
     screenCorreoPreview: document.getElementById('screenCorreoPreview'),
 
+    sendWhatsappBtn: document.getElementById('sendWhatsappBtn'),
+
     scannerLayout: document.getElementById('scannerLayout'),
     video: document.getElementById('video'),
     videoWrap: document.getElementById('videoWrap'),
