@@ -223,14 +223,14 @@ export const sendWhatsAppMessage = onCall(
         status: message.status || 'queued'
       };
     } catch (error) {
-      const safeMessage = String(error?.message || 'No se pudo enviar el WhatsApp.');
-      const safeCode = error?.code ?? null;
-      const safeStatus = error?.status ?? null;
-      const safeMoreInfo = error?.moreInfo ?? null;
+    const safeMessage = String(error?.message || 'No se pudo enviar el WhatsApp.');
+    const safeCode = error?.code ?? null;
+    const safeStatus = error?.status ?? null;
+    const safeMoreInfo = error?.moreInfo ?? null;
 
-      await releasePedidoLockOnError(pedidoLockRef, safeMessage);
-
-      await db.collection('whatsapp_logs').add({
+    await Promise.allSettled([
+      releasePedidoLockOnError(pedidoLockRef, safeMessage),
+      db.collection('whatsapp_logs').add({
         codigo,
         telefono,
         clienteNombre,
@@ -245,22 +245,21 @@ export const sendWhatsAppMessage = onCall(
         moreInfo: safeMoreInfo,
         createdAt: FieldValue.serverTimestamp(),
         createdByUid: uid
-      });
+      })
+    ]);
 
-      throw new HttpsError(
-        'failed-precondition',
-        'No se pudo enviar el WhatsApp.',
-        {
-          provider: 'twilio',
-          message: safeMessage,
-          twilioCode: safeCode,
-          twilioStatus: safeStatus,
-          moreInfo: safeMoreInfo
-        }
-      );
-    }
-  }
-);
+    throw new HttpsError(
+      'failed-precondition',
+      'No se pudo enviar el WhatsApp.',
+      {
+        provider: 'twilio',
+        message: safeMessage,
+        twilioCode: safeCode,
+        twilioStatus: safeStatus,
+        moreInfo: safeMoreInfo
+      }
+    );
+  }})
 
 export const twilioStatusCallback = onRequest(
   {
