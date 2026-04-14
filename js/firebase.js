@@ -104,19 +104,6 @@ export async function sendWhatsAppToPedido({ codigo, telefono, clienteNombre, es
 
   return result.data;
 }
-export async function sendWhatsAppToPedido({ codigo, telefono, clienteNombre, estado }) {
-  await initFirebase();
-
-  const callable = httpsCallable(state.functions, 'sendWhatsAppMessage');
-  const result = await callable({
-    codigo,
-    telefono,
-    clienteNombre,
-    estado
-  });
-
-  return result.data;
-}
 
 export function subscribeToCollections() {
   state.unsubs.forEach(unsub => unsub());
