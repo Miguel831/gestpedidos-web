@@ -840,8 +840,8 @@ export function buildScanAlreadyReceivedModalHtml(pedido) {
     <div class="modal-actions">
       <button type="button" class="btn-primary" data-view-pedido="${pedido.codigo}">Ver pedido</button>
       <button type="button" class="btn-secondary" data-update-received="${pedido.codigo}">Actualizar fecha de recepción</button>
+      <button type="button" class="btn-secondary" data-notify-client="${pedido.codigo}">Enviar WhatsApp</button>
       <button type="button" class="btn-ghost" data-dismiss-modal>Cancelar</button>
-      ${pedido.clienteNumero ? `<button type="button" class="btn-secondary" data-notify-client="${pedido.codigo}">Enviar WhatsApp</button>` : ''}
     </div>
   `;
 }

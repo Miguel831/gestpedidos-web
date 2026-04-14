@@ -114,14 +114,21 @@ async function applyCodeChange() {
   refs.editorCodeBig.textContent = state.currentCode || '—';
 }
 
-async function sendWhatsAppForPedido() {
+async function sendWhatsAppForPedido(_pedido, successMessage) {
   try {
+    setSyncStatus('Enviando WhatsApp', 'busy');
     setSaveMessage('Enviando WhatsApp de prueba...');
+
     const result = await sendWhatsAppToPedido();
-    setSaveMessage(`WhatsApp enviado (${result.status || 'ok'}).`);
+
+    setSaveMessage(successMessage || `WhatsApp enviado correctamente (${result.sid}).`);
+    setSyncStatus('Sincronizado', 'ready');
+    return result;
   } catch (error) {
     console.error(error);
     setSaveMessage(error?.message || 'No se pudo enviar el WhatsApp.');
+    setSyncStatus('Error', 'error');
+    return null;
   }
 }
 

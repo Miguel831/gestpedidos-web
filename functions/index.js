@@ -169,7 +169,7 @@ export const sendWhatsAppMessage = onCall(
   },
   async request => {
     if (!request.auth) {
-      throw new HttpsError('unauthenticated', 'Debes iniciar sesión para enviar mensajes.');
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión antes de enviar mensajes.');
     }
 
     const client = twilio(
@@ -177,19 +177,25 @@ export const sendWhatsAppMessage = onCall(
       TWILIO_AUTH_TOKEN.value()
     );
 
-    const TO_NUMBER = '+34628371861'; // tu número de pruebas
-    const TEMPLATE_DATE = '12/1';
-    const TEMPLATE_TIME = '3pm';
-
     try {
       const message = await client.messages.create({
+        to: 'whatsapp:+34628371861',
         from: `whatsapp:${TWILIO_WHATSAPP_FROM.value()}`,
-        to: `whatsapp:${TO_NUMBER}`,
         contentSid: TWILIO_CONTENT_SID.value(),
         contentVariables: JSON.stringify({
-          1: TEMPLATE_DATE,
-          2: TEMPLATE_TIME
+          1: '12/1',
+          2: '3pm'
         })
+      });
+
+      await db.collection('whatsapp_logs').doc(message.sid).set({
+        sid: message.sid,
+        provider: 'twilio',
+        channel: 'whatsapp',
+        direction: 'outbound',
+        twilioStatus: message.status || 'queued',
+        createdAt: FieldValue.serverTimestamp(),
+        createdByUid: request.auth.uid
       });
 
       return {
@@ -198,10 +204,10 @@ export const sendWhatsAppMessage = onCall(
         status: message.status || 'queued'
       };
     } catch (error) {
-      logger.error('Error enviando plantilla de WhatsApp Sandbox', error);
+      console.error('Twilio error:', error);
       throw new HttpsError(
         'internal',
-        error?.message || 'No se pudo enviar el mensaje de WhatsApp.'
+        error?.message || 'No se pudo enviar el WhatsApp.'
       );
     }
   }
