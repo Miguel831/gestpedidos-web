@@ -16,7 +16,7 @@ import {
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
-import { firebaseConfig, appSecurityConfig } from './config.js';
+import { firebaseConfig } from './config.js';
 import { state } from './state.js';
 import {
   normalizeText,
@@ -34,15 +34,6 @@ let firebaseInitPromise = null;
 
 function containsPlaceholder(value) {
   return !value || String(value).includes('PON_AQUI_TU_');
-}
-
-function shouldUseAppCheckDebugToken() {
-  const hostname = window.location.hostname;
-  return (
-    (hostname === 'localhost' || hostname === '127.0.0.1')
-    && appSecurityConfig.appCheckDebugToken
-    && !containsPlaceholder(appSecurityConfig.appCheckDebugToken)
-  );
 }
 
 function assertFirebaseConfig() {
@@ -75,7 +66,6 @@ export async function initFirebase() {
     assertFirebaseConfig();
 
     state.app = initializeApp(firebaseConfig);
-
     state.auth = getAuth(state.app);
     state.db = getFirestore(state.app);
     state.functions = getFunctions(state.app, 'europe-west1');
@@ -87,7 +77,6 @@ export async function initFirebase() {
     }
 
     state.firebaseReady = true;
-
     setSyncStatus('Conectado con Firebase', 'ready');
     setSaveMessage('Sistema listo. Los cambios se guardan en tiempo real.');
     subscribeToCollections();
@@ -102,6 +91,19 @@ export async function initFirebase() {
   return firebaseInitPromise;
 }
 
+export async function sendWhatsAppToPedido({ codigo, telefono, clienteNombre, estado }) {
+  await initFirebase();
+
+  const callable = httpsCallable(state.functions, 'sendWhatsAppMessage');
+  const result = await callable({
+    codigo,
+    telefono,
+    clienteNombre,
+    estado
+  });
+
+  return result.data;
+}
 export async function sendWhatsAppToPedido({ codigo, telefono, clienteNombre, estado }) {
   await initFirebase();
 

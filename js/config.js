@@ -8,6 +8,5 @@ export const firebaseConfig = {
   measurementId: "G-WGJ256MV0J"
 };
 
-export const appSecurityConfig = {};
 
 export const VALID_ROUTES = ['inicio', 'pedidos', 'proveedores', 'clientes', 'correo-preview'];
