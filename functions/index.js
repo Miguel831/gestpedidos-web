@@ -10,6 +10,7 @@ const db = getFirestore();
 const TWILIO_ACCOUNT_SID = defineSecret('TWILIO_ACCOUNT_SID');
 const TWILIO_AUTH_TOKEN = defineSecret('TWILIO_AUTH_TOKEN');
 const TWILIO_WHATSAPP_FROM = defineSecret('TWILIO_WHATSAPP_FROM');
+const TWILIO_CONTENT_SID = defineSecret('TWILIO_CONTENT_SID');
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_PER_WINDOW = 3;
@@ -159,45 +160,37 @@ export const sendWhatsAppMessage = onCall(
   {
     region: 'europe-west1',
     enforceAppCheck: false,
-    secrets: [TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM]
+    secrets: [
+      TWILIO_ACCOUNT_SID,
+      TWILIO_AUTH_TOKEN,
+      TWILIO_WHATSAPP_FROM,
+      TWILIO_CONTENT_SID
+    ]
   },
   async request => {
     if (!request.auth) {
-      throw new HttpsError('unauthenticated', 'Debes iniciar sesión anónima antes de enviar mensajes.');
+      throw new HttpsError('unauthenticated', 'Debes iniciar sesión para enviar mensajes.');
     }
 
-    const codigo = normalizeCodigo(request.data?.codigo);
-    const telefono = normalizePhone(request.data?.telefono);
-    const clienteNombre = sanitizeName(request.data?.clienteNombre || 'cliente');
-    const estado = sanitizeEstado(request.data?.estado);
-    const uid = request.auth.uid;
+    const client = twilio(
+      TWILIO_ACCOUNT_SID.value(),
+      TWILIO_AUTH_TOKEN.value()
+    );
 
-    await enforceUidRateLimit(uid);
-    const pedidoLockRef = await acquirePedidoLock(codigo, uid, telefono);
+    const TO_NUMBER = '+34628371861'; // tu número de pruebas
+    const TEMPLATE_DATE = '12/1';
+    const TEMPLATE_TIME = '3pm';
 
     try {
-      const client = getTwilioClient();
       const message = await client.messages.create({
         from: `whatsapp:${TWILIO_WHATSAPP_FROM.value()}`,
-        to: `whatsapp:${telefono}`,
-        body: buildMessage({ codigo, clienteNombre, estado })
+        to: `whatsapp:${TO_NUMBER}`,
+        contentSid: TWILIO_CONTENT_SID.value(),
+        contentVariables: JSON.stringify({
+          1: TEMPLATE_DATE,
+          2: TEMPLATE_TIME
+        })
       });
-
-      await db.collection('whatsapp_logs').doc(message.sid).set({
-        sid: message.sid,
-        codigo,
-        telefono,
-        clienteNombre,
-        estadoPedido: estado,
-        provider: 'twilio',
-        channel: 'whatsapp',
-        direction: 'outbound',
-        twilioStatus: message.status || 'queued',
-        createdAt: FieldValue.serverTimestamp(),
-        createdByUid: uid
-      });
-
-      await markPedidoLockSuccess(pedidoLockRef, message.sid);
 
       return {
         ok: true,
@@ -205,8 +198,11 @@ export const sendWhatsAppMessage = onCall(
         status: message.status || 'queued'
       };
     } catch (error) {
-      await releasePedidoLockOnError(pedidoLockRef, error?.message);
-      throw new HttpsError('internal', error?.message || 'No se pudo enviar el WhatsApp.');
+      logger.error('Error enviando plantilla de WhatsApp Sandbox', error);
+      throw new HttpsError(
+        'internal',
+        error?.message || 'No se pudo enviar el mensaje de WhatsApp.'
+      );
     }
   }
 );

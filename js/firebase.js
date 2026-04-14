@@ -91,16 +91,11 @@ export async function initFirebase() {
   return firebaseInitPromise;
 }
 
-export async function sendWhatsAppToPedido({ codigo, telefono, clienteNombre, estado }) {
+export async function sendWhatsAppToPedido() {
   await initFirebase();
 
   const callable = httpsCallable(state.functions, 'sendWhatsAppMessage');
-  const result = await callable({
-    codigo,
-    telefono,
-    clienteNombre,
-    estado
-  });
+  const result = await callable({});
 
   return result.data;
 }
