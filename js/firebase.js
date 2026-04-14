@@ -49,10 +49,6 @@ function assertFirebaseConfig() {
   if (Object.values(firebaseConfig).some(containsPlaceholder)) {
     throw new Error('Configura Firebase antes de usar el sistema.');
   }
-
-  if (containsPlaceholder(appSecurityConfig.reCaptchaV3SiteKey)) {
-    throw new Error('Configura js/config.js con la site key pública de reCAPTCHA v3 para App Check.');
-  }
 }
 
 export function buildNewPedido(code) {
@@ -79,15 +75,6 @@ export async function initFirebase() {
     assertFirebaseConfig();
 
     state.app = initializeApp(firebaseConfig);
-
-    if (shouldUseAppCheckDebugToken()) {
-      window.FIREBASE_APPCHECK_DEBUG_TOKEN = appSecurityConfig.appCheckDebugToken;
-    }
-
-    state.appCheck = initializeAppCheck(state.app, {
-      provider: new ReCaptchaV3Provider(appSecurityConfig.reCaptchaV3SiteKey),
-      isTokenAutoRefreshEnabled: true
-    });
 
     state.auth = getAuth(state.app);
     state.db = getFirestore(state.app);
