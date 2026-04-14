@@ -114,12 +114,27 @@ async function applyCodeChange() {
   refs.editorCodeBig.textContent = state.currentCode || '—';
 }
 
-async function sendWhatsAppForPedido(_pedido, successMessage) {
+async function sendWhatsAppForPedido(pedido, successMessage) {
+  if (!pedido?.codigo) {
+    setSaveMessage('Abre un pedido antes de enviar el WhatsApp.');
+    return null;
+  }
+
+  if (!pedido?.clienteNumero) {
+    setSaveMessage('Este pedido no tiene número de cliente.');
+    return null;
+  }
+
   try {
     setSyncStatus('Enviando WhatsApp', 'busy');
-    setSaveMessage('Enviando WhatsApp de prueba...');
+    setSaveMessage('Enviando WhatsApp al cliente...');
 
-    const result = await sendWhatsAppToPedido();
+    const result = await sendWhatsAppToPedido({
+      codigo: pedido.codigo,
+      telefono: pedido.clienteNumero,
+      clienteNombre: pedido.clienteNombre,
+      estado: pedido.estado
+    });
 
     setSaveMessage(successMessage || `WhatsApp enviado correctamente (${result.sid}).`);
     setSyncStatus('Sincronizado', 'ready');
@@ -133,14 +148,7 @@ async function sendWhatsAppForPedido(_pedido, successMessage) {
 }
 
 async function handleSendWhatsApp() {
-  try {
-    setSaveMessage('Enviando WhatsApp de prueba...');
-    const result = await sendWhatsAppToPedido();
-    setSaveMessage(`WhatsApp enviado (${result.status || 'ok'}).`);
-  } catch (error) {
-    console.error(error);
-    setSaveMessage(error?.message || 'No se pudo enviar el WhatsApp.');
-  }
+  await sendWhatsAppForPedido(state.currentPedido);
 }
 
 async function handleSavePedido(event) {
