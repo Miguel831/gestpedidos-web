@@ -2,6 +2,9 @@ import { VALID_ROUTES } from './config.js';
 import { state } from './state.js';
 
 const refs = {};
+let currentSyncState = '';
+let lastSyncErrorMessage = '';
+
 const actions = {
   openPedidoModal: async () => {},
   openProveedorModal: () => {},
@@ -52,6 +55,7 @@ export function initUI() {
     scanBox: document.getElementById('scanBox'),
     scanLine: document.getElementById('scanLine'),
     startBtn: document.getElementById('startBtn'),
+    syncIndicator: document.getElementById('syncIndicator'),
     syncDot: document.getElementById('syncDot'),
     syncStatus: document.getElementById('syncStatus'),
     scanMessage: document.getElementById('scanMessage'),
@@ -112,17 +116,50 @@ export function setUIActions(nextActions) {
   Object.assign(actions, nextActions);
 }
 
-export function setSyncStatus(text, dotState = '') {
+function updateSyncIndicatorInteractivity() {
+  if (!refs.syncIndicator) return;
+
+  const hasErrorDetails = currentSyncState === 'error' && Boolean(lastSyncErrorMessage);
+  refs.syncIndicator.disabled = !hasErrorDetails;
+  refs.syncIndicator.classList.toggle('is-clickable', hasErrorDetails);
+  refs.syncIndicator.title = hasErrorDetails
+    ? 'Pulsa para ver el detalle del error'
+    : 'Sin errores recientes';
+  refs.syncIndicator.setAttribute('aria-label', hasErrorDetails
+    ? `Estado del sistema: ${refs.syncStatus.textContent}. Pulsa para ver el detalle del error.`
+    : `Estado del sistema: ${refs.syncStatus.textContent}`);
+}
+
+function rememberSyncErrorMessage(text) {
+  const message = String(text || '').trim();
+  if (!message) return;
+  lastSyncErrorMessage = message;
+  updateSyncIndicatorInteractivity();
+}
+
+export function setSyncStatus(text, dotState = '', detailText = '') {
+  currentSyncState = dotState || '';
   refs.syncStatus.textContent = text;
   refs.syncDot.className = `sync-dot${dotState ? ` ${dotState}` : ''}`;
+
+  if (currentSyncState === 'error') {
+    const fallbackDetail = detailText || refs.saveMessage?.textContent || refs.scanMessage?.textContent || text;
+    rememberSyncErrorMessage(fallbackDetail);
+  } else {
+    lastSyncErrorMessage = '';
+  }
+
+  updateSyncIndicatorInteractivity();
 }
 
 export function setScanMessage(text) {
   refs.scanMessage.textContent = text;
+  if (currentSyncState === 'error') rememberSyncErrorMessage(text);
 }
 
 export function setSaveMessage(text) {
   refs.saveMessage.textContent = text;
+  if (currentSyncState === 'error') rememberSyncErrorMessage(text);
 }
 
 export function escapeHtml(value) {
@@ -918,6 +955,27 @@ export function buildDeleteProveedorConfirmModalHtml(proveedor) {
   `;
 }
 
+export function buildSyncErrorModalHtml() {
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Detalle del error</div>
+        <div class="modal-title text-title" id="detailModalTitle">${escapeHtml(refs.syncStatus?.textContent || 'Error del sistema')}</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout danger">
+      <div class="modal-callout-title">Se ha registrado un error reciente.</div>
+      <div class="modal-callout-text">${escapeHtml(lastSyncErrorMessage || 'No hay más detalle disponible.')}</div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" data-dismiss-modal>Cerrar</button>
+    </div>
+  `;
+}
+
 export function buildDeleteClienteConfirmModalHtml(cliente) {
   const pedidos = getClientePedidos(cliente);
   const text = pedidos.length
@@ -995,6 +1053,10 @@ export function bindUIEvents() {
 
   refs.homeTabPedidos?.addEventListener('click', () => setHomeRecordsView('pedidos'));
   refs.homeTabProveedores?.addEventListener('click', () => setHomeRecordsView('proveedores'));
+  refs.syncIndicator?.addEventListener('click', () => {
+    if (!lastSyncErrorMessage) return;
+    openModal(buildSyncErrorModalHtml(), { type: 'sync-error', targetId: '' });
+  });
 
   refs.detailModal.addEventListener('click', event => {
     if (event.target === refs.detailModal) closeModal();

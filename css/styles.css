@@ -205,6 +205,25 @@ body.no-scroll { overflow: hidden; }
   color: var(--text-muted);
   letter-spacing: 0.03em;
   text-align: right;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+.sync-indicator:disabled {
+  opacity: 1;
+}
+.sync-indicator.is-clickable {
+  cursor: pointer;
+}
+.sync-indicator.is-clickable:hover,
+.sync-indicator.is-clickable:focus-visible {
+  color: var(--text);
+}
+.sync-indicator:focus-visible {
+  outline: 2px solid rgba(122, 111, 82, 0.28);
+  outline-offset: 6px;
+  border-radius: 999px;
 }
 .sync-dot {
   width: 7px;
