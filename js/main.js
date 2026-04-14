@@ -139,9 +139,15 @@ async function sendWhatsAppForPedido(pedido, successMessage) {
     setSaveMessage(successMessage || `WhatsApp enviado correctamente (${result.sid}).`);
     setSyncStatus('Sincronizado', 'ready');
     return result;
-  } catch (error) {
+    } catch (error) {
     console.error(error);
-    setSaveMessage(error?.message || 'No se pudo enviar el WhatsApp.');
+
+    const message =
+      error?.details?.message ||
+      error?.message ||
+      'No se pudo enviar el WhatsApp.';
+
+    setSaveMessage(message);
     setSyncStatus('Error', 'error');
     return null;
   }
