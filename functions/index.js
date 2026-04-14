@@ -177,10 +177,24 @@ export const sendWhatsAppMessage = onCall(
 
     try {
       const client = getTwilioClient();
+
+      // Evita "whatsapp:whatsapp:+1415..."
+      const fromNumber = String(TWILIO_WHATSAPP_FROM.value() || '').replace(/^whatsapp:/i, '');
+
+      // Plantilla del sandbox que ya te funciona por curl
+      const contentSid = 'HXb5b62575e6e4ff6129ad7c8efe1f983e';
+
+      // Ajusta estas variables según la plantilla real que estés usando
+      const contentVariables = JSON.stringify({
+        1: codigo,
+        2: estado
+      });
+
       const message = await client.messages.create({
-        from: `whatsapp:${TWILIO_WHATSAPP_FROM.value()}`,
+        from: `whatsapp:${fromNumber}`,
         to: `whatsapp:${telefono}`,
-        body: buildMessage({ codigo, clienteNombre, estado })
+        contentSid,
+        contentVariables
       });
 
       await db.collection('whatsapp_logs').doc(message.sid).set({
@@ -193,6 +207,10 @@ export const sendWhatsAppMessage = onCall(
         channel: 'whatsapp',
         direction: 'outbound',
         twilioStatus: message.status || 'queued',
+        twilioFrom: `whatsapp:${fromNumber}`,
+        twilioTo: `whatsapp:${telefono}`,
+        contentSid,
+        contentVariables: { 1: codigo, 2: estado },
         createdAt: FieldValue.serverTimestamp(),
         createdByUid: uid
       });
@@ -205,8 +223,41 @@ export const sendWhatsAppMessage = onCall(
         status: message.status || 'queued'
       };
     } catch (error) {
-      await releasePedidoLockOnError(pedidoLockRef, error?.message);
-      throw new HttpsError('internal', error?.message || 'No se pudo enviar el WhatsApp.');
+      const safeMessage = String(error?.message || 'No se pudo enviar el WhatsApp.');
+      const safeCode = error?.code ?? null;
+      const safeStatus = error?.status ?? null;
+      const safeMoreInfo = error?.moreInfo ?? null;
+
+      await releasePedidoLockOnError(pedidoLockRef, safeMessage);
+
+      await db.collection('whatsapp_logs').add({
+        codigo,
+        telefono,
+        clienteNombre,
+        estadoPedido: estado,
+        provider: 'twilio',
+        channel: 'whatsapp',
+        direction: 'outbound',
+        ok: false,
+        errorMessage: safeMessage,
+        errorCode: safeCode,
+        errorStatus: safeStatus,
+        moreInfo: safeMoreInfo,
+        createdAt: FieldValue.serverTimestamp(),
+        createdByUid: uid
+      });
+
+      throw new HttpsError(
+        'failed-precondition',
+        'No se pudo enviar el WhatsApp.',
+        {
+          provider: 'twilio',
+          message: safeMessage,
+          twilioCode: safeCode,
+          twilioStatus: safeStatus,
+          moreInfo: safeMoreInfo
+        }
+      );
     }
   }
 );
