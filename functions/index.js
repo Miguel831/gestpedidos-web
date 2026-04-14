@@ -158,7 +158,7 @@ async function releasePedidoLockOnError(ref, errorMessage) {
 export const sendWhatsAppMessage = onCall(
   {
     region: 'europe-west1',
-    enforceAppCheck: true,
+    enforceAppCheck: false,
     secrets: [TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM]
   },
   async request => {
