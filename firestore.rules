@@ -1,0 +1,73 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isShortText(value, max) {
+      return value is string && value.size() <= max;
+    }
+
+    function isOptionalShortText(value, max) {
+      return value == null || (value is string && value.size() <= max);
+    }
+
+    function isPedidoData() {
+      return request.resource.data.codigo is string
+        && request.resource.data.codigo.matches('^[0-9]{6}$')
+        && isOptionalShortText(request.resource.data.proveedorId, 120)
+        && isOptionalShortText(request.resource.data.proveedorNombre, 120)
+        && isOptionalShortText(request.resource.data.clienteId, 120)
+        && isOptionalShortText(request.resource.data.clienteNombre, 120)
+        && isOptionalShortText(request.resource.data.clienteCorreo, 160)
+        && isOptionalShortText(request.resource.data.clienteNumero, 20)
+        && isOptionalShortText(request.resource.data.fechaEnvio, 20)
+        && isOptionalShortText(request.resource.data.fechaRecibo, 20)
+        && isOptionalShortText(request.resource.data.descripcion, 5000)
+        && isOptionalShortText(request.resource.data.estado, 80);
+    }
+
+    function isClienteData() {
+      return isShortText(request.resource.data.nombre, 120)
+        && isOptionalShortText(request.resource.data.correo, 160)
+        && isOptionalShortText(request.resource.data.numero, 20);
+    }
+
+    function isProveedorData() {
+      return isShortText(request.resource.data.nombre, 120)
+        && isOptionalShortText(request.resource.data.descripcion, 1000);
+    }
+
+    match /pedidos/{codigo} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isPedidoData();
+      allow delete: if isSignedIn();
+    }
+
+    match /clientes/{clienteId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isClienteData();
+      allow delete: if isSignedIn();
+    }
+
+    match /proveedores/{proveedorId} {
+      allow read: if isSignedIn();
+      allow create, update: if isSignedIn() && isProveedorData();
+      allow delete: if isSignedIn();
+    }
+
+    match /whatsapp_logs/{logId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+
+    match /_system_whatsapp_rate_limits/{docId} {
+      allow read, write: if false;
+    }
+
+    match /_system_whatsapp_pedido_locks/{docId} {
+      allow read, write: if false;
+    }
+  }
+}

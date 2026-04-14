@@ -1,5 +1,6 @@
 export const state = {
   app: null,
+  appCheck: null,
   auth: null,
   db: null,
   user: null,
@@ -7,7 +8,6 @@ export const state = {
   worker: null,
   busy: false,
   firebaseReady: false,
-  functions: null,
   pedidos: [],
   proveedores: [],
   clientes: [],

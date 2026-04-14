@@ -284,7 +284,7 @@ export function extractFastCandidate(text) {
   const digits = String(text || '').replace(/\D/g, '');
   if (!digits) return null;
   if (digits.length === 6) return digits;
-  if (digits.length > 6) return digits.slice(0, 5);
+  if (digits.length > 6) return digits.slice(0, 6);
   if (digits.length === 5) return digits;
   return null;
 }

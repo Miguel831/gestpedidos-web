@@ -12,7 +12,7 @@ import {
   sendWhatsAppToPedido
 } from './firebase.js';
 import { cleanupScanner, startCamera, stopCamera, setScannerActions } from './scanner.js';
-import { initEmailPreview, openPedidoReceivedEmailPreview } from './email-preview.js';
+import { initEmailPreview } from './email-preview.js';
 import {
   applyRouteFromHash,
   bindUIEvents,
@@ -114,17 +114,15 @@ async function applyCodeChange() {
   refs.editorCodeBig.textContent = state.currentCode || '—';
 }
 
-async function handleSendWhatsApp() {
-  const pedido = state.currentPedido;
-
+async function sendWhatsAppForPedido(pedido, successMessage) {
   if (!pedido?.codigo) {
     setSaveMessage('Abre un pedido antes de enviar el WhatsApp.');
-    return;
+    return null;
   }
 
   if (!pedido?.clienteNumero) {
     setSaveMessage('Este pedido no tiene número de cliente.');
-    return;
+    return null;
   }
 
   try {
@@ -137,13 +135,19 @@ async function handleSendWhatsApp() {
       estado: pedido.estado
     });
 
-    setSaveMessage(`WhatsApp enviado correctamente (${result.sid}).`);
+    setSaveMessage(successMessage || `WhatsApp enviado correctamente (${result.sid}).`);
     setSyncStatus('Sincronizado', 'ready');
+    return result;
   } catch (error) {
     console.error(error);
     setSaveMessage(error.message || 'No se pudo enviar el WhatsApp.');
     setSyncStatus('Error', 'error');
+    return null;
   }
+}
+
+async function handleSendWhatsApp() {
+  await sendWhatsAppForPedido(state.currentPedido);
 }
 
 async function handleSavePedido(event) {
@@ -263,11 +267,11 @@ async function viewPedido(code) {
   await openPedidoByCode(code);
 }
 
-function notifyClient(code) {
+async function notifyClient(code) {
   const pedido = state.pedidosMap.get(code);
-  if (!pedido?.clienteCorreo) {
+  if (!pedido?.clienteNumero) {
     finishScannerFlow({
-      saveMessage: 'Este pedido no tiene correo de cliente para enviar aviso.',
+      saveMessage: 'Este pedido no tiene número de cliente para enviar aviso por WhatsApp.',
       scanMessage: 'No se pudo preparar el aviso automático al cliente.',
       closeTransientModal: true,
       closeEditor: true
@@ -275,14 +279,19 @@ function notifyClient(code) {
     return;
   }
 
+  const result = await sendWhatsAppForPedido(
+    pedido,
+    `WhatsApp enviado correctamente al cliente del pedido ${code}.`
+  );
+
+  if (!result) return;
+
   finishScannerFlow({
-    saveMessage: `Vista previa del correo del pedido ${code} preparada.`,
-    scanMessage: `Se ha generado la vista previa del aviso del pedido ${code}.`,
+    saveMessage: `WhatsApp enviado correctamente al cliente del pedido ${code}.`,
+    scanMessage: `Se ha avisado por WhatsApp al cliente del pedido ${code}.`,
     closeTransientModal: true,
     closeEditor: true
   });
-
-  openPedidoReceivedEmailPreview(pedido, { backRoute: state.currentRoute || 'inicio' });
 }
 
 function promptDeletePedido(code) {

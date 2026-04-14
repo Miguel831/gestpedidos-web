@@ -1,5 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-auth.js';
+import { initializeAppCheck, ReCaptchaV3Provider } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-app-check.js';
 import { getFunctions, httpsCallable } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-functions.js';
 import {
   getFirestore,
@@ -16,7 +17,7 @@ import {
   writeBatch
 } from 'https://www.gstatic.com/firebasejs/12.11.0/firebase-firestore.js';
 
-import { firebaseConfig } from './config.js';
+import { firebaseConfig, appSecurityConfig } from './config.js';
 import { state } from './state.js';
 import {
   normalizeText,
@@ -32,8 +33,27 @@ import {
 
 let firebaseInitPromise = null;
 
-function hasFirebasePlaceholders() {
-  return Object.values(firebaseConfig).some(value => !value || String(value).includes('PON_AQUI_TU_'));
+function containsPlaceholder(value) {
+  return !value || String(value).includes('PON_AQUI_TU_');
+}
+
+function shouldUseAppCheckDebugToken() {
+  const hostname = window.location.hostname;
+  return (
+    (hostname === 'localhost' || hostname === '127.0.0.1')
+    && appSecurityConfig.appCheckDebugToken
+    && !containsPlaceholder(appSecurityConfig.appCheckDebugToken)
+  );
+}
+
+function assertFirebaseConfig() {
+  if (Object.values(firebaseConfig).some(containsPlaceholder)) {
+    throw new Error('Configura Firebase antes de usar el sistema.');
+  }
+
+  if (containsPlaceholder(appSecurityConfig.reCaptchaV3SiteKey)) {
+    throw new Error('Configura js/config.js con la site key pública de reCAPTCHA v3 para App Check.');
+  }
 }
 
 export function buildNewPedido(code) {
@@ -57,17 +77,30 @@ export async function initFirebase() {
   if (firebaseInitPromise) return firebaseInitPromise;
 
   firebaseInitPromise = (async () => {
-    if (hasFirebasePlaceholders()) throw new Error('Configura Firebase antes de usar el sistema.');
+    assertFirebaseConfig();
 
     state.app = initializeApp(firebaseConfig);
+
+    if (shouldUseAppCheckDebugToken()) {
+      window.FIREBASE_APPCHECK_DEBUG_TOKEN = appSecurityConfig.appCheckDebugToken;
+    }
+
+    state.appCheck = initializeAppCheck(state.app, {
+      provider: new ReCaptchaV3Provider(appSecurityConfig.reCaptchaV3SiteKey),
+      isTokenAutoRefreshEnabled: true
+    });
+
     state.auth = getAuth(state.app);
     state.db = getFirestore(state.app);
-
-    const credential = await signInAnonymously(state.auth);
-    state.user = credential.user;
-    state.firebaseReady = true;
-
     state.functions = getFunctions(state.app, 'europe-west1');
+
+    state.user = state.auth.currentUser;
+    if (!state.user) {
+      const credential = await signInAnonymously(state.auth);
+      state.user = credential.user;
+    }
+
+    state.firebaseReady = true;
 
     setSyncStatus('Conectado con Firebase', 'ready');
     setSaveMessage('Sistema listo. Los cambios se guardan en tiempo real.');
@@ -194,7 +227,7 @@ export async function markPedidoAsReceivedNow(codigo) {
   await initFirebase();
 
   const safeCode = String(codigo || '').trim();
-  if (!/^\d{5}$/.test(safeCode)) throw new Error('El código debe tener exactamente 5 dígitos.');
+  if (!/^\d{6}$/.test(safeCode)) throw new Error('El código debe tener exactamente 6 dígitos.');
 
   const pedido = await loadPedidoByCode(safeCode);
   if (!pedido?.existsInDb) throw new Error('No se puede marcar como recibido un pedido inexistente.');
@@ -459,7 +492,6 @@ export async function deleteProveedorById(proveedorId) {
   const resolvedProveedor = await proveedor;
   if (!resolvedProveedor) throw new Error('Proveedor no encontrado.');
 
-  // Usar los pedidos reales enlazados al proveedor, no pedidosAsignados
   const linkedPedidos = state.pedidos.filter(pedido => pedido.proveedorId === proveedorId);
   const batch = writeBatch(state.db);
 

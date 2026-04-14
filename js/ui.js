@@ -846,7 +846,7 @@ export function buildScanAlreadyReceivedModalHtml(pedido) {
 }
 
 export function buildNotifyClientModalHtml(pedido) {
-  const hasEmail = Boolean(pedido.clienteCorreo);
+  const hasWhatsapp = Boolean(pedido.clienteNumero);
   return `
     <div class="modal-head">
       <div>
@@ -858,12 +858,12 @@ export function buildNotifyClientModalHtml(pedido) {
 
     <div class="modal-callout success">
       <div class="modal-callout-title">El pedido ya está marcado como recibido.</div>
-      <div class="modal-callout-text">${hasEmail ? '¿Quieres avisar ahora al cliente por correo?' : 'No hay correo guardado para avisar automáticamente al cliente.'}</div>
+      <div class="modal-callout-text">${hasWhatsapp ? '¿Quieres avisar ahora al cliente por WhatsApp?' : 'No hay número de WhatsApp guardado para avisar automáticamente al cliente.'}</div>
     </div>
 
     <div class="modal-actions">
-      ${hasEmail ? `<button type="button" class="btn-primary" data-notify-client="${pedido.codigo}">Sí, avisar</button>` : `<button type="button" class="btn-secondary" data-view-pedido="${pedido.codigo}">Ver pedido</button>`}
-      <button type="button" class="btn-ghost" data-dismiss-modal>${hasEmail ? 'Más tarde' : 'Cerrar'}</button>
+      ${hasWhatsapp ? `<button type="button" class="btn-primary" data-notify-client="${pedido.codigo}">Sí, avisar</button>` : `<button type="button" class="btn-secondary" data-view-pedido="${pedido.codigo}">Ver pedido</button>`}
+      <button type="button" class="btn-ghost" data-dismiss-modal>${hasWhatsapp ? 'Más tarde' : 'Cerrar'}</button>
     </div>
   `;
 }
