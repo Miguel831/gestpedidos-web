@@ -53,6 +53,7 @@ export function initUI() {
     sendWhatsappBtn: document.getElementById('sendWhatsappBtn'),
 
     scannerLayout: document.getElementById('scannerLayout'),
+    startBtn: document.getElementById('startBtn'),
     video: document.getElementById('video'),
     videoWrap: document.getElementById('videoWrap'),
     scanBox: document.getElementById('scanBox'),
@@ -573,13 +574,19 @@ export function clearForm() {
 
 export function openManualEditor() {
   clearForm();
+  setRoute('inicio', false);
   showEditor();
-  // Ocultamos el texto grande y mostramos el input
+
   refs.editorCodeBig.style.display = 'none';
   refs.editorCodeInput.style.display = 'inline-block';
   refs.editorCodeInput.value = '';
-  // Ponemos el foco para que el usuario pueda escribir directamente
-  refs.editorCodeInput.focus(); 
+  refs.editorCodeInput.placeholder = 'Escribe 6 dígitos';
+
+  refs.codigoInput.value = '';
+  refs.currentCodeEl.textContent = '· · · · · ·';
+
+  refs.editorCodeInput.focus();
+  refs.editorCodeInput.select();
 }
 
 export function updateScannerVisibility() {
@@ -1094,7 +1101,6 @@ export function bindUIEvents() {
 
   refs.openScannerBtn?.addEventListener('click', actions.onOpenScanner);
   refs.closeScannerBtn?.addEventListener('click', actions.onCloseScanner);
-  refs.manualCodeBtn?.addEventListener('click', actions.onManualCode); // Si ya lo añadiste antes
 
   window.addEventListener('keydown', event => {
     if (event.key === 'Escape') {

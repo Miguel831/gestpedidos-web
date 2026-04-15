@@ -405,6 +405,15 @@ setUIActions({
   viewPedido,
   notifyClient,
   onStartCamera: startCamera,
+
+  onManualCode: () => {
+    stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: false });
+    openManualEditor();
+    setRoute('inicio');
+    setScanMessage('Introduce manualmente el código del pedido.');
+    setSaveMessage('Escribe 6 dígitos y pulsa Enter para cargar o crear el pedido.');
+  },
+
   onReset: () => {
     stopCamera();
     clearForm();
