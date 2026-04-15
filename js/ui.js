@@ -26,7 +26,9 @@ const actions = {
   onToggleProviderMode: () => {},
   onToggleClientMode: () => {},
   onCloseEditor: () => {},
-  onManualCode: () => {}
+  onManualCode: () => {},
+  onOpenScanner: async () => {},
+  onCloseScanner: () => {},
 };
 
 export function initUI() {
@@ -55,7 +57,9 @@ export function initUI() {
     videoWrap: document.getElementById('videoWrap'),
     scanBox: document.getElementById('scanBox'),
     scanLine: document.getElementById('scanLine'),
-    startBtn: document.getElementById('startBtn'),
+    screenScanner: document.getElementById('screenScanner'),
+    openScannerBtn: document.getElementById('openScannerBtn'),
+    closeScannerBtn: document.getElementById('closeScannerBtn'),
     manualCodeBtn: document.getElementById('manualCodeBtn'),
     syncIndicator: document.getElementById('syncIndicator'),
     syncDot: document.getElementById('syncDot'),
@@ -260,6 +264,7 @@ export function setRoute(route, pushHash = true) {
   refs.screenProveedores.classList.toggle('active', safeRoute === 'proveedores');
   refs.screenClientes.classList.toggle('active', safeRoute === 'clientes');
   refs.screenCorreoPreview.classList.toggle('active', safeRoute === 'correo-preview');
+  refs.screenScanner?.classList.toggle('active', safeRoute === 'scanner');
 
   refs.navInicioBtn?.classList.toggle('active', safeRoute === 'inicio');
   refs.navPedidosBtn?.classList.toggle('active', safeRoute === 'pedidos');
@@ -578,6 +583,9 @@ export function openManualEditor() {
 }
 
 export function updateScannerVisibility() {
+  if (!active && state.currentRoute === 'scanner') {
+    setRoute('inicio');
+  }
   const active = Boolean(state.stream);
   refs.videoWrap.classList.toggle('active', active);
   refs.scannerLayout.classList.toggle('camera-hidden', !active);
@@ -1052,7 +1060,6 @@ export function bindUIEvents() {
     actions.onToggleClientMode();
   });
   refs.closeEditorModalBtn.addEventListener('click', actions.onCloseEditor);
-  refs.manualCodeBtn?.addEventListener('click', actions.onManualCode);
 
   refs.menuToggleBtn.addEventListener('click', () => {
     if (refs.appDrawer.classList.contains('open')) closeDrawer();
@@ -1083,6 +1090,10 @@ export function bindUIEvents() {
     refs.editorCodeInput.focus();
     refs.editorCodeInput.select();
   });
+
+  refs.openScannerBtn?.addEventListener('click', actions.onOpenScanner);
+  refs.closeScannerBtn?.addEventListener('click', actions.onCloseScanner);
+  refs.manualCodeBtn?.addEventListener('click', actions.onManualCode); // Si ya lo añadiste antes
 
   window.addEventListener('keydown', event => {
     if (event.key === 'Escape') {

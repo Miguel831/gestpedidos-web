@@ -416,6 +416,15 @@ setUIActions({
     stopCamera();
     clearForm();
   },
+
+  onOpenScanner: async () => {
+    setRoute('scanner');
+    await startCamera();
+  },
+  onCloseScanner: () => {
+    stopCamera();
+    // No hace falta hacer setRoute('inicio') aquí porque updateScannerVisibility() lo hará por nosotros
+  },
   onManualCode: () => { 
     stopCamera();
     openManualEditor();
