@@ -1060,6 +1060,7 @@ export function bindUIEvents() {
     actions.onToggleClientMode();
   });
   refs.closeEditorModalBtn.addEventListener('click', actions.onCloseEditor);
+  refs.manualCodeBtn?.addEventListener('click', actions.onManualCode);
 
   refs.menuToggleBtn.addEventListener('click', () => {
     if (refs.appDrawer.classList.contains('open')) closeDrawer();

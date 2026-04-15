@@ -1046,27 +1046,6 @@ button[disabled] { opacity: 0.45; cursor: not-allowed; }
   color: var(--text-muted);
 }
 
-/* --- NUEVOS ESTILOS PANTALLA ESCÁNER --- */
-.scanner-shell {
-  padding-top: 24px;
-  padding-bottom: 24px;
-  height: calc(100vh - 64px); /* Restamos el alto de la barra superior */
-}
-
-.scanner-fullscreen-layout {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  gap: 24px;
-}
-
-.scanner-fullscreen-layout .video-wrap {
-  flex: 1;
-  height: auto;
-  min-height: 0;
-  display: block; /* Sobrescribe el display:none por defecto */
-}
-
 .modal-callout {
   border: 1px solid var(--line-mid);
   background: var(--bg-soft);
