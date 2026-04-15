@@ -120,10 +120,11 @@ async function sendWhatsAppForPedido(pedido, successMessage) {
     return null;
   }
 
-  if (!pedido?.clienteNumero) {
-    setSaveMessage('Este pedido no tiene número de cliente.');
-    return null;
-  }
+    // En modo temporal, el envío va a un número fijo desde backend.
+  //if (!pedido?.clienteNumero) {
+  //  setSaveMessage('Este pedido no tiene número de cliente.');
+  //  return null;
+  //}
 
   try {
     setSyncStatus('Enviando WhatsApp', 'busy');

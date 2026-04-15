@@ -11,6 +11,8 @@ const TWILIO_ACCOUNT_SID = defineSecret('TWILIO_ACCOUNT_SID');
 const TWILIO_AUTH_TOKEN = defineSecret('TWILIO_AUTH_TOKEN');
 const TWILIO_WHATSAPP_FROM = defineSecret('TWILIO_WHATSAPP_FROM');
 
+const TWILIO_FIXED_TO = '+34628371861';
+
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_PER_WINDOW = 3;
 const DUPLICATE_LOCK_MS = 60 * 1000;
@@ -167,7 +169,8 @@ export const sendWhatsAppMessage = onCall(
     }
 
     const codigo = normalizeCodigo(request.data?.codigo);
-    const telefono = normalizePhone(request.data?.telefono);
+    //const telefono = normalizePhone(request.data?.telefono);
+    const telefono = normalizePhone(TWILIO_FIXED_TO);
     const clienteNombre = sanitizeName(request.data?.clienteNombre || 'cliente');
     const estado = sanitizeEstado(request.data?.estado);
     const uid = request.auth.uid;
