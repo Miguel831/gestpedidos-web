@@ -77,15 +77,39 @@
           </div>
 
           <section class="step-section">
+            <div class="step-header">
+              <div class="step-number active" id="step1Num">1</div>
+              <div>
+                <div class="step-label">Primer paso</div>
+                <div class="step-title">Leer código del pedido</div>
+              </div>
+            </div>
+
             <div class="panel">
-              <div class="panel-inner" style="text-align: center; padding: 48px 24px;">
-                <div class="step-title" style="margin-bottom: 12px;">Gestión de pedidos</div>
-                <p style="color: var(--text-muted); margin-bottom: 32px; font-size: 1.1rem;">
-                  Escanea la etiqueta del paquete o introduce la referencia manualmente.
-                </p>
-                <div class="btn-row" style="justify-content: center; gap: 16px;">
-                  <button id="openScannerBtn" class="btn-primary" style="font-size: 1.1rem; padding: 16px 32px;">📷 Activar Cá</button>
-                  <button id="manualCodeBtn" class="btn-secondary" style="font-size: 1.1rem; padding: 16px 32px;">✎ Manual</button>
+              <div class="panel-inner">
+                <div class="scanner-layout camera-hidden" id="scannerLayout">
+
+                  <div class="video-wrap" id="videoWrap">
+                    <video id="video" autoplay playsinline muted></video>
+                    <div class="scan-box" id="scanBox"></div>
+                    <div class="scan-line" id="scanLine"></div>
+                  </div>
+
+                  <div class="scanner-controls">
+                    <div class="scanner-status-box">
+                      <div class="scanner-status-label">Código detectado</div>
+                      <div class="scanner-code-display" id="currentCode">· · · · · ·</div>
+                      <div class="scanner-message" id="scanMessage">Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.</div>
+                    </div>
+
+                    <div class="btn-row" style="grid-template-columns: 1fr auto;">
+                      <button id="startBtn" class="btn-primary">Activar cámara</button>
+                      <button id="manualCodeBtn" class="btn-secondary btn-compact" title="Introducir código manualmente">✎ Manual</button>
+                    </div>
+
+                    <div class="scanner-auto-note">La lectura es continua y se valida automáticamente cuando el mismo código coincide en 2 de las últimas 3 lecturas.</div>
+                  </div>
+
                 </div>
               </div>
             </div>
