@@ -102,8 +102,9 @@
                       <div class="scanner-message" id="scanMessage">Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.</div>
                     </div>
 
-                    <div class="btn-row">
+                    <div class="btn-row" style="grid-template-columns: 1fr auto;">
                       <button id="startBtn" class="btn-primary">Activar cámara</button>
+                      <button id="manualCodeBtn" class="btn-secondary btn-compact" title="Introducir código manualmente">✎ Manual</button>
                     </div>
 
                     <div class="scanner-auto-note">La lectura es continua y se valida automáticamente cuando el mismo código coincide en 2 de las últimas 3 lecturas.</div>

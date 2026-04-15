@@ -26,6 +26,7 @@ import {
   buildScanAlreadyReceivedModalHtml,
   buildScanPendingConfirmModalHtml,
   clearForm,
+  openManualEditor,
   closeModal,
   fillFormFromPedido,
   getRefs,

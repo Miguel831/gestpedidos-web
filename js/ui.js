@@ -25,7 +25,8 @@ const actions = {
   onSave: async () => {},
   onToggleProviderMode: () => {},
   onToggleClientMode: () => {},
-  onCloseEditor: () => {}
+  onCloseEditor: () => {},
+  onManualCode: () => {}
 };
 
 export function initUI() {
@@ -55,6 +56,7 @@ export function initUI() {
     scanBox: document.getElementById('scanBox'),
     scanLine: document.getElementById('scanLine'),
     startBtn: document.getElementById('startBtn'),
+    manualCodeBtn: document.getElementById('manualCodeBtn'),
     syncIndicator: document.getElementById('syncIndicator'),
     syncDot: document.getElementById('syncDot'),
     syncStatus: document.getElementById('syncStatus'),
@@ -564,6 +566,17 @@ export function clearForm() {
   refs.step1Num?.classList.add('active');
 }
 
+export function openManualEditor() {
+  clearForm();
+  showEditor();
+  // Ocultamos el texto grande y mostramos el input
+  refs.editorCodeBig.style.display = 'none';
+  refs.editorCodeInput.style.display = 'inline-block';
+  refs.editorCodeInput.value = '';
+  // Ponemos el foco para que el usuario pueda escribir directamente
+  refs.editorCodeInput.focus(); 
+}
+
 export function updateScannerVisibility() {
   const active = Boolean(state.stream);
   refs.videoWrap.classList.toggle('active', active);
@@ -1039,6 +1052,7 @@ export function bindUIEvents() {
     actions.onToggleClientMode();
   });
   refs.closeEditorModalBtn.addEventListener('click', actions.onCloseEditor);
+  refs.manualCodeBtn?.addEventListener('click', actions.onManualCode);
 
   refs.menuToggleBtn.addEventListener('click', () => {
     if (refs.appDrawer.classList.contains('open')) closeDrawer();
