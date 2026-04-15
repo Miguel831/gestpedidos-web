@@ -415,6 +415,10 @@ setUIActions({
   onCloseEditor: () => {
     stopCamera();
     clearForm();
+  },
+  onManualCode: () => { 
+    stopCamera();
+    openManualEditor();
   }
 });
 
