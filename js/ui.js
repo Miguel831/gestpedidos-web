@@ -26,9 +26,7 @@ const actions = {
   onToggleProviderMode: () => {},
   onToggleClientMode: () => {},
   onCloseEditor: () => {},
-  onManualCode: () => {},
-  onOpenScanner: async () => {},
-  onCloseScanner: () => {},
+  onManualCode: () => {}
 };
 
 export function initUI() {
@@ -53,14 +51,11 @@ export function initUI() {
     sendWhatsappBtn: document.getElementById('sendWhatsappBtn'),
 
     scannerLayout: document.getElementById('scannerLayout'),
-    startBtn: document.getElementById('startBtn'),
     video: document.getElementById('video'),
     videoWrap: document.getElementById('videoWrap'),
     scanBox: document.getElementById('scanBox'),
     scanLine: document.getElementById('scanLine'),
-    screenScanner: document.getElementById('screenScanner'),
-    openScannerBtn: document.getElementById('openScannerBtn'),
-    closeScannerBtn: document.getElementById('closeScannerBtn'),
+    startBtn: document.getElementById('startBtn'),
     manualCodeBtn: document.getElementById('manualCodeBtn'),
     syncIndicator: document.getElementById('syncIndicator'),
     syncDot: document.getElementById('syncDot'),
@@ -265,7 +260,6 @@ export function setRoute(route, pushHash = true) {
   refs.screenProveedores.classList.toggle('active', safeRoute === 'proveedores');
   refs.screenClientes.classList.toggle('active', safeRoute === 'clientes');
   refs.screenCorreoPreview.classList.toggle('active', safeRoute === 'correo-preview');
-  refs.screenScanner?.classList.toggle('active', safeRoute === 'scanner');
 
   refs.navInicioBtn?.classList.toggle('active', safeRoute === 'inicio');
   refs.navPedidosBtn?.classList.toggle('active', safeRoute === 'pedidos');
@@ -574,25 +568,16 @@ export function clearForm() {
 
 export function openManualEditor() {
   clearForm();
-  setRoute('inicio', false);
   showEditor();
-
+  // Ocultamos el texto grande y mostramos el input
   refs.editorCodeBig.style.display = 'none';
   refs.editorCodeInput.style.display = 'inline-block';
   refs.editorCodeInput.value = '';
-  refs.editorCodeInput.placeholder = 'Escribe 6 dígitos';
-
-  refs.codigoInput.value = '';
-  refs.currentCodeEl.textContent = '· · · · · ·';
-
-  refs.editorCodeInput.focus();
-  refs.editorCodeInput.select();
+  // Ponemos el foco para que el usuario pueda escribir directamente
+  refs.editorCodeInput.focus(); 
 }
 
 export function updateScannerVisibility() {
-  if (!active && state.currentRoute === 'scanner') {
-    setRoute('inicio');
-  }
   const active = Boolean(state.stream);
   refs.videoWrap.classList.toggle('active', active);
   refs.scannerLayout.classList.toggle('camera-hidden', !active);
@@ -1098,9 +1083,6 @@ export function bindUIEvents() {
     refs.editorCodeInput.focus();
     refs.editorCodeInput.select();
   });
-
-  refs.openScannerBtn?.addEventListener('click', actions.onOpenScanner);
-  refs.closeScannerBtn?.addEventListener('click', actions.onCloseScanner);
 
   window.addEventListener('keydown', event => {
     if (event.key === 'Escape') {
