@@ -4,6 +4,29 @@ import { initializeApp } from 'firebase-admin/app';
 import { getFirestore, FieldValue } from 'firebase-admin/firestore';
 import twilio from 'twilio';
 
+import crypto from 'node:crypto';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
+
+const PUBLIC_TICKET_BASE_URL = 'https://miguel831.github.io/gestpedidos-web/pedido.html?t={{3}}';
+
+function createPublicToken() {
+  return crypto.randomBytes(24).toString('base64url');
+}
+
+async function createPedidoPublicLink({ codigo, uid }) {
+  const token = createPublicToken();
+
+  await db.collection('pedido_public_links').doc(token).set({
+    codigo,
+    active: true,
+    createdAt: FieldValue.serverTimestamp(),
+    expiresAt: Timestamp.fromMillis(Date.now() + 1000 * 60 * 60 * 24 * 30),
+    createdByUid: uid
+  });
+
+  return token;
+}
+
 initializeApp();
 const db = getFirestore();
 
@@ -157,6 +180,18 @@ async function releasePedidoLockOnError(ref, errorMessage) {
   }, { merge: true });
 }
 
+function formatTemplateDate(value) {
+  if (!value) return '';
+
+  if (typeof value === 'string') return value;
+
+  if (typeof value?.toDate === 'function') {
+    return value.toDate().toLocaleDateString('es-ES');
+  }
+
+  return String(value);
+}
+
 export const sendWhatsAppMessage = onCall(
   {
     region: 'europe-west1',
@@ -169,28 +204,34 @@ export const sendWhatsAppMessage = onCall(
     }
 
     const codigo = normalizeCodigo(request.data?.codigo);
-    //const telefono = normalizePhone(request.data?.telefono);
-    const telefono = normalizePhone(TWILIO_FIXED_TO);
-    const clienteNombre = sanitizeName(request.data?.clienteNombre || 'cliente');
-    const estado = sanitizeEstado(request.data?.estado);
     const uid = request.auth.uid;
+
+    const pedidoSnap = await db.collection('pedidos').doc(codigo).get();
+    if (!pedidoSnap.exists) {
+      throw new HttpsError('not-found', 'Pedido no encontrado.');
+    }
+
+    const pedido = pedidoSnap.data();
+
+    //const telefono = normalizePhone(pedido.clienteNumero);
+    const telefono = normalizePhone(TWILIO_FIXED_TO)
+    const clienteNombre = sanitizeName(pedido.clienteNombre || 'cliente');
+    const fecha = formatTemplateDate(pedido.fechaEnvio || pedido.createdAt);
 
     await enforceUidRateLimit(uid);
     const pedidoLockRef = await acquirePedidoLock(codigo, uid, telefono);
 
     try {
       const client = getTwilioClient();
-
-      // Evita "whatsapp:whatsapp:+1415..."
       const fromNumber = String(TWILIO_WHATSAPP_FROM.value() || '').replace(/^whatsapp:/i, '');
 
-      // Plantilla del sandbox que ya te funciona por curl
-      const contentSid = 'HXb5b62575e6e4ff6129ad7c8efe1f983e';
+      const publicToken = await createPedidoPublicLink({ codigo, uid });
 
-      // Ajusta estas variables según la plantilla real que estés usando
+      const contentSid = 'HXd65479511b5514d38cd9a08129f40901';
       const contentVariables = JSON.stringify({
-        1: codigo,
-        2: estado
+        1: fecha,
+        2: clienteNombre,
+        3: publicToken
       });
 
       const message = await client.messages.create({
@@ -206,6 +247,7 @@ export const sendWhatsAppMessage = onCall(
         telefono,
         clienteNombre,
         estadoPedido: estado,
+        publicToken,
         provider: 'twilio',
         channel: 'whatsapp',
         direction: 'outbound',
@@ -213,18 +255,14 @@ export const sendWhatsAppMessage = onCall(
         twilioFrom: `whatsapp:${fromNumber}`,
         twilioTo: `whatsapp:${telefono}`,
         contentSid,
-        contentVariables: { 1: codigo, 2: estado },
+        contentVariables: { 1: clienteNombre, 2: codigo, 3: estado, 4: publicToken },
         createdAt: FieldValue.serverTimestamp(),
         createdByUid: uid
       });
 
       await markPedidoLockSuccess(pedidoLockRef, message.sid);
 
-      return {
-        ok: true,
-        sid: message.sid,
-        status: message.status || 'queued'
-      };
+      return { ok: true, sid: message.sid, status: message.status || 'queued' };
     } catch (error) {
     const safeMessage = String(error?.message || 'No se pudo enviar el WhatsApp.');
     const safeCode = error?.code ?? null;
@@ -305,5 +343,63 @@ export const twilioStatusCallback = onRequest(
     }
 
     res.status(200).send('ok');
+  }
+);
+
+
+export const getPublicPedido = onRequest(
+  { region: 'europe-west1' },
+  async (req, res) => {
+    const origin = req.get('origin') || '';
+    if (origin === 'https://tudominio.com') {
+      res.set('Access-Control-Allow-Origin', origin);
+    }
+    res.set('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+      res.status(204).send('');
+      return;
+    }
+
+    const token = String(req.query.t || '').trim();
+    if (!token) {
+      res.status(400).json({ error: 'token requerido' });
+      return;
+    }
+
+    const linkSnap = await db.collection('pedido_public_links').doc(token).get();
+    if (!linkSnap.exists) {
+      res.status(404).json({ error: 'enlace no encontrado' });
+      return;
+    }
+
+    const link = linkSnap.data();
+    const expiresAtMs = link.expiresAt?.toMillis?.() || 0;
+
+    if (!link.active || (expiresAtMs && expiresAtMs < Date.now())) {
+      res.status(410).json({ error: 'enlace caducado' });
+      return;
+    }
+
+    const pedidoSnap = await db.collection('pedidos').doc(link.codigo).get();
+    if (!pedidoSnap.exists) {
+      res.status(404).json({ error: 'pedido no encontrado' });
+      return;
+    }
+
+    const pedido = pedidoSnap.data();
+
+    res.set('Cache-Control', 'private, max-age=60');
+    res.json({
+      codigo: pedido.codigo,
+      clienteNombre: pedido.clienteNombre || '',
+      proveedorNombre: pedido.proveedorNombre || '',
+      estado: pedido.estado || 'Pendiente',
+      fechaEnvio: pedido.fechaEnvio || '',
+      fechaRecibo: pedido.fechaRecibo || '',
+      descripcion: pedido.descripcion || '',
+      qrText: pedido.codigo
+    });
   }
 );

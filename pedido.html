@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Detalle del pedido</title>
+  <link rel="stylesheet" href="./css/pedido-public.css" />
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</head>
+<body>
+  <main class="ticket-shell">
+    <section class="ticket-card">
+      <div id="loading">Cargando pedido...</div>
+      <div id="error" hidden></div>
+
+      <div id="ticket" hidden>
+        <header class="ticket-head">
+          <h1>Detalle del pedido</h1>
+          <p id="estado"></p>
+        </header>
+
+        <dl class="ticket-grid">
+          <div><dt>Código</dt><dd id="codigo"></dd></div>
+          <div><dt>Cliente</dt><dd id="clienteNombre"></dd></div>
+          <div><dt>Proveedor</dt><dd id="proveedorNombre"></dd></div>
+          <div><dt>Envío</dt><dd id="fechaEnvio"></dd></div>
+          <div><dt>Recepción</dt><dd id="fechaRecibo"></dd></div>
+        </dl>
+
+        <section class="ticket-desc">
+          <h2>Descripción</h2>
+          <p id="descripcion"></p>
+        </section>
+
+        <section class="ticket-qr">
+          <canvas id="qrCanvas"></canvas>
+        </section>
+
+        <button type="button" onclick="window.print()">Guardar / imprimir</button>
+      </div>
+    </section>
+  </main>
+
+  <script type="module" src="./js/pedido-public.js"></script>
+</body>
+</html>
