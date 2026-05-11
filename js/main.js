@@ -175,7 +175,7 @@ async function handleSavePedido(event) {
       clienteId: refs.clienteSelect.value,
       clientMode: state.clientMode,
       nuevoClienteNombre: refs.nuevoClienteNombre.value,
-      nuevoClienteCorreo: refs.nuevoClienteCorreo.value,
+      nuevoClienteCorreo: '',
       nuevoClienteNumero: refs.nuevoClienteNumero.value,
       fechaEnvio: refs.fechaEnvioInput.value,
       fechaRecibo: refs.fechaReciboInput.value,

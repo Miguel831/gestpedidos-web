@@ -276,7 +276,7 @@ export async function resolveClienteForSave({
 }) {
   if (clientMode === 'new') {
     const nombre = nuevoClienteNombre.trim();
-    const correo = nuevoClienteCorreo.trim();
+    const correo = (nuevoClienteCorreo || '').trim();
     const numero = nuevoClienteNumero.trim();
 
     if (!nombre) throw new Error('Indica el nombre del cliente.');

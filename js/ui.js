@@ -78,7 +78,6 @@ export function initUI() {
     toggleNewClientBtn: document.getElementById('toggleNewClientBtn'),
     newClientBox: document.getElementById('newClientBox'),
     nuevoClienteNombre: document.getElementById('nuevoClienteNombre'),
-    nuevoClienteCorreo: document.getElementById('nuevoClienteCorreo'),
     nuevoClienteNumero: document.getElementById('nuevoClienteNumero'),
     fechaEnvioInput: document.getElementById('fechaEnvioInput'),
     fechaReciboInput: document.getElementById('fechaReciboInput'),
@@ -501,7 +500,6 @@ export function setClientMode(mode) {
 
   if (!isNew) {
     refs.nuevoClienteNombre.value = '';
-    refs.nuevoClienteCorreo.value = '';
     refs.nuevoClienteNumero.value = '';
   }
 }

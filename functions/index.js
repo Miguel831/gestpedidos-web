@@ -1,11 +1,10 @@
 import { onCall, onRequest, HttpsError } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { initializeApp } from 'firebase-admin/app';
-import { getFirestore, FieldValue } from 'firebase-admin/firestore';
+import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 import twilio from 'twilio';
 
 import crypto from 'node:crypto';
-import { getFirestore, FieldValue, Timestamp } from 'firebase-admin/firestore';
 
 const PUBLIC_TICKET_BASE_URL = 'https://miguel831.github.io/gestpedidos-web/pedido.html?t={{3}}';
 
@@ -33,6 +32,7 @@ const db = getFirestore();
 const TWILIO_ACCOUNT_SID = defineSecret('TWILIO_ACCOUNT_SID');
 const TWILIO_AUTH_TOKEN = defineSecret('TWILIO_AUTH_TOKEN');
 const TWILIO_WHATSAPP_FROM = defineSecret('TWILIO_WHATSAPP_FROM');
+const TWILIO_CONTENT_SID = defineSecret('TWILIO_CONTENT_SID');
 
 const TWILIO_FIXED_TO = '+34628371861';
 
@@ -196,7 +196,7 @@ export const sendWhatsAppMessage = onCall(
   {
     region: 'europe-west1',
     enforceAppCheck: false,
-    secrets: [TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM]
+    secrets: [TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, TWILIO_WHATSAPP_FROM, TWILIO_CONTENT_SID]
   },
   async request => {
     if (!request.auth) {
@@ -227,7 +227,10 @@ export const sendWhatsAppMessage = onCall(
 
       const publicToken = await createPedidoPublicLink({ codigo, uid });
 
-      const contentSid = 'HXd65479511b5514d38cd9a08129f40901';
+      const contentSid = String(TWILIO_CONTENT_SID.value() || '').trim();
+        if (!contentSid) {
+          throw new HttpsError('failed-precondition', 'Falta TWILIO_CONTENT_SID.');
+        }
       const contentVariables = JSON.stringify({
         1: fecha,
         2: clienteNombre,
