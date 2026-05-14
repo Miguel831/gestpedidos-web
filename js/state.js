@@ -35,5 +35,7 @@ export const state = {
   scannerTimer: null,
   scannerSamples: [],
   lastStableCode: '',
+  groupModeActive: false,
+  groupPedidoCodes: [],
   unsubs: [],
 };

@@ -1147,3 +1147,63 @@ button[disabled] { opacity: 0.45; cursor: not-allowed; }
     height: 48px;
   }
 }
+
+.btn-create-group {
+  width: 100%;
+  justify-content: center;
+  margin-top: -4px;
+}
+
+.group-scanner-panel {
+  border: 1px solid var(--line-mid);
+  border-radius: var(--r-lg);
+  background: rgba(74, 140, 114, 0.06);
+  padding: 16px;
+  display: grid;
+  gap: 14px;
+}
+
+.group-scanner-panel[hidden] { display: none; }
+
+.group-scanner-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.group-scanner-label {
+  font-family: 'Cormorant SC', Georgia, serif;
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.group-scanner-title {
+  font-family: 'Cormorant Garamond', Georgia, serif;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  color: var(--brand);
+}
+
+.group-code-list,
+.group-modal-codes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.group-empty-text {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+}
+
+.group-new-provider-box {
+  display: grid;
+  gap: 14px;
+}
+
+.group-new-provider-box[hidden],
+.group-provider-error[hidden] { display: none; }

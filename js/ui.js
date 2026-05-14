@@ -26,7 +26,11 @@ const actions = {
   onToggleProviderMode: () => {},
   onToggleClientMode: () => {},
   onCloseEditor: () => {},
-  onManualCode: () => {}
+  onManualCode: () => {},
+  onCreateGroup: async () => {},
+  onCloseGroup: () => {},
+  onCancelGroup: () => {},
+  confirmGroupProvider: async () => {}
 };
 
 export function initUI() {
@@ -57,6 +61,12 @@ export function initUI() {
     scanLine: document.getElementById('scanLine'),
     startBtn: document.getElementById('startBtn'),
     manualCodeBtn: document.getElementById('manualCodeBtn'),
+    createGroupBtn: document.getElementById('createGroupBtn'),
+    groupScannerPanel: document.getElementById('groupScannerPanel'),
+    groupPedidoCount: document.getElementById('groupPedidoCount'),
+    groupCodeList: document.getElementById('groupCodeList'),
+    closeGroupBtn: document.getElementById('closeGroupBtn'),
+    cancelGroupBtn: document.getElementById('cancelGroupBtn'),
     syncIndicator: document.getElementById('syncIndicator'),
     syncDot: document.getElementById('syncDot'),
     syncStatus: document.getElementById('syncStatus'),
@@ -557,7 +567,9 @@ export function clearForm() {
   setEstadoBadge('Pendiente');
   setProviderMode('existing');
   setClientMode('existing');
-  setScanMessage('Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.');
+  if (!state.groupModeActive) {
+    setScanMessage('Pulsa “Activar cámara” para iniciar lectura continua. La validación se hace automáticamente cuando el mismo código se repite de forma estable.');
+  }
   setSaveMessage('Los datos se sincronizarán con Firebase en tiempo real.');
   hideEditor();
   refs.step1Num?.classList.remove('done');
@@ -573,6 +585,26 @@ export function openManualEditor() {
   refs.editorCodeInput.value = '';
   // Ponemos el foco para que el usuario pueda escribir directamente
   refs.editorCodeInput.focus(); 
+}
+
+
+export function renderGroupScannerState() {
+  if (!refs.createGroupBtn || !refs.groupScannerPanel) return;
+
+  const active = Boolean(state.groupModeActive);
+  const codes = Array.isArray(state.groupPedidoCodes) ? state.groupPedidoCodes : [];
+
+  refs.createGroupBtn.hidden = active;
+  refs.groupScannerPanel.hidden = !active;
+  if (refs.manualCodeBtn) refs.manualCodeBtn.disabled = active;
+
+  if (refs.groupPedidoCount) refs.groupPedidoCount.textContent = String(codes.length);
+
+  if (refs.groupCodeList) {
+    refs.groupCodeList.innerHTML = codes.length
+      ? codes.map(codigo => `<span class="chip no-link">${escapeHtml(codigo)}</span>`).join('')
+      : '<span class="group-empty-text">Sin pedidos todavía.</span>';
+  }
 }
 
 export function updateScannerVisibility() {
@@ -672,6 +704,20 @@ function bindModalActions() {
 
   refs.detailModalBody.querySelectorAll('[data-notify-client]').forEach(element => {
     element.addEventListener('click', () => actions.notifyClient(element.dataset.notifyClient));
+  });
+
+  refs.detailModalBody.querySelectorAll('[data-confirm-group-provider]').forEach(element => {
+    element.addEventListener('click', () => actions.confirmGroupProvider());
+  });
+
+  const groupProviderMode = refs.detailModalBody.querySelector('#groupProviderMode');
+  const groupExistingProviderBox = refs.detailModalBody.querySelector('#groupExistingProviderBox');
+  const groupNewProviderBox = refs.detailModalBody.querySelector('#groupNewProviderBox');
+
+  groupProviderMode?.addEventListener('change', () => {
+    const useNew = groupProviderMode.value === 'new';
+    if (groupExistingProviderBox) groupExistingProviderBox.hidden = useNew;
+    if (groupNewProviderBox) groupNewProviderBox.hidden = !useNew;
   });
 }
 
@@ -966,6 +1012,74 @@ export function buildDeleteProveedorConfirmModalHtml(proveedor) {
   `;
 }
 
+
+export function buildGroupProviderModalHtml(codigos) {
+  const codes = [...new Set((codigos || []).map(codigo => String(codigo || '').trim()))]
+    .filter(Boolean);
+
+  const providerOptions = ['<option value="">Selecciona un proveedor</option>'];
+  [...state.proveedores]
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es', { sensitivity: 'base' }))
+    .forEach(proveedor => {
+      providerOptions.push(`<option value="${escapeHtml(proveedor.id)}">${escapeHtml(proveedor.nombre)}</option>`);
+    });
+
+  return `
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow">Cerrar grupo</div>
+        <div class="modal-title text-title" id="detailModalTitle">Asignar proveedor</div>
+      </div>
+      <button type="button" class="modal-close" data-close-modal aria-label="Cerrar">✕</button>
+    </div>
+
+    <div class="modal-callout success">
+      <div class="modal-callout-title">${codes.length} pedido${codes.length === 1 ? '' : 's'} en el grupo</div>
+      <div class="modal-callout-text">Al confirmar, el proveedor elegido se asignará a todos los pedidos del grupo.</div>
+    </div>
+
+    <div class="group-modal-codes">
+      ${codes.map(codigo => `<span class="chip no-link">${escapeHtml(codigo)}</span>`).join('')}
+    </div>
+
+    <div class="field">
+      <label for="groupProviderMode">Proveedor</label>
+      <select id="groupProviderMode">
+        <option value="existing">Elegir proveedor existente</option>
+        <option value="new">Crear proveedor nuevo</option>
+      </select>
+    </div>
+
+    <div id="groupExistingProviderBox" class="field">
+      <label for="groupProveedorSelect">Proveedor existente</label>
+      <select id="groupProveedorSelect">
+        ${providerOptions.join('')}
+      </select>
+    </div>
+
+    <div id="groupNewProviderBox" class="provider-box group-new-provider-box" hidden>
+      <div class="field">
+        <label for="groupNuevoProveedorNombre">Nombre del proveedor</label>
+        <input id="groupNuevoProveedorNombre" type="text" placeholder="Ej. Mayorista Valencia" />
+      </div>
+      <div class="field">
+        <label for="groupNuevoProveedorDescripcion">Notas internas</label>
+        <textarea id="groupNuevoProveedorDescripcion" class="textarea-sm" placeholder="Información interna sobre este proveedor"></textarea>
+      </div>
+    </div>
+
+    <div class="modal-callout danger group-provider-error" id="groupProviderError" hidden>
+      <div class="modal-callout-title">No se pudo asignar el proveedor</div>
+      <div class="modal-callout-text" id="groupProviderErrorText"></div>
+    </div>
+
+    <div class="modal-actions">
+      <button type="button" class="btn-primary" data-confirm-group-provider>Asignar proveedor</button>
+      <button type="button" class="btn-ghost" data-dismiss-modal>Seguir revisando</button>
+    </div>
+  `;
+}
+
 export function buildSyncErrorModalHtml() {
   return `
     <div class="modal-head">
@@ -1051,6 +1165,9 @@ export function bindUIEvents() {
   });
   refs.closeEditorModalBtn.addEventListener('click', actions.onCloseEditor);
   refs.manualCodeBtn?.addEventListener('click', actions.onManualCode);
+  refs.createGroupBtn?.addEventListener('click', actions.onCreateGroup);
+  refs.closeGroupBtn?.addEventListener('click', actions.onCloseGroup);
+  refs.cancelGroupBtn?.addEventListener('click', actions.onCancelGroup);
 
   refs.menuToggleBtn.addEventListener('click', () => {
     if (refs.appDrawer.classList.contains('open')) closeDrawer();

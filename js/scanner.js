@@ -3,7 +3,8 @@ import { initFirebase } from './firebase.js';
 import { getRefs, setScanMessage, setSyncStatus, updateScannerVisibility } from './ui.js';
 
 const actions = {
-  onCodeDetected: async () => {}
+  onCodeDetected: async () => {},
+  shouldKeepCameraOpen: () => false
 };
 
 const SCAN_INTERVAL_MS = 300;
@@ -67,6 +68,7 @@ async function scanLoop() {
   }
 
   state.busy = true;
+  let nextScanScheduled = false;
   refs.videoWrap.classList.add('scanning');
   setSyncStatus('Escaneando', 'busy');
 
@@ -83,8 +85,20 @@ async function scanLoop() {
       refs.currentCodeEl.textContent = stableCode;
       setScanMessage(`Código ${stableCode} validado. Preparando la siguiente acción…`);
       setSyncStatus('Código validado', 'ready');
-      stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: true });
-      await actions.onCodeDetected(stableCode);
+
+      const keepCameraOpen = Boolean(actions.shouldKeepCameraOpen(stableCode));
+      if (!keepCameraOpen) {
+        stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: true });
+      }
+
+      const actionResult = await actions.onCodeDetected(stableCode);
+
+      if (keepCameraOpen && state.stream) {
+        resetScannerValidation();
+        scheduleNextScan(actionResult?.nextDelay ?? 850);
+        nextScanScheduled = true;
+      }
+
       return;
     }
 
@@ -107,7 +121,7 @@ async function scanLoop() {
     state.busy = false;
     refs.videoWrap.classList.remove('scanning');
     updateScannerVisibility();
-    if (state.scannerLoopActive && state.stream) scheduleNextScan();
+    if (!nextScanScheduled && state.scannerLoopActive && state.stream) scheduleNextScan();
   }
 }
 

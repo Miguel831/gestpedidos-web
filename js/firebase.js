@@ -529,6 +529,107 @@ export async function deleteClienteById(clienteId) {
   return { cliente: resolvedCliente, affectedPedidos: pedidos };
 }
 
+
+export async function assignProveedorToPedidoGroup({
+  codigos,
+  proveedorId,
+  providerMode = 'existing',
+  nuevoProveedorNombre = '',
+  nuevoProveedorDescripcion = ''
+}) {
+  await initFirebase();
+
+  const cleanCodes = [...new Set((codigos || []).map(codigo => String(codigo || '').trim()))]
+    .filter(codigo => /^\d{6}$/.test(codigo));
+
+  if (!cleanCodes.length) throw new Error('El grupo no tiene pedidos válidos.');
+
+  let proveedor;
+
+  if (providerMode === 'new') {
+    const nombre = nuevoProveedorNombre.trim();
+    const descripcion = nuevoProveedorDescripcion.trim();
+
+    if (!nombre) throw new Error('Indica el nombre del proveedor.');
+
+    const existing = findProveedorByName(nombre);
+    if (existing) {
+      proveedor = {
+        id: existing.id,
+        nombre: existing.nombre,
+        descripcion: descripcion || existing.descripcion || '',
+        created: false
+      };
+
+      if (descripcion && descripcion !== (existing.descripcion || '')) {
+        await updateDoc(doc(state.db, 'proveedores', existing.id), {
+          descripcion,
+          updatedAt: serverTimestamp(),
+          updatedBy: state.user.uid
+        });
+      }
+    } else {
+      const ref = await addDoc(collection(state.db, 'proveedores'), {
+        nombre,
+        descripcion,
+        pedidosAsignados: cleanCodes,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+        createdBy: state.user.uid,
+        updatedBy: state.user.uid
+      });
+
+      proveedor = { id: ref.id, nombre, descripcion, created: true };
+    }
+  } else {
+    if (!proveedorId) throw new Error('Selecciona un proveedor.');
+    const existing = state.proveedoresMap.get(proveedorId);
+    if (!existing) throw new Error('Proveedor no encontrado.');
+
+    proveedor = {
+      id: existing.id,
+      nombre: existing.nombre,
+      descripcion: existing.descripcion || '',
+      created: false
+    };
+  }
+
+  const batch = writeBatch(state.db);
+
+  cleanCodes.forEach(codigo => {
+    const pedido = state.pedidosMap.get(codigo);
+
+    batch.set(doc(state.db, 'pedidos', codigo), {
+      codigo,
+      proveedorId: proveedor.id,
+      proveedorNombre: proveedor.nombre,
+      updatedAt: serverTimestamp(),
+      updatedBy: state.user.uid
+    }, { merge: true });
+
+    const oldProveedorId = pedido?.proveedorId || '';
+    if (oldProveedorId && oldProveedorId !== proveedor.id) {
+      batch.set(doc(state.db, 'proveedores', oldProveedorId), {
+        pedidosAsignados: arrayRemove(codigo),
+        updatedAt: serverTimestamp(),
+        updatedBy: state.user.uid
+      }, { merge: true });
+    }
+  });
+
+  batch.set(doc(state.db, 'proveedores', proveedor.id), {
+    nombre: proveedor.nombre,
+    descripcion: proveedor.descripcion || '',
+    pedidosAsignados: arrayUnion(...cleanCodes),
+    updatedAt: serverTimestamp(),
+    updatedBy: state.user.uid
+  }, { merge: true });
+
+  await batch.commit();
+
+  return { proveedor, codigos: cleanCodes };
+}
+
 export function cleanupFirebase() {
   state.unsubs.forEach(unsub => unsub());
   state.unsubs = [];

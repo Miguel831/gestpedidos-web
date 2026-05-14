@@ -1,6 +1,7 @@
 import { state } from './state.js';
 import {
   cleanupFirebase,
+  assignProveedorToPedidoGroup,
   createPedidoFromScan,
   deleteClienteById,
   deletePedidoByCode,
@@ -20,6 +21,7 @@ import {
   buildDeleteClienteConfirmModalHtml,
   buildDeletePedidoConfirmModalHtml,
   buildDeleteProveedorConfirmModalHtml,
+  buildGroupProviderModalHtml,
   buildNotifyClientModalHtml,
   buildPedidoModalHtml,
   buildProveedorModalHtml,
@@ -34,6 +36,7 @@ import {
   openModal,
   refreshModalIfNeeded,
   renderAllLists,
+  renderGroupScannerState,
   renderSummary,
   setClientMode,
   setHomeRecordsView,
@@ -203,8 +206,135 @@ async function handleSavePedido(event) {
   }
 }
 
+
+async function startGroupMode() {
+  try {
+    await initFirebase();
+    closeModal();
+    clearForm();
+    state.groupModeActive = true;
+    state.groupPedidoCodes = [];
+    renderGroupScannerState();
+    setSyncStatus('Grupo activo', 'busy');
+    setScanMessage('Grupo iniciado. Escanea cada pedido de la lista; la cámara seguirá abierta hasta que pulses “Cerrar grupo”.');
+    setSaveMessage('Los pedidos escaneados se guardarán en el grupo actual.');
+
+    if (!state.stream) await startCamera();
+
+    setSyncStatus('Grupo activo', 'busy');
+    setScanMessage('Grupo iniciado. Escanea cada pedido de la lista; la cámara seguirá abierta hasta que pulses “Cerrar grupo”.');
+  } catch (error) {
+    console.error(error);
+    state.groupModeActive = false;
+    state.groupPedidoCodes = [];
+    renderGroupScannerState();
+    setSyncStatus('Error', 'error');
+    setScanMessage(error.message || 'No se pudo iniciar el grupo.');
+  }
+}
+
+async function handleGroupScannedCode(code) {
+  const pedido = await loadPedidoByCode(code);
+
+  if (!pedido.existsInDb) {
+    setSyncStatus('Creando pedido', 'busy');
+    await createPedidoFromScan(code);
+  }
+
+  const alreadyAdded = state.groupPedidoCodes.includes(code);
+  if (!alreadyAdded) state.groupPedidoCodes.push(code);
+
+  renderGroupScannerState();
+  refs.currentCodeEl.textContent = code;
+  setSyncStatus('Grupo activo', 'busy');
+  setSaveMessage(alreadyAdded
+    ? `El pedido ${code} ya estaba dentro del grupo.`
+    : `Pedido ${code} añadido al grupo.`);
+  setScanMessage(alreadyAdded
+    ? `El pedido ${code} ya estaba añadido. Muestra otro código o pulsa “Cerrar grupo”.`
+    : `Pedido ${code} añadido al grupo. Escanea el siguiente o pulsa “Cerrar grupo”.`);
+
+  return { keepCameraOpen: true, nextDelay: 950 };
+}
+
+function closeGroupMode() {
+  if (!state.groupModeActive) return;
+
+  if (!state.groupPedidoCodes.length) {
+    setScanMessage('El grupo está vacío. Escanea al menos un pedido antes de cerrarlo.');
+    setSaveMessage('No hay pedidos en el grupo actual.');
+    return;
+  }
+
+  stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: true });
+  openModal(buildGroupProviderModalHtml(state.groupPedidoCodes), { type: 'transient', targetId: '' });
+  setScanMessage('Grupo cerrado para asignación. Elige un proveedor para aplicarlo a todos los pedidos.');
+}
+
+function cancelGroupMode() {
+  if (!state.groupModeActive) return;
+
+  state.groupModeActive = false;
+  state.groupPedidoCodes = [];
+  stopCamera({ preserveMessage: true, preserveStatus: false, preserveCode: false });
+  closeModal();
+  renderGroupScannerState();
+  setSaveMessage('Grupo cancelado. No se han asignado proveedores en lote.');
+  setScanMessage('Grupo cancelado. Pulsa “Crear Grupo” para iniciar una nueva lectura en lote.');
+}
+
+function showGroupProviderError(message) {
+  const errorBox = refs.detailModalBody?.querySelector('#groupProviderError');
+  const errorText = refs.detailModalBody?.querySelector('#groupProviderErrorText');
+  if (!errorBox || !errorText) {
+    setSaveMessage(message);
+    return;
+  }
+
+  errorText.textContent = message;
+  errorBox.hidden = false;
+}
+
+async function confirmGroupProvider() {
+  const codigos = [...state.groupPedidoCodes];
+
+  try {
+    const providerMode = refs.detailModalBody?.querySelector('#groupProviderMode')?.value || 'existing';
+    const proveedorId = refs.detailModalBody?.querySelector('#groupProveedorSelect')?.value || '';
+    const nuevoProveedorNombre = refs.detailModalBody?.querySelector('#groupNuevoProveedorNombre')?.value || '';
+    const nuevoProveedorDescripcion = refs.detailModalBody?.querySelector('#groupNuevoProveedorDescripcion')?.value || '';
+
+    setSyncStatus('Asignando proveedor', 'busy');
+    setSaveMessage('Asignando proveedor al grupo…');
+
+    const { proveedor, codigos: assignedCodes } = await assignProveedorToPedidoGroup({
+      codigos,
+      proveedorId,
+      providerMode,
+      nuevoProveedorNombre,
+      nuevoProveedorDescripcion
+    });
+
+    state.groupModeActive = false;
+    state.groupPedidoCodes = [];
+    closeModal();
+    stopCamera({ preserveMessage: true, preserveStatus: true, preserveCode: false });
+    renderGroupScannerState();
+    setSyncStatus('Sincronizado', 'ready');
+    setSaveMessage(`Proveedor ${proveedor.nombre} asignado a ${assignedCodes.length} pedido${assignedCodes.length === 1 ? '' : 's'}.`);
+    setScanMessage(`Grupo cerrado. ${assignedCodes.length} pedido${assignedCodes.length === 1 ? '' : 's'} asignado${assignedCodes.length === 1 ? '' : 's'} a ${proveedor.nombre}.`);
+    refreshModalIfNeeded();
+  } catch (error) {
+    console.error(error);
+    setSyncStatus('Error', 'error');
+    showGroupProviderError(error.message || 'No se pudo asignar el proveedor al grupo.');
+  }
+}
+
 async function handleScannedCode(code) {
   try {
+    if (state.groupModeActive) return await handleGroupScannedCode(code);
+
     const pedido = await loadPedidoByCode(code);
 
     if (!pedido.existsInDb) {
@@ -419,11 +549,16 @@ setUIActions({
   onManualCode: () => { 
     stopCamera();
     openManualEditor();
-  }
+  },
+  onCreateGroup: startGroupMode,
+  onCloseGroup: closeGroupMode,
+  onCancelGroup: cancelGroupMode,
+  confirmGroupProvider
 });
 
 setScannerActions({
-  onCodeDetected: handleScannedCode
+  onCodeDetected: handleScannedCode,
+  shouldKeepCameraOpen: () => state.groupModeActive
 });
 
 bindUIEvents();
@@ -450,6 +585,7 @@ window.addEventListener('beforeunload', () => {
 
 clearForm();
 updateScannerVisibility();
+renderGroupScannerState();
 renderAllLists();
 renderSummary();
 setHomeRecordsView('pedidos');
